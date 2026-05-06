@@ -1,4 +1,6 @@
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { Container } from "react-bootstrap";
+import "./App.css";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -9,10 +11,12 @@ import Login from "./pages/Login";
 // Shared page layout used across all routes
 function AppLayout() {
     return (
-        <div>
+        <div className="d-flex flex-column min-vh-100">
             <Header />
 
-            <Outlet />
+            <Container className="flex-grow-1 py-2">
+                <Outlet />
+            </Container>
 
             <Footer />
         </div>
