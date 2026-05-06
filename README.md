@@ -1,3 +1,25 @@
+# Reds Web Application
+
+
+> [!IMPORTANT]
+> ### Dependencies
+> From the project root directory, install the project dependencies
+> ```
+> npm install
+> ```
+> ### Vite Development Server
+> Start the Vite development server by running this at the projects root directory. http://localhost:5173
+> ```
+> npm run dev
+> ```
+> ### Packages
+> - ```vite @ 8.0.10```
+> - ```react @ 19.2.5```
+> - ```react-router-dom @ 7.14.2```
+> - ```react-bootstrap @ 2.10.10```
+> - ```bootstrap @ 5.3.8```
+
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
