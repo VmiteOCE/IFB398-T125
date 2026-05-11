@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import EventCapture from "./pages/EventCapture";
 
 // Shared page layout used across all routes
 function AppLayout() {
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
         children: [
             { index: true, Component: Home },
             { path: "login", Component: Login },
+            { path: "event", element: <EventCapture /> }
         ],
     },
 ]);
