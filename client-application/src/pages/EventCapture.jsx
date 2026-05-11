@@ -1,11 +1,17 @@
 
 import { Container, Row, Col, Button } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function EventCapture() {
   const [selectedZone, setSelectedZone] = useState("M");
   const [selectedTeam, setSelectedTeam] = useState("Reds");
   const [isReversed, setIsReversed] = useState(false);
+
+  const [events, setEvents] = useState([]);
+  const [editingIndex, setEditingIndex] = useState(null);
+
+  // ✅ STATIC TIME (replace later with real timer)
+  const currentTime = "26:45";
 
   const baseZones = [
     { label: "A", color: "red", text: "(0–22m)" },
@@ -16,13 +22,76 @@ function EventCapture() {
   ];
 
   const zones = isReversed ? [...baseZones].reverse() : baseZones;
-
   const currentZone = baseZones.find((z) => z.label === selectedZone);
+
+  // ✅ KEYBOARD CONTROL (no wrap)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const currentIndex = zones.findIndex(
+        (z) => z.label === selectedZone
+      );
+
+      if (e.key === "ArrowRight") {
+        const nextIndex = currentIndex + 1;
+        if (nextIndex < zones.length) {
+          e.preventDefault();
+          setSelectedZone(zones[nextIndex].label);
+        }
+      }
+
+      if (e.key === "ArrowLeft") {
+        const prevIndex = currentIndex - 1;
+        if (prevIndex >= 0) {
+          e.preventDefault();
+          setSelectedZone(zones[prevIndex].label);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () =>
+      window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedZone, zones]);
+
+  // ✅ ADD / EDIT EVENT
+  const handleAction = (action) => {
+    const newEvent = {
+      action,
+      zone: selectedZone,
+      team: selectedTeam === "Reds" ? "R" : "A",
+      time: currentTime, // ✅ static
+    };
+
+    if (editingIndex !== null) {
+      const updated = [...events];
+      updated[editingIndex] = newEvent;
+      setEvents(updated);
+      setEditingIndex(null);
+    } else {
+      setEvents([newEvent, ...events]);
+    }
+  };
+
+  // ✅ DELETE
+  const deleteEvent = (index) => {
+    const updated = events.filter((_, i) => i !== index);
+    setEvents(updated);
+  };
+
+  // ✅ EDIT MODE
+  const toggleEdit = (index) => {
+    if (editingIndex === index) {
+      setEditingIndex(null);
+    } else {
+      setEditingIndex(index);
+      setSelectedZone(events[index].zone);
+      setSelectedTeam(events[index].team === "R" ? "Reds" : "Away");
+    }
+  };
 
   return (
     <Container
       fluid
-      className="event-capture"
       style={{
         backgroundColor: "#5a1f28",
         minHeight: "100vh",
@@ -30,55 +99,95 @@ function EventCapture() {
       }}
     >
       {/* HEADER */}
-      <div className="header text-center p-3">
-        <h3 className="match-title">
-          Queensland Reds vs Western Force
-        </h3>
-        <h4 className="score">Score: 12 - 7</h4>
+      <div className="text-center p-3">
+        <h3>Queensland Reds vs Western Force</h3>
+        <h4>Score: 12 - 7</h4>
       </div>
 
       {/* TIMER */}
-      <div className="timer text-center bg-light text-dark p-2">
-        <strong>26:45 (1st Half)</strong>
+      <div className="text-center bg-light text-dark p-2">
+        <strong>{currentTime} (1st Half)</strong>
       </div>
 
-      <Row className="main-content mt-3">
-        {/* LEFT: EVENT HISTORY */}
+      <Row className="mt-3">
+        {/* ✅ EVENT HISTORY */}
         <Col md={4}>
-          <div className="event-history bg-light text-dark p-2">
+          <div className="bg-light text-dark p-2">
             <h5>Event History</h5>
 
-            <div className="event-item p-2 border mb-2">
-              Turnover (26:43)
-            </div>
-            <div className="event-item p-2 border mb-2">
-              Pass (26:38)
-            </div>
-            <div className="event-item p-2 border mb-2">
-              Pass (26:35)
-            </div>
-            <div className="event-item p-2 border mb-2">
-              Catch (26:30)
-            </div>
+            {events.map((event, index) => (
+              <div
+                key={index}
+                className="d-flex justify-content-between align-items-center p-2 mb-2"
+                style={{
+                  // ✅ RED OR BLUE BASED ON TEAM
+                  background:
+                    event.team === "R"
+                      ? "#b30000"
+                      : "#0033cc",
+                  color: "white",
+                  border:
+                    editingIndex === index
+                      ? "3px solid #4CAF50"
+                      : "2px solid transparent",
+                }}
+              >
+                {/* TEXT */}
+                <div>
+                  {event.action} ({event.time}) - {event.team}
+                </div>
+
+                {/* BUTTONS (RIGHT SIDE NOW) */}
+                <div style={{ display: "flex", gap: 6 }}>
+                  {/* EDIT */}
+                  <button
+                    onClick={() => toggleEdit(index)}
+                    style={{
+                      background:
+                        editingIndex === index
+                          ? "#4CAF50"
+                          : "#555",
+                      border: "none",
+                      color: "white",
+                      padding: "4px 8px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✏️
+                  </button>
+
+                  {/* DELETE */}
+                  <button
+                    onClick={() => deleteEvent(index)}
+                    style={{
+                      background: "black",
+                      border: "none",
+                      color: "white",
+                      padding: "4px 8px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </Col>
 
-        {/* RIGHT: ACTION + ZONES */}
+        {/* ✅ ZONES + ACTIONS */}
         <Col md={8}>
-          {/*  ZONE SELECTOR */}
-          <div className="zone-selector p-3 text-center bg-dark text-white">
-            
-            {/* Selected Zone Text */}
-            <p className="zone-info">
-              Zone Selected: {currentZone.label} {currentZone.text}
+          <div className="p-3 text-center bg-dark text-white">
+            <p>
+              Zone Selected: {currentZone.label}{" "}
+              {currentZone.text}
             </p>
 
-            {/* Zone Bar */}
-            <div className="zone-bar" style={{ display: "flex" }}>
+            {/* ZONES */}
+            <div style={{ display: "flex" }}>
               {zones.map((zone) => (
                 <div
                   key={zone.label}
-                  className="zone"
                   onClick={() => setSelectedZone(zone.label)}
                   style={{
                     flex: 1,
@@ -89,7 +198,6 @@ function EventCapture() {
                       selectedZone === zone.label
                         ? "4px solid #4CAF50"
                         : "2px solid transparent",
-                    transition: "all 0.2s ease",
                   }}
                 >
                   {zone.label}
@@ -97,9 +205,8 @@ function EventCapture() {
               ))}
             </div>
 
-            {/* ✅ TEAM SELECTOR */}
+            {/* TEAM SELECTOR */}
             <div
-              className="team-selector"
               style={{
                 display: "flex",
                 marginTop: 10,
@@ -108,9 +215,7 @@ function EventCapture() {
                 overflow: "hidden",
               }}
             >
-              {/* REDS */}
               <div
-                className="team-option"
                 onClick={() => setSelectedTeam("Reds")}
                 style={{
                   flex: 1,
@@ -119,38 +224,33 @@ function EventCapture() {
                   background:
                     selectedTeam === "Reds" ? "red" : "#eee",
                   color:
-                    selectedTeam === "Reds" ? "white" : "black",
-                  fontWeight: "bold",
+                    selectedTeam === "Reds"
+                      ? "white"
+                      : "black",
                   border:
-                      selectedTeam === "Reds"
-                          ? "3px solid #4CAF50"
-                          : "2px solid transparent",
-                      transition: "all 0.2s ease",
+                    selectedTeam === "Reds"
+                      ? "3px solid #4CAF50"
+                      : "2px solid transparent",
                 }}
               >
                 Reds
               </div>
 
-              {/* SWAP BUTTON */}
               <div
-                className="swap-button"
                 onClick={() => setIsReversed(!isReversed)}
                 style={{
                   width: 60,
                   display: "flex",
-                  alignItems: "center",
                   justifyContent: "center",
+                  alignItems: "center",
                   background: "#ccc",
                   cursor: "pointer",
-                  fontSize: 18,
                 }}
               >
                 🔄
               </div>
 
-              {/* AWAY */}
               <div
-                className="team-option"
                 onClick={() => setSelectedTeam("Away")}
                 style={{
                   flex: 1,
@@ -158,14 +258,14 @@ function EventCapture() {
                   cursor: "pointer",
                   background:
                     selectedTeam === "Away" ? "blue" : "#eee",
-                  color: 
-                    selectedTeam === "Away" ? "white" : "black",
-                  fontWeight: "bold",
+                  color:
+                    selectedTeam === "Away"
+                      ? "white"
+                      : "black",
                   border:
-                      selectedTeam === "Away"
-                          ? "3px solid #4CAF50"
-                          : "2px solid transparent",
-                      transition: "all 0.2s ease",
+                    selectedTeam === "Away"
+                      ? "3px solid #4CAF50"
+                      : "2px solid transparent",
                 }}
               >
                 Away
@@ -173,8 +273,8 @@ function EventCapture() {
             </div>
           </div>
 
-          {/* BUTTON GRID */}
-          <div className="event-actions bg-light text-dark p-3 mt-3">
+          {/* ACTION BUTTONS */}
+          <div className="bg-light text-dark p-3 mt-3">
             <h5 className="text-center">Event Actions</h5>
 
             <Row>
@@ -184,7 +284,10 @@ function EventCapture() {
                 "Lineout", "Conversion", "Try", "Maul",
               ].map((action, i) => (
                 <Col xs={6} md={3} key={i} className="mb-3">
-                  <Button className="action-button w-100">
+                  <Button
+                    className="w-100"
+                    onClick={() => handleAction(action)}
+                  >
                     {action}
                   </Button>
                 </Col>
