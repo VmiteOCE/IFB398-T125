@@ -19,7 +19,8 @@ function EventCapture() {
 
   const currentZone = baseZones.find((z) => z.label === selectedZone);
 
-  // ✅ KEYBOARD CONTROL
+  // KEYBOARD CONTROL
+  
   useEffect(() => {
     const handleKeyDown = (e) => {
       const currentIndex = zones.findIndex(
@@ -27,25 +28,33 @@ function EventCapture() {
       );
 
       if (e.key === "ArrowRight") {
-        e.preventDefault();
-        const nextIndex = (currentIndex + 1) % zones.length;
-        setSelectedZone(zones[nextIndex].label);
+        const nextIndex = currentIndex + 1;
+
+        // STOP at the end (no wrap)
+        if (nextIndex < zones.length) {
+          e.preventDefault();
+          setSelectedZone(zones[nextIndex].label);
+        }
       }
 
       if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        const prevIndex =
-          (currentIndex - 1 + zones.length) % zones.length;
-        setSelectedZone(zones[prevIndex].label);
+        const prevIndex = currentIndex - 1;
+
+        // STOP at the beginning (no wrap)
+        if (prevIndex >= 0) {
+          e.preventDefault();
+          setSelectedZone(zones[prevIndex].label);
+        }
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keydown", handleKeyDown);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [selectedZone, zones]);
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+  };
+}, [selectedZone, zones]);
+
 
   return (
     <Container
