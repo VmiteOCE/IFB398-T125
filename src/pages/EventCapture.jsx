@@ -1,6 +1,6 @@
 
 import { Container, Row, Col, Button } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function EventCapture() {
   const [selectedZone, setSelectedZone] = useState("M");
@@ -18,6 +18,34 @@ function EventCapture() {
   const zones = isReversed ? [...baseZones].reverse() : baseZones;
 
   const currentZone = baseZones.find((z) => z.label === selectedZone);
+
+  // ✅ KEYBOARD CONTROL
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const currentIndex = zones.findIndex(
+        (z) => z.label === selectedZone
+      );
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        const nextIndex = (currentIndex + 1) % zones.length;
+        setSelectedZone(zones[nextIndex].label);
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        const prevIndex =
+          (currentIndex - 1 + zones.length) % zones.length;
+        setSelectedZone(zones[prevIndex].label);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedZone, zones]);
 
   return (
     <Container
@@ -65,15 +93,14 @@ function EventCapture() {
 
         {/* RIGHT: ACTION + ZONES */}
         <Col md={8}>
-          {/*  ZONE SELECTOR */}
+          {/* ZONE SELECTOR */}
           <div className="zone-selector p-3 text-center bg-dark text-white">
             
-            {/* Selected Zone Text */}
             <p className="zone-info">
               Zone Selected: {currentZone.label} {currentZone.text}
             </p>
 
-            {/* Zone Bar */}
+            {/* ZONES */}
             <div className="zone-bar" style={{ display: "flex" }}>
               {zones.map((zone) => (
                 <div
@@ -97,7 +124,7 @@ function EventCapture() {
               ))}
             </div>
 
-            {/* ✅ TEAM SELECTOR */}
+            {/* TEAM SELECTOR */}
             <div
               className="team-selector"
               style={{
@@ -122,16 +149,16 @@ function EventCapture() {
                     selectedTeam === "Reds" ? "white" : "black",
                   fontWeight: "bold",
                   border:
-                      selectedTeam === "Reds"
-                          ? "3px solid #4CAF50"
-                          : "2px solid transparent",
-                      transition: "all 0.2s ease",
+                    selectedTeam === "Reds"
+                      ? "3px solid #4CAF50"
+                      : "2px solid transparent",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Reds
               </div>
 
-              {/* SWAP BUTTON */}
+              {/* SWAP */}
               <div
                 className="swap-button"
                 onClick={() => setIsReversed(!isReversed)}
@@ -158,14 +185,14 @@ function EventCapture() {
                   cursor: "pointer",
                   background:
                     selectedTeam === "Away" ? "blue" : "#eee",
-                  color: 
+                  color:
                     selectedTeam === "Away" ? "white" : "black",
                   fontWeight: "bold",
                   border:
-                      selectedTeam === "Away"
-                          ? "3px solid #4CAF50"
-                          : "2px solid transparent",
-                      transition: "all 0.2s ease",
+                    selectedTeam === "Away"
+                      ? "3px solid #4CAF50"
+                      : "2px solid transparent",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Away
@@ -198,3 +225,4 @@ function EventCapture() {
 }
 
 export default EventCapture;
+
