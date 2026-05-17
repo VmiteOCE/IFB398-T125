@@ -1,6 +1,7 @@
 
 import { Container, Row, Col, Button } from "react-bootstrap";
 import { useState, useEffect } from "react";
+import GameClock from "../components/GameClock";
 
 function EventCapture() {
   const [selectedZone, setSelectedZone] = useState("M");
@@ -11,7 +12,7 @@ function EventCapture() {
   const [editingIndex, setEditingIndex] = useState(null);
 
   // ✅ STATIC TIME (replace later with real timer)
-  const currentTime = "26:45";
+  const [currentTime, setCurrentTime] = useState("00:00");
 
   const baseZones = [
     { label: "A", color: "red", text: "(0–22m)" },
@@ -104,14 +105,14 @@ function EventCapture() {
         <h4>Score: 12 - 7</h4>
       </div>
 
-      {/* TIMER */}
-      <div className="text-center bg-light text-dark p-2">
-        <strong>{currentTime} (1st Half)</strong>
-      </div>
 
       <Row className="mt-3">
         {/* ✅ EVENT HISTORY */}
         <Col md={4}>
+        {/* TIMER */}
+        <div className="text-center bg-light text-dark p-2">
+          <GameClock setCurrentTime={setCurrentTime} />
+          </div>
           <div className="bg-light text-dark p-2">
             <h5>Event History</h5>
 
