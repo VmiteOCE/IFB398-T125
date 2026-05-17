@@ -102,7 +102,7 @@ export default function GameClock({ setCurrentTime }) {
       <h1>{formatTime()}</h1>
       <button onClick={() => setOffset(offset - 5)}>-5 sec</button>
       <button onClick={toggleClock}>
-        {isRunning ? 'pause' : 'play'}
+        {isRunning ? '⏸' : '▶'}
       </button>
       <button onClick={() => setOffset(offset + 5)}>+5 sec</button>
     </div>
