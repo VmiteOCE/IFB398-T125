@@ -6,13 +6,13 @@ const GameEventsPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Game ID (will come from another page later)
+  //  Game ID (will come from another page later)
   const gameId = 1;
 
-  // ✅ Toggle dummy/API
+  //  Toggle dummy/API
   const USE_DUMMY_DATA = true;
 
-  // ✅ Dummy data
+  //  Dummy data
   const dummyData = [
     {
       game_event_id: 1,
@@ -55,7 +55,7 @@ const GameEventsPage = () => {
         return;
       }
 
-      // ✅ Future API
+      //  Future API
       const response = await fetch(
         `http://localhost:5000/api/game-events?game_id=${gameId}`
       );
@@ -74,7 +74,7 @@ const GameEventsPage = () => {
     fetchGameEvents();
   }, []);
 
-  // ✅ Extract teams for title
+  //  Extract teams for title
   const teams = [...new Set(data.map((e) => e.team_id))];
 
   const gameTitle =
@@ -92,12 +92,12 @@ const GameEventsPage = () => {
         padding: "20px",
       }}
     >
-      {/* ✅ HEADER */}
+      {/*  HEADER */}
       <div className="text-center mb-3">
         <h3>{gameTitle}</h3>
         <h5 style={{ opacity: 0.8 }}>Game ID: {gameId}</h5>
 
-        {/* ✅ Refresh Button */}
+        {/*  Refresh Button */}
         <button
           onClick={fetchGameEvents}
           style={{
@@ -112,7 +112,7 @@ const GameEventsPage = () => {
         </button>
       </div>
 
-      {/* ✅ TABLE PANEL */}
+      {/*  TABLE PANEL */}
       <div
         style={{
           background: "#f8f9fa",
@@ -154,7 +154,7 @@ const GameEventsPage = () => {
                   <tr
                     key={event.game_event_id}
                     style={{
-                      // ✅ Reds = red, everything else = blue
+                      //  Reds = red, everything else = blue
                       background:
                         event.team_id?.toLowerCase() === "reds"
                           ? "#b30000"
