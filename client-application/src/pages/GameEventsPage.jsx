@@ -87,6 +87,52 @@ const GameEventsPage = () => {
       ? `${teams[0]} vs ${teams[1]}`
       : teams[0] || "Game";
 
+    
+  
+  // --- ZONE ANALYTICS LOGIC ---
+
+  const zones = ["A", "B", "M", "C", "D"];
+
+  const redsEvents = data.filter(
+    (e) => e.team_id?.toLowerCase() === "reds"
+  );
+
+  const bluesEvents = data.filter(
+    (e) => e.team_id?.toLowerCase() !== "reds"
+  );
+
+  // Count zones
+  const countZones = (events) => {
+    const counts = {};
+    zones.forEach((z) => (counts[z] = 0)); // ensure all zones exist
+
+    events.forEach((event) => {
+      const zone = event.zone_id;
+      if (counts[zone] !== undefined) {
+        counts[zone]++;
+      }
+    });
+
+    return counts;
+  };
+
+  const redZoneCounts = countZones(redsEvents);
+  const blueZoneCounts = countZones(bluesEvents);
+
+  // Convert to percentages
+  const zoneStats = zones.map((zone) => {
+    const redTotal = redsEvents.length || 1;
+    const blueTotal = bluesEvents.length || 1;
+
+    return {
+      zone,
+      redPercent: (redZoneCounts[zone] / redTotal) * 100,
+      bluePercent: (blueZoneCounts[zone] / blueTotal) * 100,
+    };
+  });
+
+
+
   return (
     <Container
       fluid
@@ -189,6 +235,63 @@ const GameEventsPage = () => {
           </table>
         )}
       </div>
+      
+      
+      {/* ZONE ANALYTICS */}
+      <div
+        style={{
+          marginTop: "20px",
+          background: "#f8f9fa",
+          color: "black",
+          padding: "15px",
+          borderRadius: "8px",
+        }}
+      >
+        <h5>Zone Distribution (%)</h5>
+
+        <table style={{ borderCollapse: "collapse", width: "100%" }}>
+          <thead>
+            <tr>
+              <th style={styles.header}>Zone</th>
+              <th style={styles.header}>Reds (%)</th>
+              <th style={styles.header}>Blues (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {zoneStats.map(({ zone, redPercent, bluePercent }) => (
+              <tr key={zone}>
+                <td style={styles.cell}>{zone}</td>
+
+                {/* REDS COLUMN */}
+                <td
+                  style={{
+                    ...styles.cell,
+                    backgroundColor: "#b30000",
+                    color: "white",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {redPercent.toFixed(1)}%
+                </td>
+
+                {/* BLUES COLUMN */}
+                <td
+                  style={{
+                    ...styles.cell,
+                    backgroundColor: "#0033cc",
+                    color: "white",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {bluePercent.toFixed(1)}%
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+
     </Container>
   );
 };
