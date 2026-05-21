@@ -1,13 +1,16 @@
 
 import React, { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
+import { useParams } from "react-router-dom";
 
 const GameEventsPage = () => {
+
+  //get it from URL
+  const { id } = useParams();
+  const gameId = parseInt(id, 10) || 1; //sets default id to 1 for testing
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  //  Game ID (will come from another page later)
-  const gameId = 1;
 
   //  Toggle dummy/API
   const USE_DUMMY_DATA = true;
@@ -70,9 +73,11 @@ const GameEventsPage = () => {
     }
   };
 
+  
   useEffect(() => {
     fetchGameEvents();
-  }, []);
+  }, [gameId]);
+
 
   //  Extract teams for title
   const teams = [...new Set(data.map((e) => e.team_id))];

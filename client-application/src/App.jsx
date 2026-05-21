@@ -35,7 +35,8 @@ const router = createBrowserRouter([
             { index: true, Component: Home },
             { path: "login", Component: Login },
             { path: "event", element: <EventCapture /> },
-            { path: "game-events", Component: GameEventsPage } // ✅ NEW ROUTE
+            { path: "game-events", Component: GameEventsPage }, //default path with no ID can be removed when link with past game selection page
+            { path: "game-events/:id", Component: GameEventsPage }
         ],
     },
 ]);
