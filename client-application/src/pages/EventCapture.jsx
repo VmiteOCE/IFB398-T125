@@ -6,7 +6,9 @@ import GameClock from "../components/GameClock";
 function EventCapture() {
   const [selectedZone, setSelectedZone] = useState("M");
   const [selectedTeam, setSelectedTeam] = useState("Reds");
-  const [isReversed, setIsReversed] = useState(false);
+
+  // ✅ NEW: manual override
+  const [manualFlip, setManualFlip] = useState(false);
 
   const [events, setEvents] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -22,8 +24,19 @@ function EventCapture() {
     { label: "D", color: "blue", text: "(72–94m)" },
   ];
 
-  const zones = isReversed ? [...baseZones].reverse() : baseZones;
-  const currentZone = baseZones.find((z) => z.label === selectedZone);
+  // ✅ TEAM DEFAULT
+  const isTeamReversed = selectedTeam === "Away";
+
+  // ✅ FINAL (team + manual override)
+  const finalReversed = isTeamReversed !== manualFlip;
+
+  const zones = finalReversed
+    ? [...baseZones].reverse()
+    : baseZones;
+
+  const currentZone = baseZones.find(
+    (z) => z.label === selectedZone
+  );
 
   // Keys for events - I put y as try and v as conversion as placeholders
   const actionKeys = {
@@ -119,7 +132,9 @@ function EventCapture() {
     } else {
       setEditingIndex(index);
       setSelectedZone(events[index].zone);
-      setSelectedTeam(events[index].team === "R" ? "Reds" : "Away");
+      setSelectedTeam(
+        events[index].team === "R" ? "Reds" : "Away"
+      );
     }
   };
 
@@ -172,9 +187,7 @@ function EventCapture() {
                   {event.action} ({event.zone}) - ({event.time}) - {event.team}
                 </div>
 
-                {/* BUTTONS (RIGHT SIDE NOW) */}
                 <div style={{ display: "flex", gap: 6 }}>
-                  {/* EDIT */}
                   <button
                     onClick={() => toggleEdit(index)}
                     style={{
@@ -191,7 +204,6 @@ function EventCapture() {
                     ✏️
                   </button>
 
-                  {/* DELETE */}
                   <button
                     onClick={() => deleteEvent(index)}
                     style={{
@@ -257,7 +269,9 @@ function EventCapture() {
                   padding: 10,
                   cursor: "pointer",
                   background:
-                    selectedTeam === "Reds" ? "red" : "#eee",
+                    selectedTeam === "Reds"
+                      ? "red"
+                      : "#eee",
                   color:
                     selectedTeam === "Reds"
                       ? "white"
@@ -271,8 +285,9 @@ function EventCapture() {
                 Reds
               </div>
 
+              {/* ✅ UPDATED SWAP BUTTON */}
               <div
-                onClick={() => setIsReversed(!isReversed)}
+                onClick={() => setManualFlip(!manualFlip)}
                 style={{
                   width: 60,
                   display: "flex",
@@ -286,13 +301,17 @@ function EventCapture() {
               </div>
 
               <div
-                onClick={() => setSelectedTeam("Away")}
+                onClick={() =>
+                  setSelectedTeam("Away")
+                }
                 style={{
                   flex: 1,
                   padding: 10,
                   cursor: "pointer",
                   background:
-                    selectedTeam === "Away" ? "blue" : "#eee",
+                    selectedTeam === "Away"
+                      ? "blue"
+                      : "#eee",
                   color:
                     selectedTeam === "Away"
                       ? "white"
@@ -310,18 +329,31 @@ function EventCapture() {
 
           {/* ACTION BUTTONS */}
           <div className="bg-light text-dark p-3 mt-3">
-            <h5 className="text-center">Event Actions</h5>
+            <h5 className="text-center">
+              Event Actions
+            </h5>
 
             <Row>
               {[
-                "Pass", "Kick", "Catch", "Ruck",
-                "Scrum", "Penalty", "Advantage", "Turnover",
-                "Lineout", "Conversion", "Try", "Maul",
+                "Pass",
+                "Kick",
+                "Catch",
+                "Ruck",
+                "Scrum",
+                "Penalty",
+                "Advantage",
+                "Turnover",
+                "Lineout",
+                "Conversion",
+                "Try",
+                "Maul",
               ].map((action, i) => (
                 <Col xs={6} md={3} key={i} className="mb-3">
                   <Button
                     className="w-100"
-                    onClick={() => handleAction(action)}
+                    onClick={() =>
+                      handleAction(action)
+                    }
                   >
                     {action}
                   </Button>
