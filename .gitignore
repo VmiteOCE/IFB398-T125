@@ -15,6 +15,15 @@ lerna-debug.log*
 **/.env
 **/.env.*
 
+# Whitelist .env example files
+!**/.env.example
+
+# Local HTTPS certificate management
+**/certs/*
+!**/certs/.gitkeep
+*.key
+*.crt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
