@@ -1,6 +1,7 @@
 
 import { Container, Row, Col, Button } from "react-bootstrap";
 import { useState, useEffect } from "react";
+import GameClock from "../components/GameClock";
 
 function EventCapture() {
   const [selectedZone, setSelectedZone] = useState("M");
@@ -12,7 +13,8 @@ function EventCapture() {
   const [events, setEvents] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
 
-  const currentTime = "26:45";
+  // Timer
+  const [currentTime, setCurrentTime] = useState("00:00");
 
   const baseZones = [
     { label: "A", color: "red", text: "(0–22m)" },
@@ -36,7 +38,23 @@ function EventCapture() {
     (z) => z.label === selectedZone
   );
 
-  // ✅ KEYBOARD CONTROL
+  // Keys for events - I put y as try and v as conversion as placeholders
+  const actionKeys = {
+  r: "Ruck",
+  k: "Kick",
+  p: "Pass",
+  c: "Catch",
+  t: "Turnover",
+  a: "Advantage",
+  e: "Penalty",
+  l: "Lineout",
+  s: "Scrum",
+  m: "Maul",
+  y: "Try",
+  v: "Conversion",
+};
+
+  // KEYBOARD CONTROL (no wrap)
   useEffect(() => {
     const handleKeyDown = (e) => {
       const currentIndex = zones.findIndex(
@@ -58,20 +76,37 @@ function EventCapture() {
           setSelectedZone(zones[prevIndex].label);
         }
       }
+      
+      // TAB to swicth team - can change bind if needed
+      if (e.key === "Tab") {
+        e.preventDefault();
+        if (selectedTeam === "Reds") {
+          setSelectedTeam("Away");
+        } else {
+          setSelectedTeam("Reds");
+        }
+      }
+      
+      const action = actionKeys[e.key.toLowerCase()];
+      if (action) {
+        e.preventDefault();
+        handleAction(action);
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () =>
+    return () => {
       window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedZone, zones]);
+     };
+  }, [selectedZone, zones, selectedTeam, currentTime, events, editingIndex]);
 
-  // ✅ ADD / EDIT EVENT
+  // ADD / EDIT EVENT
   const handleAction = (action) => {
     const newEvent = {
       action,
       zone: selectedZone,
       team: selectedTeam === "Reds" ? "R" : "A",
-      time: currentTime,
+      time: currentTime, 
     };
 
     if (editingIndex !== null) {
@@ -84,11 +119,13 @@ function EventCapture() {
     }
   };
 
+  // DELETE
   const deleteEvent = (index) => {
     const updated = events.filter((_, i) => i !== index);
     setEvents(updated);
   };
 
+  // EDIT MODE
   const toggleEdit = (index) => {
     if (editingIndex === index) {
       setEditingIndex(null);
@@ -113,18 +150,19 @@ function EventCapture() {
       {/* HEADER */}
       <div className="text-center p-3">
         <h3>Queensland Reds vs Western Force</h3>
-        <h4>Score: 12 - 7</h4>
+        <h4>Score: 12 - 7</h4>  {/* static for now */}
       </div>
 
-      {/* TIMER */}
-      <div className="text-center bg-light text-dark p-2">
-        <strong>{currentTime} (1st Half)</strong>
-      </div>
 
       <Row className="mt-3">
         {/* EVENT HISTORY */}
         <Col md={4}>
-          <div className="bg-light text-dark p-2">
+        {/* GameClock */}
+        <div className="text-center bg-light text-dark p-2">
+          <GameClock setCurrentTime={setCurrentTime} />
+          </div>
+          <div className="bg-light text-dark p-2 overflow-y-auto"
+          style={{ maxHeight: "500px" }}>
             <h5>Event History</h5>
 
             {events.map((event, index) => (
@@ -132,6 +170,7 @@ function EventCapture() {
                 key={index}
                 className="d-flex justify-content-between align-items-center p-2 mb-2"
                 style={{
+                  // RED OR BLUE BASED ON TEAM
                   background:
                     event.team === "R"
                       ? "#b30000"
@@ -143,9 +182,9 @@ function EventCapture() {
                       : "2px solid transparent",
                 }}
               >
+                {/* TEXT - shwos action, zone, time and team */}
                 <div>
-                  {event.action} ({event.time}) -{" "}
-                  {event.team}
+                  {event.action} ({event.zone}) - ({event.time}) - {event.team}
                 </div>
 
                 <div style={{ display: "flex", gap: 6 }}>

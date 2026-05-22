@@ -1,0 +1,19 @@
+.paragraph-font{
+    color: black;
+    font-size: 2.5vw;
+    text-align: center;
+}
+
+li {
+    list-style-type: decimal;  
+    font-size: 2vw; 
+}
+
+li li {
+    list-style-type: circle;  
+    font-size: 2vw; 
+}
+
+ul {
+    margin-top: 0;
+}
