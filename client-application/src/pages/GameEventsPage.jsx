@@ -60,7 +60,7 @@ const GameEventsPage = () => {
 
       // API CALL 
       const response = await fetch(
-        `http://localhost:3000/api/game-events/${gameId}`
+        `http://localhost:3000/events/${gameId}`
       );
 
       const result = await response.json();
