@@ -26,6 +26,9 @@ export default function header() {
                         <Nav.Link as={NavLink} to="/event">
                             Capture
                         </Nav.Link>
+                        <Nav.Link as={NavLink} to="/game-events">
+                            Game Stats
+                        </Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
             </Container>
