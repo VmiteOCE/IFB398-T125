@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/', (req, res) => {
   const { game_id, event_code, zone_id, team_id, game_clock, game_half } = req.body;
 
-  req.db('game_events')
+  req.db('events') //i just changed the typo
     .insert({
       game_id,
       event_code,
