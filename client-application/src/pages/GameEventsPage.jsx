@@ -4,18 +4,17 @@ import { Container } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 
 const GameEventsPage = () => {
-
-  //get it from URL
+  // get id from URL
   const { id } = useParams();
-  const gameId = parseInt(id, 10) || 1; //sets default id to 1 for testing
+  const gameId = parseInt(id, 10) || 1;
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  //  Toggle dummy/API
+  // dummy data is off to test API
   const USE_DUMMY_DATA = true;
 
-  //  Dummy data
+  // Dummy data 
   const dummyData = [
     {
       game_event_id: 1,
@@ -47,6 +46,7 @@ const GameEventsPage = () => {
     try {
       setLoading(true);
 
+      //  DUMMY MODE
       if (USE_DUMMY_DATA) {
         setTimeout(() => {
           const filtered = dummyData.filter(
@@ -58,28 +58,34 @@ const GameEventsPage = () => {
         return;
       }
 
-      //  Future API
+      // API CALL 
       const response = await fetch(
-        `http://localhost:5000/api/game-events?game_id=${gameId}`
+        `http://localhost:3000/api/game-events/${gameId}`
       );
 
       const result = await response.json();
-      setData(result);
+
+      //  BACKEND RESPONSE STRUCTURE
+      if (!response.ok || result.error) {
+        throw new Error(result.message || "Failed to fetch game events");
+      }
+
+      // extract events array
+      setData(result.events || []);
       setLoading(false);
 
     } catch (error) {
-      console.error(error);
+      console.error("Fetch error:", error);
+      setData([]);
       setLoading(false);
     }
   };
 
-  
   useEffect(() => {
     fetchGameEvents();
   }, [gameId]);
 
-
-  //  Extract teams for title
+  // Extract teams
   const teams = [...new Set(data.map((e) => e.team_id))];
 
   const gameTitle =
@@ -87,10 +93,7 @@ const GameEventsPage = () => {
       ? `${teams[0]} vs ${teams[1]}`
       : teams[0] || "Game";
 
-    
-  
-  // --- ZONE ANALYTICS LOGIC ---
-
+  // --- ZONE ANALYTICS ---
   const zones = ["A", "B", "M", "C", "D"];
 
   const redsEvents = data.filter(
@@ -101,10 +104,9 @@ const GameEventsPage = () => {
     (e) => e.team_id?.toLowerCase() !== "reds"
   );
 
-  // Count zones
   const countZones = (events) => {
     const counts = {};
-    zones.forEach((z) => (counts[z] = 0)); // ensure all zones exist
+    zones.forEach((z) => (counts[z] = 0));
 
     events.forEach((event) => {
       const zone = event.zone_id;
@@ -119,7 +121,6 @@ const GameEventsPage = () => {
   const redZoneCounts = countZones(redsEvents);
   const blueZoneCounts = countZones(bluesEvents);
 
-  // Convert to percentages
   const zoneStats = zones.map((zone) => {
     const redTotal = redsEvents.length || 1;
     const blueTotal = bluesEvents.length || 1;
@@ -131,8 +132,6 @@ const GameEventsPage = () => {
     };
   });
 
-
-
   return (
     <Container
       fluid
@@ -143,12 +142,11 @@ const GameEventsPage = () => {
         padding: "20px",
       }}
     >
-      {/*  HEADER */}
+      {/* HEADER */}
       <div className="text-center mb-3">
         <h3>{gameTitle}</h3>
         <h5 style={{ opacity: 0.8 }}>Game ID: {gameId}</h5>
 
-        {/*  Refresh Button */}
         <button
           onClick={fetchGameEvents}
           style={{
@@ -163,7 +161,7 @@ const GameEventsPage = () => {
         </button>
       </div>
 
-      {/*  TABLE PANEL */}
+      {/* TABLE */}
       <div
         style={{
           background: "#f8f9fa",
@@ -177,12 +175,7 @@ const GameEventsPage = () => {
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <table
-            style={{
-              borderCollapse: "collapse",
-              width: "100%",
-            }}
-          >
+          <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
                 <th style={styles.header}>Event ID</th>
@@ -192,7 +185,6 @@ const GameEventsPage = () => {
                 <th style={styles.header}>Time</th>
               </tr>
             </thead>
-
             <tbody>
               {data.length === 0 ? (
                 <tr>
@@ -205,7 +197,6 @@ const GameEventsPage = () => {
                   <tr
                     key={event.game_event_id}
                     style={{
-                      //  Reds = red, everything else = blue
                       background:
                         event.team_id?.toLowerCase() === "reds"
                           ? "#b30000"
@@ -235,8 +226,7 @@ const GameEventsPage = () => {
           </table>
         )}
       </div>
-      
-      
+
       {/* ZONE ANALYTICS */}
       <div
         style={{
@@ -262,7 +252,6 @@ const GameEventsPage = () => {
               <tr key={zone}>
                 <td style={styles.cell}>{zone}</td>
 
-                {/* REDS COLUMN */}
                 <td
                   style={{
                     ...styles.cell,
@@ -274,7 +263,6 @@ const GameEventsPage = () => {
                   {redPercent.toFixed(1)}%
                 </td>
 
-                {/* BLUES COLUMN */}
                 <td
                   style={{
                     ...styles.cell,
@@ -290,8 +278,6 @@ const GameEventsPage = () => {
           </tbody>
         </table>
       </div>
-
-
     </Container>
   );
 };
