@@ -60,8 +60,16 @@ app.use('/', swaggerUI.serve);
 app.get('/', swaggerUI.setup(swaggerDocument));
 
 // Mount routers
+// https://localhost:3000/games
+// ./routes/games.js
 app.use('/games', gamesRouter);
+
+// https://localhost:3000/events
+// ./routes/events.js
 app.use('/events', eventsRouter);
+
+// https://localhost:3000/user
+// ./routes/user.js
 app.use('/user', userRouter);
 
 // Attempt to start HTTPS server instance
