@@ -4,76 +4,52 @@ import { Container } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 
 const GameEventsPage = () => {
-  // get id from URL
   const { id } = useParams();
   const gameId = parseInt(id, 10) || 1;
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // dummy data is off to test API
-  const USE_DUMMY_DATA = true;
+  // Team mapping
+  const teamMap = {
+    1: "Reds",
+    2: "Blues",
+  };
 
-  // Dummy data 
-  const dummyData = [
-    {
-      game_event_id: 1,
-      game_id: 1,
-      event_code: "TRY",
-      team_id: "Reds",
-      zone_id: "A",
-      game_clock: "12:34",
-    },
-    {
-      game_event_id: 2,
-      game_id: 1,
-      event_code: "KICK",
-      team_id: "Blues",
-      zone_id: "M",
-      game_clock: "10:20",
-    },
-    {
-      game_event_id: 3,
-      game_id: 1,
-      event_code: "PASS",
-      team_id: "Blues",
-      zone_id: "B",
-      game_clock: "08:15",
-    },
-  ];
+  // Format seconds → mm:ss
+  const formatTime = (seconds) => {
+    if (seconds === null || seconds === undefined) return "-";
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const fetchGameEvents = async () => {
     try {
       setLoading(true);
 
-      //  DUMMY MODE
-      if (USE_DUMMY_DATA) {
-        setTimeout(() => {
-          const filtered = dummyData.filter(
-            (event) => event.game_id === gameId
-          );
-          setData(filtered);
-          setLoading(false);
-        }, 300);
-        return;
-      }
-
-      // API CALL 
-      const response = await fetch(
-        `http://localhost:3000/api/game-events/${gameId}`
-      );
-
+      const response = await fetch(`/events/${gameId}`);
       const result = await response.json();
 
-      //  BACKEND RESPONSE STRUCTURE
       if (!response.ok || result.error) {
-        throw new Error(result.message || "Failed to fetch game events");
+        throw new Error(result.message || "Failed to fetch");
       }
 
-      // extract events array
-      setData(result.events || []);
-      setLoading(false);
+      const eventsArray = Array.isArray(result.events)
+        ? result.events
+        : [];
 
+      const mappedEvents = eventsArray.map((e) => ({
+        event_id: e.event_id,
+        team_id: e.team_id,
+        team_name: teamMap[e.team_id] || `Team ${e.team_id}`,
+        event_code: e.event_code,
+        zone_id: e.zone_id,
+        formatted_time: formatTime(e.game_clock),
+      }));
+
+      setData(mappedEvents);
+      setLoading(false);
     } catch (error) {
       console.error("Fetch error:", error);
       setData([]);
@@ -85,33 +61,27 @@ const GameEventsPage = () => {
     fetchGameEvents();
   }, [gameId]);
 
-  // Extract teams
-  const teams = [...new Set(data.map((e) => e.team_id))];
+  // Teams
+  const teams = [...new Set(data.map((e) => e.team_name))];
 
   const gameTitle =
     teams.length >= 2
       ? `${teams[0]} vs ${teams[1]}`
       : teams[0] || "Game";
 
-  // --- ZONE ANALYTICS ---
+  // ZONE ANALYTICS
   const zones = ["A", "B", "M", "C", "D"];
 
-  const redsEvents = data.filter(
-    (e) => e.team_id?.toLowerCase() === "reds"
-  );
-
-  const bluesEvents = data.filter(
-    (e) => e.team_id?.toLowerCase() !== "reds"
-  );
+  const redsEvents = data.filter((e) => e.team_id === 1);
+  const bluesEvents = data.filter((e) => e.team_id !== 1);
 
   const countZones = (events) => {
     const counts = {};
     zones.forEach((z) => (counts[z] = 0));
 
     events.forEach((event) => {
-      const zone = event.zone_id;
-      if (counts[zone] !== undefined) {
-        counts[zone]++;
+      if (counts[event.zone_id] !== undefined) {
+        counts[event.zone_id]++;
       }
     });
 
@@ -195,30 +165,18 @@ const GameEventsPage = () => {
               ) : (
                 data.map((event) => (
                   <tr
-                    key={event.game_event_id}
+                    key={event.event_id}
                     style={{
                       background:
-                        event.team_id?.toLowerCase() === "reds"
-                          ? "#b30000"
-                          : "#0033cc",
+                        event.team_id === 1 ? "#b30000" : "#0033cc",
                       color: "white",
                     }}
                   >
-                    <td style={styles.cell}>
-                      {event.game_event_id}
-                    </td>
-                    <td style={styles.cell}>
-                      {event.team_id}
-                    </td>
-                    <td style={styles.cell}>
-                      {event.event_code}
-                    </td>
-                    <td style={styles.cell}>
-                      {event.zone_id}
-                    </td>
-                    <td style={styles.cell}>
-                      {event.game_clock}
-                    </td>
+                    <td style={styles.cell}>{event.event_id}</td>
+                    <td style={styles.cell}>{event.team_name}</td>
+                    <td style={styles.cell}>{event.event_code}</td>
+                    <td style={styles.cell}>{event.zone_id}</td>
+                    <td style={styles.cell}>{event.formatted_time}</td>
                   </tr>
                 ))
               )}
