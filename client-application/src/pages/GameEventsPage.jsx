@@ -10,11 +10,8 @@ const GameEventsPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Team mapping
-  const teamMap = {
-    1: "Reds",
-    2: "Blues",
-  };
+  // NEW: game info
+  const [gameInfo, setGameInfo] = useState(null);
 
   // Format seconds → mm:ss
   const formatTime = (seconds) => {
@@ -24,6 +21,27 @@ const GameEventsPage = () => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // FETCH GAME INFO
+  useEffect(() => {
+    const fetchGame = async () => {
+      try {
+        const res = await fetch(`/games/${gameId}`);
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          throw new Error(result.message);
+        }
+
+        setGameInfo(result.game);
+      } catch (err) {
+        console.error("Game fetch error:", err);
+      }
+    };
+
+    fetchGame();
+  }, [gameId]);
+
+  // FETCH EVENTS
   const fetchGameEvents = async () => {
     try {
       setLoading(true);
@@ -42,7 +60,10 @@ const GameEventsPage = () => {
       const mappedEvents = eventsArray.map((e) => ({
         event_id: e.event_id,
         team_id: e.team_id,
-        team_name: teamMap[e.team_id] || `Team ${e.team_id}`,
+        team_name:
+          e.team_id === 1
+            ? "Reds"
+            : gameInfo?.vs_team || "Away",
         event_code: e.event_code,
         zone_id: e.zone_id,
         formatted_time: formatTime(e.game_clock),
@@ -59,21 +80,17 @@ const GameEventsPage = () => {
 
   useEffect(() => {
     fetchGameEvents();
-  }, [gameId]);
+  }, [gameId, gameInfo]);
 
-  // Teams
-  const teams = [...new Set(data.map((e) => e.team_name))];
+  // TITLE (now from DB)
+  const gameTitle = gameInfo
+    ? `Reds vs ${gameInfo.vs_team}`
+    : "Game";
 
-  const gameTitle =
-    teams.length >= 2
-      ? `${teams[0]} vs ${teams[1]}`
-      : teams[0] || "Game";
-
-  // ZONE ANALYTICS
   const zones = ["A", "B", "M", "C", "D"];
 
   const redsEvents = data.filter((e) => e.team_id === 1);
-  const bluesEvents = data.filter((e) => e.team_id !== 1);
+  const awayEvents = data.filter((e) => e.team_id !== 1);
 
   const countZones = (events) => {
     const counts = {};
@@ -89,16 +106,16 @@ const GameEventsPage = () => {
   };
 
   const redZoneCounts = countZones(redsEvents);
-  const blueZoneCounts = countZones(bluesEvents);
+  const awayZoneCounts = countZones(awayEvents);
 
   const zoneStats = zones.map((zone) => {
     const redTotal = redsEvents.length || 1;
-    const blueTotal = bluesEvents.length || 1;
+    const awayTotal = awayEvents.length || 1;
 
     return {
       zone,
       redPercent: (redZoneCounts[zone] / redTotal) * 100,
-      bluePercent: (blueZoneCounts[zone] / blueTotal) * 100,
+      awayPercent: (awayZoneCounts[zone] / awayTotal) * 100,
     };
   });
 
@@ -115,7 +132,9 @@ const GameEventsPage = () => {
       {/* HEADER */}
       <div className="text-center mb-3">
         <h3>{gameTitle}</h3>
-        <h5 style={{ opacity: 0.8 }}>Game ID: {gameId}</h5>
+        <h5 style={{ opacity: 0.8 }}>
+          {gameInfo?.game_name || `Game ID: ${gameId}`}
+        </h5>
 
         <button
           onClick={fetchGameEvents}
@@ -168,7 +187,9 @@ const GameEventsPage = () => {
                     key={event.event_id}
                     style={{
                       background:
-                        event.team_id === 1 ? "#b30000" : "#0033cc",
+                        event.team_id === 1
+                          ? "#b30000"
+                          : "#0033cc",
                       color: "white",
                     }}
                   >
@@ -202,11 +223,13 @@ const GameEventsPage = () => {
             <tr>
               <th style={styles.header}>Zone</th>
               <th style={styles.header}>Reds (%)</th>
-              <th style={styles.header}>Blues (%)</th>
+              <th style={styles.header}>
+                {gameInfo?.vs_team || "Away"} (%)
+              </th>
             </tr>
           </thead>
           <tbody>
-            {zoneStats.map(({ zone, redPercent, bluePercent }) => (
+            {zoneStats.map(({ zone, redPercent, awayPercent }) => (
               <tr key={zone}>
                 <td style={styles.cell}>{zone}</td>
 
@@ -229,7 +252,7 @@ const GameEventsPage = () => {
                     fontWeight: "bold",
                   }}
                 >
-                  {bluePercent.toFixed(1)}%
+                  {awayPercent.toFixed(1)}%
                 </td>
               </tr>
             ))}

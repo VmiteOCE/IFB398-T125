@@ -17,13 +17,38 @@ function EventCapture() {
 
   const [currentTime, setCurrentTime] = useState("00:00");
 
-  // Convert mm:ss → seconds
+  const [gameInfo, setGameInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchGameInfo = async () => {
+      try {
+        const res = await fetch(`/games/${gameId}`);
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          throw new Error(result.message);
+        }
+
+        setGameInfo(result.game);
+      } catch (err) {
+        console.error("Game fetch error:", err);
+      }
+    };
+
+    fetchGameInfo();
+  }, [gameId]);
+
   const toSeconds = (timeStr) => {
     const [mins, secs] = timeStr.split(":").map(Number);
     return mins * 60 + secs;
   };
 
-  // Map action → API event_code
+  const formatSeconds = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
   const actionToCode = {
     Pass: "P",
     Kick: "K",
@@ -39,6 +64,10 @@ function EventCapture() {
     Maul: "M",
   };
 
+  const codeToAction = Object.fromEntries(
+    Object.entries(actionToCode).map(([k, v]) => [v, k])
+  );
+
   const baseZones = [
     { label: "A", color: "red", text: "(0–22m)" },
     { label: "B", color: "pink", text: "(22–40m)" },
@@ -49,7 +78,6 @@ function EventCapture() {
 
   const isTeamReversed = selectedTeam === "Away";
   const finalReversed = isTeamReversed !== manualFlip;
-
   const zones = finalReversed ? [...baseZones].reverse() : baseZones;
 
   const currentZone = baseZones.find((z) => z.label === selectedZone);
@@ -69,7 +97,35 @@ function EventCapture() {
     v: "Conversion",
   };
 
-  // POST event to API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch(`/events/${gameId}`);
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          throw new Error(result.message);
+        }
+
+        const mapped = result.events
+          .slice()
+          .reverse()
+          .map((e) => ({
+            action: codeToAction[e.event_code] || e.event_code,
+            zone: e.zone_id,
+            team: e.team_id === 1 ? "R" : "A",
+            time: formatSeconds(e.game_clock),
+          }));
+
+        setEvents(mapped);
+      } catch (err) {
+        console.error("Fetch events error:", err);
+      }
+    };
+
+    fetchEvents();
+  }, [gameId]);
+
   const postEvent = async (action) => {
     const payload = {
       game_id: gameId,
@@ -83,16 +139,14 @@ function EventCapture() {
     try {
       const res = await fetch("/events", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const result = await res.json();
 
       if (!res.ok || result.error) {
-        throw new Error(result.message || "Failed to save");
+        throw new Error(result.message);
       }
 
       return true;
@@ -102,10 +156,8 @@ function EventCapture() {
     }
   };
 
-  // ADD / EDIT EVENT
   const handleAction = async (action) => {
     const success = await postEvent(action);
-
     if (!success) return;
 
     const newEvent = {
@@ -121,14 +173,12 @@ function EventCapture() {
       setEvents(updated);
       setEditingIndex(null);
     } else {
-      setEvents([newEvent, ...events]);
+      setEvents((prev) => [newEvent, ...prev].slice(0, 8));
     }
   };
 
-  // DELETE (UI only)
   const deleteEvent = (index) => {
-    const updated = events.filter((_, i) => i !== index);
-    setEvents(updated);
+    setEvents(events.filter((_, i) => i !== index));
   };
 
   const toggleEdit = (index) => {
@@ -141,7 +191,6 @@ function EventCapture() {
     }
   };
 
-  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e) => {
       const currentIndex = zones.findIndex((z) => z.label === selectedZone);
@@ -164,7 +213,9 @@ function EventCapture() {
 
       if (e.key === "Tab") {
         e.preventDefault();
-        setSelectedTeam(selectedTeam === "Reds" ? "Away" : "Reds");
+        setSelectedTeam((prev) =>
+          prev === "Reds" ? "Away" : "Reds"
+        );
       }
 
       const action = actionKeys[e.key.toLowerCase()];
@@ -177,26 +228,31 @@ function EventCapture() {
     window.addEventListener("keydown", handleKeyDown);
     return () =>
       window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedZone, zones, selectedTeam, currentTime, events, editingIndex]);
+  }, [selectedZone, zones, selectedTeam, currentTime]);
 
   return (
     <Container fluid style={{ backgroundColor: "#5a1f28", minHeight: "100vh", color: "white" }}>
+      
+      {/* ONLY THIS PART CHANGED */}
       <div className="text-center p-3">
-        <h3>Game ID: {gameId}</h3>
-        <h4>Score: 12 - 7</h4>
+        <h3>
+          {gameInfo ? `Reds vs ${gameInfo.vs_team}` : `Game ID: ${gameId}`}
+        </h3>
+        <h4>
+          {gameInfo ? gameInfo.game_name : "Score: 12 - 7"}
+        </h4>
       </div>
 
       <Row className="mt-3">
-        {/* LEFT SIDE */}
         <Col md={4}>
           <div className="text-center bg-light text-dark p-2">
             <GameClock setCurrentTime={setCurrentTime} />
           </div>
 
           <div className="bg-light text-dark p-2" style={{ maxHeight: "500px", overflowY: "auto" }}>
-            <h5>Event History</h5>
+            <h5>Event History (Last 8)</h5>
 
-            {events.map((event, index) => (
+            {events.slice(0, 8).map((event, index) => (
               <div
                 key={index}
                 className="d-flex justify-content-between align-items-center p-2 mb-2"
@@ -219,14 +275,13 @@ function EventCapture() {
           </div>
         </Col>
 
-        {/* RIGHT SIDE */}
         <Col md={8}>
           <div className="p-3 text-center bg-dark text-white">
             <p>
               Zone Selected: {currentZone.label} {currentZone.text}
             </p>
 
-            <div style={{ display: "flex" }}>
+            <div style={{ display: "flex", transition: "all 0.3s ease" }}>
               {zones.map((zone) => (
                 <div
                   key={zone.label}
@@ -236,7 +291,11 @@ function EventCapture() {
                     background: zone.color,
                     padding: 30,
                     cursor: "pointer",
-                    border: selectedZone === zone.label ? "4px solid #4CAF50" : "2px solid transparent",
+                    transition: "all 0.3s ease",
+                    border:
+                      selectedZone === zone.label
+                        ? "4px solid #4CAF50"
+                        : "2px solid transparent",
                   }}
                 >
                   {zone.label}
@@ -244,22 +303,49 @@ function EventCapture() {
               ))}
             </div>
 
-            {/* TEAM */}
-            <div style={{ display: "flex", marginTop: 10 }}>
+            <div
+              style={{
+                display: "flex",
+                marginTop: 10,
+                borderRadius: "8px",
+                overflow: "hidden",
+                background: "#ddd",
+                height: 60,
+              }}
+            >
               <div
                 onClick={() => setSelectedTeam("Reds")}
                 style={{
                   flex: 1,
-                  padding: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   cursor: "pointer",
-                  background: selectedTeam === "Reds" ? "red" : "#eee",
-                  color: selectedTeam === "Reds" ? "white" : "black",
+                  background:
+                    selectedTeam === "Reds" ? "red" : "#eee",
+                  color:
+                    selectedTeam === "Reds" ? "white" : "black",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Reds
               </div>
 
-              <div onClick={() => setManualFlip(!manualFlip)} style={{ width: 60, cursor: "pointer" }}>
+              <div
+                onClick={() => setManualFlip(!manualFlip)}
+                style={{
+                  width: 70,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  background: "#bbb",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  transform: manualFlip
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
+                }}
+              >
                 🔄
               </div>
 
@@ -267,10 +353,19 @@ function EventCapture() {
                 onClick={() => setSelectedTeam("Away")}
                 style={{
                   flex: 1,
-                  padding: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   cursor: "pointer",
-                  background: selectedTeam === "Away" ? "blue" : "#eee",
-                  color: selectedTeam === "Away" ? "white" : "black",
+                  background:
+                    selectedTeam === "Away"
+                      ? "blue"
+                      : "#eee",
+                  color:
+                    selectedTeam === "Away"
+                      ? "white"
+                      : "black",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Away
@@ -278,7 +373,6 @@ function EventCapture() {
             </div>
           </div>
 
-          {/* ACTIONS */}
           <div className="bg-light text-dark p-3 mt-3">
             <h5 className="text-center">Event Actions</h5>
 
