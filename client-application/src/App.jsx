@@ -15,6 +15,7 @@ import GameEventsPage from "./pages/GameEventsPage"; // ✅ NEW IMPORT
 function AppLayout() {
     return (
         <div className="d-flex flex-column min-vh-100">
+            
             <Header />
 
             <Container className="flex-grow-1 py-2">
@@ -34,9 +35,11 @@ const router = createBrowserRouter([
         children: [
             { index: true, Component: Home },
             { path: "login", Component: Login },
-            { path: "event", element: <EventCapture /> },
+            { path: "event-capture", Component: EventCapture },
+            { path: "event-capture/:id", Component: EventCapture },
             { path: "game-events", Component: GameEventsPage }, //default path with no ID can be removed when link with past game selection page
             { path: "game-events/:id", Component: GameEventsPage }
+            
         ],
     },
 ]);
