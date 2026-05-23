@@ -1,7 +1,8 @@
-import { Container, Nav, Navbar, Button } from "react-bootstrap";
-import { Link, NavLink, useNavigate } from "react-router-dom";
 
-export default function header() {
+import { Container, Nav, Navbar } from "react-bootstrap";
+import { Link, NavLink } from "react-router-dom";
+
+export default function Header() {
     return (
         <Navbar bg="dark" variant="dark" expand="lg" className="shadow-sm py-3">
             <Container>
@@ -11,7 +12,6 @@ export default function header() {
                 </Navbar.Brand>
 
                 <Navbar.Toggle aria-controls="main-navbar" />
-                {/* Main navigation links. */}
 
                 <Navbar.Collapse id="main-navbar">
                     <Nav className="me-auto">
@@ -19,12 +19,16 @@ export default function header() {
                             Home
                         </Nav.Link>
 
-                        <Nav.Link as={NavLink} to="/Login">
+                        <Nav.Link as={NavLink} to="/login">
                             Login
                         </Nav.Link>
 
-                        <Nav.Link as={NavLink} to="/event">
+                        <Nav.Link as={NavLink} to="/event-capture">
                             Capture
+                        </Nav.Link>
+
+                        <Nav.Link as={NavLink} to="/game-events">
+                            Game Stats
                         </Nav.Link>
                     </Nav>
                 </Navbar.Collapse>

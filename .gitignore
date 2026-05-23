@@ -24,6 +24,9 @@ lerna-debug.log*
 *.key
 *.crt
 
+# Database files
+**/data.sqlite3
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
