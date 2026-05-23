@@ -96,9 +96,12 @@ export default function GameClock({ setCurrentTime }) {
   // Cleanup interval on unmount
   useEffect(() => {
     return () => {
-      clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
+
 
   return (
     <div

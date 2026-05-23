@@ -10,10 +10,8 @@ const GameEventsPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // NEW: game info
   const [gameInfo, setGameInfo] = useState(null);
 
-  // Format seconds → mm:ss
   const formatTime = (seconds) => {
     if (seconds === null || seconds === undefined) return "-";
     const mins = Math.floor(seconds / 60);
@@ -21,7 +19,7 @@ const GameEventsPage = () => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // FETCH GAME INFO
+  // ✅ FETCH GAME INFO
   useEffect(() => {
     const fetchGame = async () => {
       try {
@@ -41,12 +39,12 @@ const GameEventsPage = () => {
     fetchGame();
   }, [gameId]);
 
-  // FETCH EVENTS
+  // ✅ FETCH EVENTS
   const fetchGameEvents = async () => {
     try {
       setLoading(true);
 
-      const response = await fetch(`/events/${gameId}`);
+      const response = await fetch(`/events/game/${gameId}`);
       const result = await response.json();
 
       if (!response.ok || result.error) {
@@ -78,11 +76,11 @@ const GameEventsPage = () => {
     }
   };
 
+  // ✅ ✅ FIXED HERE
   useEffect(() => {
     fetchGameEvents();
-  }, [gameId, gameInfo]);
+  }, [gameId]); // <-- removed gameInfo
 
-  // TITLE (now from DB)
   const gameTitle = gameInfo
     ? `Reds vs ${gameInfo.vs_team}`
     : "Game";
@@ -129,7 +127,6 @@ const GameEventsPage = () => {
         padding: "20px",
       }}
     >
-      {/* HEADER */}
       <div className="text-center mb-3">
         <h3>{gameTitle}</h3>
         <h5 style={{ opacity: 0.8 }}>
@@ -150,7 +147,6 @@ const GameEventsPage = () => {
         </button>
       </div>
 
-      {/* TABLE */}
       <div
         style={{
           background: "#f8f9fa",
@@ -184,7 +180,7 @@ const GameEventsPage = () => {
               ) : (
                 data.map((event) => (
                   <tr
-                    key={event.event_id}
+                    key={event.event_id}   // ✅ already correct
                     style={{
                       background:
                         event.team_id === 1
@@ -206,7 +202,6 @@ const GameEventsPage = () => {
         )}
       </div>
 
-      {/* ZONE ANALYTICS */}
       <div
         style={{
           marginTop: "20px",
@@ -232,26 +227,10 @@ const GameEventsPage = () => {
             {zoneStats.map(({ zone, redPercent, awayPercent }) => (
               <tr key={zone}>
                 <td style={styles.cell}>{zone}</td>
-
-                <td
-                  style={{
-                    ...styles.cell,
-                    backgroundColor: "#b30000",
-                    color: "white",
-                    fontWeight: "bold",
-                  }}
-                >
+                <td style={styles.cell}>
                   {redPercent.toFixed(1)}%
                 </td>
-
-                <td
-                  style={{
-                    ...styles.cell,
-                    backgroundColor: "#0033cc",
-                    color: "white",
-                    fontWeight: "bold",
-                  }}
-                >
+                <td style={styles.cell}>
                   {awayPercent.toFixed(1)}%
                 </td>
               </tr>
