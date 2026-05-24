@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard"
 import Login from "./pages/Login";
 import EventCapture from "./pages/EventCapture";
 import GameEventsPage from "./pages/GameEventsPage"; // ✅ NEW IMPORT
@@ -14,11 +15,10 @@ import GameEventsPage from "./pages/GameEventsPage"; // ✅ NEW IMPORT
 // Shared page layout used across all routes
 function AppLayout() {
     return (
-        <div className="d-flex flex-column min-vh-100">
-            
+        <div className="app-layout">
             <Header />
 
-            <Container className="flex-grow-1 py-2">
+            <Container className="page-content">
                 <Outlet />
             </Container>
 
@@ -35,11 +35,11 @@ const router = createBrowserRouter([
         children: [
             { index: true, Component: Home },
             { path: "login", Component: Login },
+            { path: "dashboard", Component: Dashboard },
             { path: "event-capture", Component: EventCapture },
             { path: "event-capture/:id", Component: EventCapture },
             { path: "game-events", Component: GameEventsPage }, //default path with no ID can be removed when link with past game selection page
             { path: "game-events/:id", Component: GameEventsPage }
-            
         ],
     },
 ]);
