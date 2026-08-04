@@ -11,6 +11,7 @@ export default function GameClock({ setCurrentTime }) {
 
   // Keep latest toggleClock reference (fix for keyboard bug)
   const toggleRef = useRef(null);
+  const secondsPassedRef = useRef(0);
 
   function toggleClock() {
     if (isRunning) {
@@ -29,7 +30,6 @@ export default function GameClock({ setCurrentTime }) {
       }
 
       clearInterval(intervalRef.current);
-
       intervalRef.current = setInterval(() => {
         setNow(Date.now());
       }, 10);
@@ -44,7 +44,17 @@ export default function GameClock({ setCurrentTime }) {
   // Calculate time
   let secondsPassed = 0;
   if (startTime != null && now != null) {
-    secondsPassed = (now - startTime) / 1000 + offset;
+    secondsPassed = Math.max(0, (now - startTime) / 1000 + offset);
+  }
+
+  secondsPassedRef.current = secondsPassed;
+
+  function decreaseTime(){
+    const currentTime = secondsPassedRef.current;
+    if (currentTime <= 0) {
+        return;
+    }
+    setOffset((prev) => prev - Math.min(1,currentTime));
   }
 
   // Format mm:ss
@@ -68,16 +78,16 @@ export default function GameClock({ setCurrentTime }) {
         }
       }
 
+      /// subtract 1 second
       if (e.key === "-") {
         e.preventDefault();
-        setOffset((prev) =>
-          Math.max(prev - 5, -secondsPassed)
-        );
-      }
+        decreaseTime();
+    }
 
+      // Add 1 second
       if (e.key === "=") {
         e.preventDefault();
-        setOffset((prev) => prev + 5);
+        setOffset((prev) => prev + 1);
       }
     };
 
@@ -115,16 +125,16 @@ export default function GameClock({ setCurrentTime }) {
     >
       <h1>{formatTime()}</h1>
 
-      <button onClick={() => setOffset((prev) => prev - 5)}>
-        -5 sec
+      <button onClick={decreaseTime}>
+        -1 sec
       </button>
 
       <button onClick={toggleClock}>
         {isRunning ? "Pause" : "Start"}
       </button>
 
-      <button onClick={() => setOffset((prev) => prev + 5)}>
-        +5 sec
+      <button onClick={() => setOffset((prev) => prev + 1)}>
+        +1 sec
       </button>
     </div>
   );
