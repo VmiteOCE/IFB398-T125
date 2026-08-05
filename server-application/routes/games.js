@@ -26,24 +26,104 @@ router.post('/', async (req, res) => {
 });
 
 // ============================== GET https://localhost:3000/games ==============================
-// Get a list with details of all games
+// Get a filtered, sorted and paginated list of games
 router.get('/', async (req, res) => {
   try {
-    const games = await req.db
-      .from('games')
-      .select('*');
+    const {
+      search = '',
+      status = '',
+      start = '',
+      end = '',
+      sortBy = 'start_time',
+      sortOrder = 'asc',
+      page = '1',
+      limit = '20'
+    } = req.query;
 
-    // Check for empty return array
-    if (games.length === 0) {
-      return res.status(404).json({ error: true, message: "No games found" });
+    const allowedSortFields = [
+      'game_id',
+      'game_name',
+      'vs_team',
+      'start_time',
+      'game_status'
+    ];
+
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'start_time';
+    const safeSortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
+
+    const parsedPage = Math.max(Number.parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 20, 1), 100);
+    const offset = (parsedPage - 1) * parsedLimit;
+
+    const query = req.db.from('games');
+
+    // Search game name or opposing team
+    if (search.trim()) {
+      const searchValue = `%${search.trim()}%`;
+
+      query.where(function () {
+        this
+          .where('game_name', 'like', searchValue)
+          .orWhere('vs_team', 'like', searchValue);
+      });
     }
 
-    // Success response
-    res.json({ error: false, message: "Success", games: games });
+    if (status)
+      query.where('game_status', '=', status);
+
+    // Filter games starting on or after this time
+    if (start)
+      query.where('start_time', '>=', start);
+
+    // Filter games starting on or before this time
+    if (end)
+      query.where('start_time', '<=', end);
+
+    // Count filtered games before pagination
+    const countResult = await query
+      .clone()
+      .count({ total: 'game_id' })
+      .first();
+
+    // Get filtered games
+    const games = await query
+      .clone()
+      .select('*')
+      .orderBy(safeSortBy, safeSortOrder)
+      .limit(parsedLimit)
+      .offset(offset);
+
+    const total = Number(countResult?.total ?? 0);
+    const totalPages = Math.ceil(total / parsedLimit);
+
+    // Empty results are valid, so return 200 with an empty array
+    res.json({
+      error: false,
+      message: 'Success',
+      games: games,
+      pagination: {
+        page: parsedPage,
+        limit: parsedLimit,
+        total: total,
+        totalPages: totalPages,
+        nextPage:
+          parsedPage < totalPages
+            ? parsedPage + 1
+            : null,
+        previousPage:
+          parsedPage > 1
+            ? parsedPage - 1
+            : null
+      }
+    });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: true, message: "Database read error" });
+
+    res.status(500).json({
+      error: true,
+      message: 'Database read error'
+    });
   }
 });
 
