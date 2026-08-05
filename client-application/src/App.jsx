@@ -10,7 +10,8 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard"
 import Login from "./pages/Login";
 import EventCapture from "./pages/EventCapture";
-import GameEventsPage from "./pages/GameEventsPage"; // ✅ NEW IMPORT
+import GameEventsPage from "./pages/GameEventsPage"; 
+import SettingsPage from "./pages/Settings";
 
 // Shared page layout used across all routes
 function AppLayout() {
@@ -39,7 +40,8 @@ const router = createBrowserRouter([
             { path: "event-capture", Component: EventCapture },
             { path: "event-capture/:id", Component: EventCapture },
             { path: "game-events", Component: GameEventsPage }, //default path with no ID can be removed when link with past game selection page
-            { path: "game-events/:id", Component: GameEventsPage }
+            { path: "game-events/:id", Component: GameEventsPage },
+            { path: "settings", Component: SettingsPage}
         ],
     },
 ]);

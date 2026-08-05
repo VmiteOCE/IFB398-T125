@@ -8,8 +8,8 @@ function Settings() {
   // ---------------- PROFILE ----------------
   const [profile, setProfile] = useState({
     profilePicture: "",
-    email: "luke.thomas@example.com",
-    username: "Luke Thomas",
+    email: "john@example.com",
+    username: "john doe",
     role: "Owner",
   });
 
