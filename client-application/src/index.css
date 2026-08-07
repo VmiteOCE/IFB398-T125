@@ -102,6 +102,7 @@ footer {
   gap: 6px;
 }
 
+.dashboard-create-button button,
 .dashboard-actions button,
 .dashboard-toolbar button {
   background: #641d2a;
@@ -117,10 +118,19 @@ footer {
     display: block;
     width: 100%;
     height: auto;
-    min-height: 50px;
     padding: 12px;
-    background-color: #321a1a;
+    background-color: #321A1A;
     border-radius: 16px 16px 0 0;
+}
+
+.dashboard-toolbar-top {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.dashboard-create-button:hover {
+    background: #772433;
 }
 
 .dashboard-toolbar .form-label {

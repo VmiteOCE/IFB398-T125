@@ -187,6 +187,13 @@ export default function Dashboard() {
     return (
         <div className="dashboard-content">
             <div className="dashboard-toolbar">
+                <div className="dashboard-toolbar-top">
+                    <GameForm
+                        onSaved={fetchGames}
+                        buttonText="Create Game"
+                        buttonClassName="dashboard-create-button"
+                    />
+                </div>
                 <Form className="w-100">
                     <Row className="g-2 align-items-end">
                         <Col xs={12} md={6} lg={4}>

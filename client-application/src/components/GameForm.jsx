@@ -251,11 +251,11 @@ export default function GameForm({gameId, onSaved, buttonText, buttonClassName})
                                 />
                             )}
 
-                            {saving
-                                ? "Saving..."
-                                : isEditing
-                                ? "Save Changes"
-                                : "Create Game"}
+                            {
+                                saving ? "Saving..."
+                                    : isEditing ? "Save Changes"
+                                    : "Create Game"
+                            }
                         </Button>
                     </Modal.Footer>
                 </Form>
