@@ -201,10 +201,10 @@ const getZoneTime = (teamId, zone, start, end) => {
             <tr>
               <th style={styles.header}></th>
               <th
-                style={styles.header} colSpan={5}>
+                className="reds-cell" style={styles.header} colSpan={5}>
                 Reds
               </th>
-              <th style={styles.header} colSpan={5} >
+              <th className="away-cell" style={styles.header} colSpan={5} >
                 {awayName}
               </th>
               </tr>
@@ -217,7 +217,7 @@ const getZoneTime = (teamId, zone, start, end) => {
 
               {zones.map((zone) => (
                 <th
-                  key={`reds-heading-${zone}`}
+                  key={`reds-heading-${zone}`} className="reds-cell"
                   style={styles.header}
                 >
                   {zone}
@@ -226,7 +226,7 @@ const getZoneTime = (teamId, zone, start, end) => {
 
               {zones.map((zone) => (
                 <th
-                  key={`away-heading-${zone}`}
+                  key={`away-heading-${zone}`} className="away-cell"
                   style={styles.header}
                 >
                   {zone}
@@ -255,7 +255,7 @@ const getZoneTime = (teamId, zone, start, end) => {
                 {/* Reds */}
                 {zones.map((zone) => (
                   <td
-                    key={`reds-${interval.label}-${zone}`}
+                    key={`reds-${interval.label}-${zone}`} className="reds-cell"
                     style={styles.cell}
                   >
                     {countEvents(eventCode, 1, zone, start, interval.end)}
@@ -265,7 +265,7 @@ const getZoneTime = (teamId, zone, start, end) => {
                 {/* Away team */}
                 {zones.map((zone) => (
                   <td
-                    key={`away-${interval.label}-${zone}`}
+                    key={`away-${interval.label}-${zone}`} className="away-cell"
                     style={styles.cell}
                   >
                     {countEvents(eventCode, 2, zone, start, interval.end)}
@@ -284,7 +284,7 @@ const getZoneTime = (teamId, zone, start, end) => {
               {/* Reds totals */}
               {zones.map((zone) => (
                 <td
-                  key={`reds-total-${zone}`}
+                  key={`reds-total-${zone}`} className="reds-cell"
                   style={styles.cell}
                 >
                   <strong>
@@ -296,7 +296,7 @@ const getZoneTime = (teamId, zone, start, end) => {
               {/* Away totals */}
               {zones.map((zone) => (
                 <td
-                  key={`away-total-${zone}`}
+                  key={`away-total-${zone}`} className="away-cell"
                   style={styles.cell}
                 >
                   <strong>
@@ -326,11 +326,11 @@ const ZoneTimeTable = ({
         <thead>
         <tr>
           <th style={styles.header}></th>
-          <th style={styles.header} colSpan={5}>
+          <th className="reds-cell" style={styles.header} colSpan={5}> 
             Reds
             </th>
             
-            <th style={styles.header} colSpan={5}>
+            <th className="away-cell" style={styles.header} colSpan={5}>
               {awayName}
               </th>
           </tr>
@@ -340,8 +340,7 @@ const ZoneTimeTable = ({
 
         {zones.map((zone) => (
           <th
-            key={`reds-time-heading-${zone}`}
-            style={styles.header}
+            className="reds-cell" key={`reds-time-heading-${zone}`} style={styles.header}
           >
             {zone}
           </th>
@@ -349,7 +348,7 @@ const ZoneTimeTable = ({
 
         {zones.map((zone) => (
           <th
-            key={`away-time-heading-${zone}`}
+            className="away-cell" key={`away-time-heading-${zone}`}
             style={styles.header}
           >
             {zone}
@@ -378,8 +377,7 @@ const ZoneTimeTable = ({
                 {/* Reds */}
                 {zones.map((zone) => (
                   <td
-                    key={`reds-time-${label}-${zone}`}
-                    style={styles.cell}
+                    className="reds-cell" key={`reds-time-${label}-${zone}`} style={styles.cell}
                   >
                     {formatTime(getZoneTime(1, zone, start, interval.end)
                     )}
@@ -389,7 +387,7 @@ const ZoneTimeTable = ({
                 {/* Away */}
                 {zones.map((zone) => (
                   <td
-                    key={`away-time-${label}-${zone}`}
+                    className="away-cell" key={`away-time-${label}-${zone}`}
                     style={styles.cell}
                   >
                     {formatTime(getZoneTime(2, zone, start, interval.end)
@@ -409,7 +407,7 @@ const ZoneTimeTable = ({
             {/* Reds totals */}
             {zones.map((zone) => (
               <td
-                key={`reds-time-total-${zone}`}
+                className="reds-cell" key={`reds-time-total-${zone}`}
                 style={styles.cell}
               >
                 <strong>
@@ -421,7 +419,7 @@ const ZoneTimeTable = ({
             {/* Away totals */}
             {zones.map((zone) => (
               <td
-                key={`away-time-total-${zone}`}
+                className="away-cell" key={`away-time-total-${zone}`}
                 style={styles.cell}
               >
                 <strong>
@@ -446,28 +444,32 @@ const AZoneTable = () => {
       <table className="analysis-table">
         <thead>
           <tr>
-            <th>Interval</th>
-            <th>Reds 10'</th>
-            <th>Reds Total</th>
-            <th>{awayName} 10'</th>
-            <th>{awayName} Total</th>
+          <th style={styles.header}>Interval</th>
+          <th className="reds-cell" style={styles.header}>
+            Reds 10'
+            </th>
+          <th className="reds-cell" style={styles.header}>
+            Reds Total
+            </th>
+          <th className="away-cell" style={styles.header}>
+          {awayName} 10'
+          </th>
+    <th className="away-cell" style={styles.header}>
+      {awayName} Total
+    </th>
           </tr>
         </thead>
         <tbody>
           {intervals.map((interval) => (
             <tr key={interval.label}>
-              <td>{interval.label}</td>
-              <td>
-                {formatTime(getZoneTime(1, "A", interval.start, interval.end))}
+              <td style={styles.cell}> {interval.label}</td>
+                <td className="reds-cell" style={styles.cell}> {formatTime(getZoneTime(1, "A", interval.start, interval.end))}
               </td>
-              <td>
-                {formatTime(getZoneTime(1, "A", 0, interval.end))}
+                <td className="reds-cell" style={styles.cell}> {formatTime(getZoneTime(1, "A", 0, interval.end))}
               </td>
-              <td>
-                {formatTime(getZoneTime(2, "A", interval.start, interval.end))}
+                <td className="away-cell" style={styles.cell}> {formatTime(getZoneTime(2, "A", interval.start, interval.end))}
               </td>
-              <td>
-                {formatTime(getZoneTime(2, "A", 0, interval.end))}
+                <td className="away-cell" style={styles.cell}> {formatTime(getZoneTime(2, "A", 0, interval.end))}
               </td>
             </tr>
           ))}

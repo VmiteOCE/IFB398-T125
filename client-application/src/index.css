@@ -147,3 +147,11 @@ footer {
   border-collapse: collapse;
   width: 100%;
 }
+
+.reds-cell {
+  background-color: #ff969dff;
+}
+
+.away-cell {
+  background-color: #b0d1fc;
+}
