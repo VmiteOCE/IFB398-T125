@@ -97,16 +97,38 @@ function EventCapture() {
     { label: "D", color: "blue", text: "(72–94m)" },
   ];
 
+  const oppositeZones = {
+    A: "D",
+    B: "C",
+    M: "M",
+    C: "B",
+    D: "A",
+  };
 
+  const swapSelectedZone = () => {
+    setSelectedZone((previousZone) => {
+      return oppositeZones[previousZone] || previousZone;
+    });
+  };
+
+  const handleTeamChange = (newTeam) => {
+    // Do not swap if the selected team is clicked again.
+    if (newTeam === selectedTeam) return;
+
+    setSelectedTeam(newTeam);
+    swapSelectedZone();
+  };
+
+  const handleManualFlip = () => {
+    setManualFlip((previousFlip) => !previousFlip);
+    swapSelectedZone();
+  }; 
 
   const isTeamReversed = selectedTeam === "Away";
   const finalReversed = isTeamReversed !== manualFlip;
   const zones = finalReversed ? [...baseZones].reverse() : baseZones;
 
-
-
   const currentZone = baseZones.find((z) => z.label === selectedZone);
-
 
 
   const actionKeys = {
@@ -355,9 +377,10 @@ function EventCapture() {
 
       if (e.key === "Tab") {
         e.preventDefault();
-        setSelectedTeam((prev) =>
-          prev === "Reds" ? "Away" : "Reds"
-        );
+        const newTeam = 
+          selectedTeam === "Reds" ? "Away" : "Reds";
+
+        handleTeamChange(newTeam); 
       }
 
 
@@ -475,7 +498,7 @@ function EventCapture() {
               }}
             >
               <div
-                onClick={() => setSelectedTeam("Reds")}
+                onClick={() => handleTeamChange("Reds")}
                 style={{
                   flex: 1,
                   display: "flex",
@@ -492,7 +515,15 @@ function EventCapture() {
 
 
               <div
-                onClick={() => setManualFlip(!manualFlip)}
+                onClick={handleManualFlip}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleManualFlip();
+                  }
+                }}
                 style={{
                   width: 70,
                   display: "flex",
@@ -510,7 +541,7 @@ function EventCapture() {
 
 
               <div
-                onClick={() => setSelectedTeam("Away")}
+                onClick={() => handleTeamChange("Away")}
                 style={{
                   flex: 1,
                   display: "flex",
