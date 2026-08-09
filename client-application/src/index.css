@@ -53,14 +53,6 @@ footer {
   border-radius: 16px;
 }
 
-.dashboard-toolbar {
-  flex-shrink: 0;
-  height: 50px;
-  background-color: #321A1A;
-  border-radius: 16px;
-  text-align: center;
-}
-
 .dashboard-table {
   flex: 1;
   padding: 12px;
@@ -110,7 +102,9 @@ footer {
   gap: 6px;
 }
 
-.dashboard-actions button {
+.dashboard-create-button button,
+.dashboard-actions button,
+.dashboard-toolbar button {
   background: #641d2a;
   color: white;
   border: none;
@@ -118,4 +112,50 @@ footer {
   padding: 7px 24px;
   font-size: 15px;
   cursor: pointer;
+}
+
+.dashboard-toolbar {
+    display: block;
+    width: 100%;
+    height: auto;
+    padding: 12px;
+    background-color: #321A1A;
+    border-radius: 16px 16px 0 0;
+}
+
+.dashboard-toolbar-top {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.dashboard-create-button:hover {
+    background: #772433;
+}
+
+.dashboard-toolbar .form-label {
+    color: white;
+    margin-bottom: 4px;
+}
+
+.dashboard-filter-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.dashboard-filter-buttons button {
+    flex: 1;
+    min-height: 38px;
+    background: #641d2a;
+    color: white;
+    border: none;
+    border-radius: 9px;
+}
+
+.dashboard-filter-buttons button:hover {
+    background: #772433;
+}
+
+#advanced-game-filters {
+    padding-top: 4px;
 }
