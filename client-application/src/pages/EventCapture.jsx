@@ -1,583 +1,551 @@
-import { Container, Row, Col, Button, Form } from "react-bootstrap";
-import { useState } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import GameClock from "../components/GameClock";
 
-function Settings() {
-  const [activeSection, setActiveSection] = useState("Profile");
-  const [saveMessage, setSaveMessage] = useState("");
 
-  // ---------------- PROFILE ----------------
-  const [profile, setProfile] = useState({
-    profilePicture: "",
-    email: "luke.thomas@example.com",
-    username: "Luke Thomas",
-    role: "Owner",
-  });
 
-  // ---------------- ACCESSIBILITY ----------------
-  const [accessibility, setAccessibility] = useState({
-    fontSize: 100,
-    highContrast: false,
-    largeButtons: false,
-    keybinds: true,
-  });
+function EventCapture() {
+  const { id } = useParams();
+  const gameId = parseInt(id, 10) || 1;
 
-  // ---------------- MATCH SETTINGS ----------------
-  const [matchSettings, setMatchSettings] = useState({
-    pageLayout: "Standard",
-    defaultTeamSide: "Reds",
-    eventHistorySize: 8,
-  });
 
-  // ---------------- SECURITY ----------------
-  const [accessLevels, setAccessLevels] = useState({
-    Analyst: "Edit matches",
-    Coach: "View and edit",
-    Viewer: "View only",
-  });
 
-  const settingsSections = [
-    { label: "Profile", icon: "P" },
-    { label: "Accessibility", icon: "A" },
-    { label: "Match Settings", icon: "M" },
-    { label: "Security", icon: "S" },
-    { label: "Data & Export", icon: "D" },
-    { label: "Help", icon: "?" },
-  ];
+  const [selectedZone, setSelectedZone] = useState("M");
+  const [selectedTeam, setSelectedTeam] = useState("Reds");
+  const [manualFlip, setManualFlip] = useState(false);
+
+
+
+  const [events, setEvents] = useState([]);
+  const [editingIndex, setEditingIndex] = useState(null);
+
+
+
+  const [currentTime, setCurrentTime] = useState("00:00");
+  const [gameInfo, setGameInfo] = useState(null);
+
+
+
+  // ---------------- GAME INFO ----------------
+  useEffect(() => {
+    const fetchGameInfo = async () => {
+      try {
+        const res = await fetch(`/games/${gameId}`);
+        const result = await res.json();
+
+
+
+        if (!res.ok || result.error) throw new Error(result.message);
+        setGameInfo(result.game);
+      } catch (err) {
+        console.error("Game fetch error:", err);
+      }
+    };
+
+
+
+    fetchGameInfo();
+  }, [gameId]);
+
+
 
   // ---------------- HELPERS ----------------
-  const showSaved = (message = "Settings saved") => {
-    setSaveMessage(message);
-    window.clearTimeout(window.settingsSaveTimer);
-    window.settingsSaveTimer = window.setTimeout(() => {
-      setSaveMessage("");
-    }, 2500);
+  const toSeconds = (timeStr) => {
+    const [mins, secs] = timeStr.split(":").map(Number);
+    return mins * 60 + secs;
   };
 
-  const handleProfilePicture = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfile((previous) => ({
-        ...previous,
-        profilePicture: reader.result,
-      }));
+
+  const formatSeconds = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+
+
+  const actionToCode = {
+    Pass: "P",
+    Kick: "K",
+    Catch: "C",
+    Ruck: "R",
+    Scrum: "S",
+    Penalty: "E",
+    Advantage: "A",
+    Turnover: "T",
+    Lineout: "L",
+    Conversion: "V",
+    Try: "Y",
+    Maul: "M",
+  };
+
+
+
+  const codeToAction = Object.fromEntries(
+    Object.entries(actionToCode).map(([k, v]) => [v, k])
+  );
+
+
+
+  const baseZones = [
+    { label: "A", color: "red", text: "(0–22m)" },
+    { label: "B", color: "pink", text: "(22–40m)" },
+    { label: "M", color: "gray", text: "(Midfield)" },
+    { label: "C", color: "lightblue", text: "(60–72m)" },
+    { label: "D", color: "blue", text: "(72–94m)" },
+  ];
+
+
+
+  const isTeamReversed = selectedTeam === "Away";
+  const finalReversed = isTeamReversed !== manualFlip;
+  const zones = finalReversed ? [...baseZones].reverse() : baseZones;
+
+
+
+  const currentZone = baseZones.find((z) => z.label === selectedZone);
+
+
+
+  const actionKeys = {
+    r: "Ruck",
+    k: "Kick",
+    p: "Pass",
+    c: "Catch",
+    t: "Turnover",
+    a: "Advantage",
+    e: "Penalty",
+    l: "Lineout",
+    s: "Scrum",
+    m: "Maul",
+    y: "Try",
+    v: "Conversion",
+  };
+
+
+
+  // ---------------- FETCH EVENTS ----------------
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch(`/events/game/${gameId}`);
+        const result = await res.json();
+
+
+
+        if (!res.ok || result.error) throw new Error(result.message);
+
+
+
+        const mapped = result.events
+          .slice()
+          .reverse()
+          .map((e) => ({
+            id: e.event_id,
+            action: codeToAction[e.event_code] || e.event_code,
+            zone: e.zone_id,
+            team: e.team_id === 1 ? "R" : "A",
+            time: formatSeconds(e.game_clock),
+          }));
+
+
+
+        setEvents(mapped);
+      } catch (err) {
+        console.error("Fetch events error:", err);
+      }
     };
-    reader.readAsDataURL(file);
-  };
 
-  const handleSave = async () => {
+
+
+    fetchEvents();
+  }, [gameId]);
+
+
+
+  // ---------------- CREATE ----------------
+  const postEvent = async (action) => {
     const payload = {
-      profile,
-      accessibility,
-      matchSettings,
-      accessLevels,
+      game_id: gameId,
+      event_code: actionToCode[action],
+      zone_id: selectedZone,
+      team_id: selectedTeam === "Reds" ? 1 : 2,
+      game_clock: toSeconds(currentTime),
+      game_half: 1,
     };
+
+
 
     try {
-      // Connect this request to the settings route when the backend is ready.
-      // const res = await fetch("/settings", {
-      //   method: "PUT",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(payload),
-      // });
-      // if (!res.ok) throw new Error("Unable to save settings");
+      const res = await fetch("/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-      console.log("Settings payload:", payload);
-      showSaved();
+
+
+      const result = await res.json();
+
+
+
+      if (!res.ok || result.error) {
+        throw new Error(result.message);
+      }
+
+
+
+      return result.event_id;
     } catch (err) {
-      console.error("Settings save error:", err);
+      console.error("POST error:", err);
+      return null;
     }
   };
 
-  const exportCsv = () => {
-    const rows = [
-      ["setting", "value"],
-      ["username", profile.username],
-      ["email", profile.email],
-      ["role", profile.role],
-      ["font_size", accessibility.fontSize],
-      ["high_contrast", accessibility.highContrast],
-      ["large_buttons", accessibility.largeButtons],
-      ["keybinds", accessibility.keybinds],
-      ["page_layout", matchSettings.pageLayout],
-      ["default_team_side", matchSettings.defaultTeamSide],
-      ["event_history_size", matchSettings.eventHistorySize],
-    ];
 
-    const csv = rows
-      .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(","))
-      .join("\n");
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "reds-settings.csv";
-    link.click();
-    URL.revokeObjectURL(url);
+  // ---------------- CREATE + UPDATE ----------------
+  const handleAction = async (action) => {
+    if (editingIndex !== null) {
+      const event = events[editingIndex];
 
-    showSaved("CSV export downloaded");
-  };
 
-  const initials = profile.username
-    .split(" ")
-    .filter(Boolean)
-    .map((name) => name[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
-  const controlButtonStyle = accessibility.largeButtons
-    ? { minHeight: 52, paddingLeft: 24, paddingRight: 24 }
-    : {};
+      const payload = {
+        game_id: gameId,
+        event_code: actionToCode[action],
+        zone_id: selectedZone,
+        team_id: selectedTeam === "Reds" ? 1 : 2,
+        game_clock: toSeconds(currentTime),
+        game_half: 1,
+      };
 
-  // ---------------- PROFILE UI ----------------
-  const renderProfile = () => (
-    <div className="bg-light text-dark p-3 h-100">
-      <div className="text-center mb-4">
-        <h4>Profile</h4>
-        <p className="text-muted mb-0">Manage your account details.</p>
-      </div>
 
-      <Row className="justify-content-center">
-        <Col lg={4} className="text-center mb-4 mb-lg-0">
-          <div
-            className="mx-auto mb-3 d-flex align-items-center justify-content-center"
-            style={{
-              width: 130,
-              height: 130,
-              borderRadius: "50%",
-              overflow: "hidden",
-              background: "#b30000",
-              color: "white",
-              border: "5px solid #5a1f28",
-              fontSize: 34,
-              fontWeight: "bold",
-            }}
-          >
-            {profile.profilePicture ? (
-              <img
-                src={profile.profilePicture}
-                alt="Profile preview"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            ) : (
-              initials || "U"
-            )}
-          </div>
 
-          <Form.Label
-            htmlFor="profile-picture"
-            className="btn btn-outline-danger mb-0"
-            style={controlButtonStyle}
-          >
-            Change Picture
-          </Form.Label>
-          <Form.Control
-            id="profile-picture"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            onChange={handleProfilePicture}
-            className="d-none"
-          />
-        </Col>
+      try {
+        const res = await fetch(`/events/update/${event.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-        <Col lg={7}>
-          <Form.Group className="mb-3">
-            <Form.Label>Username</Form.Label>
-            <Form.Control
-              value={profile.username}
-              onChange={(event) =>
-                setProfile({ ...profile, username: event.target.value })
-              }
-            />
-          </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              type="email"
-              value={profile.email}
-              onChange={(event) =>
-                setProfile({ ...profile, email: event.target.value })
-              }
-            />
-          </Form.Group>
 
-          <Form.Group>
-            <Form.Label>Role / Access Level</Form.Label>
-            <Form.Control value={profile.role} disabled />
-          </Form.Group>
-        </Col>
-      </Row>
-    </div>
-  );
+        const result = await res.json();
 
-  // ---------------- ACCESSIBILITY UI ----------------
-  const renderAccessibility = () => (
-    <div className="bg-light text-dark p-3 h-100">
-      <div className="text-center mb-4">
-        <h4>Accessibility</h4>
-        <p className="text-muted mb-0">Adjust text and controls across the app.</p>
-      </div>
 
-      <div className="p-3 border-bottom">
-        <Row className="align-items-center">
-          <Col md={7}>
-            <strong>Font Size</strong>
-            <div className="text-muted small">Change the size of text in the interface.</div>
-          </Col>
-          <Col md={5} className="mt-3 mt-md-0">
-            <div className="d-flex align-items-center gap-3">
-              <Form.Range
-                min={90}
-                max={125}
-                step={5}
-                value={accessibility.fontSize}
-                onChange={(event) =>
-                  setAccessibility({
-                    ...accessibility,
-                    fontSize: parseInt(event.target.value, 10),
-                  })
-                }
-              />
-              <strong style={{ minWidth: 48 }}>{accessibility.fontSize}%</strong>
-            </div>
-          </Col>
-        </Row>
-      </div>
 
-      {[
-        {
-          key: "highContrast",
-          title: "High Contrast Mode",
-          description: "Increase the contrast between interface elements.",
-        },
-        {
-          key: "largeButtons",
-          title: "Large Buttons",
-          description: "Increase button sizes for easier selection.",
-        },
-        {
-          key: "keybinds",
-          title: "Keybinds",
-          description: "Enable keyboard shortcuts on the capture page.",
-        },
-      ].map((setting) => (
-        <div className="p-3 border-bottom" key={setting.key}>
-          <div className="d-flex justify-content-between align-items-center gap-3">
-            <div>
-              <strong>{setting.title}</strong>
-              <div className="text-muted small">{setting.description}</div>
-            </div>
-            <Form.Check
-              type="switch"
-              id={setting.key}
-              checked={accessibility[setting.key]}
-              onChange={(event) =>
-                setAccessibility({
-                  ...accessibility,
-                  [setting.key]: event.target.checked,
-                })
-              }
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+        if (!res.ok || result.error) throw new Error(result.message);
 
-  // ---------------- MATCH SETTINGS UI ----------------
-  const renderMatchSettings = () => (
-    <div className="bg-light text-dark p-3 h-100">
-      <div className="text-center mb-4">
-        <h4>Match Settings</h4>
-        <p className="text-muted mb-0">Set the defaults used by the capture page.</p>
-      </div>
 
-      <Form.Group className="mb-4">
-        <Form.Label>Game Events / Analytics Page Layout</Form.Label>
-        <Form.Select
-          value={matchSettings.pageLayout}
-          onChange={(event) =>
-            setMatchSettings({ ...matchSettings, pageLayout: event.target.value })
-          }
-        >
-          <option>Standard</option>
-          <option>Compact</option>
-          <option>Analytics Focus</option>
-        </Form.Select>
-      </Form.Group>
 
-      <Row>
-        <Col md={6}>
-          <Form.Group className="mb-4">
-            <Form.Label>Default Team Side</Form.Label>
-            <Form.Select
-              value={matchSettings.defaultTeamSide}
-              onChange={(event) =>
-                setMatchSettings({
-                  ...matchSettings,
-                  defaultTeamSide: event.target.value,
-                })
-              }
-            >
-              <option>Reds</option>
-              <option>Away</option>
-            </Form.Select>
-          </Form.Group>
-        </Col>
+        const updated = [...events];
+        updated[editingIndex] = {
+          ...event,
+          action,
+          zone: selectedZone,
+          team: selectedTeam === "Reds" ? "R" : "A",
+          time: currentTime,
+        };
 
-        <Col md={6}>
-          <Form.Group className="mb-4">
-            <Form.Label>Event History Size</Form.Label>
-            <Form.Select
-              value={matchSettings.eventHistorySize}
-              onChange={(event) =>
-                setMatchSettings({
-                  ...matchSettings,
-                  eventHistorySize: parseInt(event.target.value, 10),
-                })
-              }
-            >
-              <option value={5}>Last 5 Events</option>
-              <option value={8}>Last 8 Events</option>
-              <option value={12}>Last 12 Events</option>
-            </Form.Select>
-          </Form.Group>
-        </Col>
-      </Row>
 
-      <div className="bg-dark text-white p-3 mt-2">
-        <div className="text-center mb-2">Capture Page Preview</div>
-        <div className="d-flex" style={{ minHeight: 60 }}>
-          {["A", "B", "M", "C", "D"].map((zone, index) => (
-            <div
-              key={zone}
-              className="d-flex align-items-center justify-content-center"
-              style={{
-                flex: 1,
-                color: index === 1 || index === 3 ? "#333" : "white",
-                background: ["red", "pink", "gray", "lightblue", "blue"][index],
-                border: zone === "M" ? "3px solid #4CAF50" : "2px solid transparent",
-              }}
-            >
-              {zone}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
-  // ---------------- SECURITY UI ----------------
-  const renderSecurity = () => (
-    <div className="bg-light text-dark p-3 h-100">
-      <div className="text-center mb-4">
-        <h4>Security</h4>
-        <p className="text-muted mb-0">Manage password and user access levels.</p>
-      </div>
+        setEvents(updated);
+        setEditingIndex(null);
+      } catch (err) {
+        console.error("Update error:", err);
+      }
+    } else {
+      const eventId = await postEvent(action);
+      if (!eventId) return;
 
-      <div className="d-flex justify-content-between align-items-center gap-3 p-3 border-bottom">
-        <div>
-          <strong>Change Password</strong>
-          <div className="text-muted small">Update the password used to access the app.</div>
-        </div>
-        <Button variant="outline-danger" style={controlButtonStyle}>
-          Change Password
-        </Button>
-      </div>
 
-      {profile.role === "Owner" && (
-        <div className="mt-4">
-          <h5>Modify Access Levels</h5>
-          <p className="text-muted small">This section is available to the Owner only.</p>
 
-          {Object.keys(accessLevels).map((role) => (
-            <Row className="align-items-center py-2 border-bottom" key={role}>
-              <Col sm={5}>
-                <strong>{role}</strong>
-              </Col>
-              <Col sm={7}>
-                <Form.Select
-                  value={accessLevels[role]}
-                  onChange={(event) =>
-                    setAccessLevels({
-                      ...accessLevels,
-                      [role]: event.target.value,
-                    })
-                  }
-                >
-                  <option>View only</option>
-                  <option>Edit matches</option>
-                  <option>View and edit</option>
-                  <option>No access</option>
-                </Form.Select>
-              </Col>
-            </Row>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+      const newEvent = {
+        id: eventId,
+        action,
+        zone: selectedZone,
+        team: selectedTeam === "Reds" ? "R" : "A",
+        time: currentTime,
+      };
 
-  // ---------------- DATA UI ----------------
-  const renderDataExport = () => (
-    <div className="bg-light text-dark p-3 h-100">
-      <div className="text-center mb-4">
-        <h4>Data & Export</h4>
-        <p className="text-muted mb-0">Download app data in CSV format.</p>
-      </div>
 
-      <div className="border p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-        <div className="d-flex align-items-center gap-3">
-          <div
-            className="d-flex align-items-center justify-content-center text-white fw-bold"
-            style={{ width: 58, height: 58, background: "#b30000" }}
-          >
-            CSV
-          </div>
-          <div>
-            <strong>Export Data as CSV</strong>
-            <div className="text-muted small">Download the available match and event data.</div>
-          </div>
-        </div>
-        <Button variant="danger" onClick={exportCsv} style={controlButtonStyle}>
-          Export CSV
-        </Button>
-      </div>
-    </div>
-  );
 
-  // ---------------- HELP UI ----------------
-  const renderHelp = () => (
-    <div className="bg-light text-dark p-3 h-100">
-      <div className="text-center mb-4">
-        <h4>Help</h4>
-        <p className="text-muted mb-0">Guide on how to use the app.</p>
-      </div>
-
-      {[
-        ["1", "Select a Game", "Open the dashboard and choose the game that you want to capture."],
-        ["2", "Start the Clock", "Use the game clock controls before recording match events."],
-        ["3", "Choose Zone and Team", "Select a field zone and choose Reds or Away."],
-        ["4", "Record an Event", "Select an event action or use an enabled keyboard shortcut."],
-        ["5", "Review Events", "Use event history to edit or delete a recorded event."],
-        ["6", "Export Data", "Open Data & Export to download the available data as CSV."],
-      ].map(([number, title, description]) => (
-        <div className="d-flex gap-3 p-3 border-bottom" key={number}>
-          <div
-            className="d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-            style={{ width: 36, height: 36, background: "#b30000" }}
-          >
-            {number}
-          </div>
-          <div>
-            <strong>{title}</strong>
-            <div className="text-muted small">{description}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderActiveSection = () => {
-    switch (activeSection) {
-      case "Accessibility":
-        return renderAccessibility();
-      case "Match Settings":
-        return renderMatchSettings();
-      case "Security":
-        return renderSecurity();
-      case "Data & Export":
-        return renderDataExport();
-      case "Help":
-        return renderHelp();
-      default:
-        return renderProfile();
+      setEvents((prev) => [newEvent, ...prev]);
     }
   };
+
+
+
+  // ---------------- DELETE ----------------
+  const deleteEvent = async (index) => {
+    const event = events[index];
+
+
+
+    try {
+      const res = await fetch(`/events/delete/${event.id}`, {
+        method: "DELETE",
+      });
+
+
+
+      const result = await res.json();
+
+
+
+      if (!res.ok || result.error) throw new Error(result.message);
+
+
+
+      if (editingIndex === index) setEditingIndex(null);
+
+
+
+      setEvents(events.filter((_, i) => i !== index));
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
+
+
+  // ---------------- EDIT ----------------
+  const toggleEdit = (index) => {
+    if (editingIndex === index) {
+      setEditingIndex(null);
+    } else {
+      setEditingIndex(index);
+      setSelectedZone(events[index].zone);
+      setSelectedTeam(events[index].team === "R" ? "Reds" : "Away");
+      setCurrentTime(events[index].time);
+    }
+  };
+
+
+
+  // ---------------- KEYBOARD ----------------
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const currentIndex = zones.findIndex((z) => z.label === selectedZone);
+
+
+
+      if (e.key === "ArrowRight") {
+        const nextIndex = currentIndex + 1;
+        if (nextIndex < zones.length) {
+          e.preventDefault();
+          setSelectedZone(zones[nextIndex].label);
+        }
+      }
+
+
+
+      if (e.key === "ArrowLeft") {
+        const prevIndex = currentIndex - 1;
+        if (prevIndex >= 0) {
+          e.preventDefault();
+          setSelectedZone(zones[prevIndex].label);
+        }
+      }
+
+
+
+      if (e.key === "Tab") {
+        e.preventDefault();
+        setSelectedTeam((prev) =>
+          prev === "Reds" ? "Away" : "Reds"
+        );
+      }
+
+
+
+      const action = actionKeys[e.key.toLowerCase()];
+      if (action) {
+        e.preventDefault();
+        handleAction(action);
+      }
+    };
+
+
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () =>
+      window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedZone, zones, selectedTeam, currentTime, editingIndex, events]);
+
+
 
   // ---------------- UI ----------------
   return (
-    <Container
-      fluid
-      style={{
-        backgroundColor: accessibility.highContrast ? "#000" : "#5a1f28",
-        minHeight: "100vh",
-        color: "white",
-        fontSize: `${accessibility.fontSize}%`,
-        paddingBottom: 40,
-      }}
-    >
+    <Container fluid style={{ backgroundColor: "#5a1f28", minHeight: "100vh", color: "white" }}>
       <div className="text-center p-3">
-        <h3>Settings</h3>
-        <h5>Manage your Reds app preferences</h5>
+        <h3>
+          {gameInfo ? `Reds vs ${gameInfo.vs_team}` : `Game ID: ${gameId}`}
+        </h3>
+        <h4>
+          {gameInfo ? gameInfo.game_name : "Score: 12 - 7"}
+        </h4>
       </div>
 
-      <Row className="mt-3 justify-content-center">
-        <Col xl={3} lg={4} md={4} className="mb-3 mb-md-0">
-          <div className="bg-dark text-white p-3 h-100">
-            <h5 className="text-center mb-3">Settings Menu</h5>
 
-            {settingsSections.map((section) => (
-              <Button
-                key={section.label}
-                variant={activeSection === section.label ? "danger" : "dark"}
-                className="w-100 mb-2 text-start d-flex align-items-center"
+
+      <Row className="mt-3">
+        <Col md={4}>
+          <div className="text-center bg-light text-dark p-2">
+            <GameClock setCurrentTime={setCurrentTime} />
+          </div>
+
+
+
+          <div className="bg-light text-dark p-2" style={{ maxHeight: "500px", overflowY: "auto" }}>
+            <h5>Event History (Last 8)</h5>
+
+
+
+            {events.slice(0, 8).map((event, index) => (
+              <div
+                key={event.id}
+                className="d-flex justify-content-between align-items-center p-2 mb-2"
                 style={{
-                  minHeight: accessibility.largeButtons ? 60 : 50,
-                  border:
-                    activeSection === section.label
-                      ? "3px solid #4CAF50"
-                      : "2px solid #555",
+                  background: event.team === "R" ? "#b30000" : "#0033cc",
+                  color: "white",
+                  border: editingIndex === index ? "3px solid #4CAF50" : "2px solid transparent",
                 }}
-                onClick={() => setActiveSection(section.label)}
               >
-                <span
-                  className="d-inline-flex align-items-center justify-content-center me-3"
-                  style={{
-                    width: 30,
-                    height: 30,
-                    border: "1px solid #aaa",
-                    borderRadius: 4,
-                    fontWeight: "bold",
-                  }}
-                >
-                  {section.icon}
-                </span>
-                <span>{section.label}</span>
-              </Button>
+                <div>
+                  {event.action} ({event.zone}) - ({event.time}) - {event.team}
+                </div>
+
+
+
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button onClick={() => toggleEdit(index)}>✏️</button>
+                  <button onClick={() => deleteEvent(index)}>🗑️</button>
+                </div>
+              </div>
             ))}
           </div>
         </Col>
 
-        <Col xl={7} lg={8} md={8}>
-          <div style={{ minHeight: 560 }}>{renderActiveSection()}</div>
 
-          {!["Data & Export", "Help"].includes(activeSection) && (
-            <div className="bg-light text-dark p-3 mt-3 d-flex justify-content-end">
-              <Button variant="danger" onClick={handleSave} style={controlButtonStyle}>
-                Save Changes
-              </Button>
+
+        <Col md={8}>
+          <div className="p-3 text-center bg-dark text-white">
+            <p>
+              Zone Selected: {currentZone.label} {currentZone.text}
+            </p>
+
+
+
+            <div style={{ display: "flex", transition: "all 0.3s ease" }}>
+              {zones.map((zone) => (
+                <div
+                  key={zone.label}
+                  onClick={() => setSelectedZone(zone.label)}
+                  style={{
+                    flex: 1,
+                    background: zone.color,
+                    padding: 30,
+                    cursor: "pointer",
+                    border:
+                      selectedZone === zone.label
+                        ? "4px solid #4CAF50"
+                        : "2px solid transparent",
+                  }}
+                >
+                  {zone.label}
+                </div>
+              ))}
             </div>
-          )}
+
+
+
+            {/* TEAM SELECT FIXED */}
+            <div
+              style={{
+                display: "flex",
+                marginTop: 10,
+                borderRadius: "8px",
+                overflow: "hidden",
+                background: "#ddd",
+                height: 60,
+              }}
+            >
+              <div
+                onClick={() => setSelectedTeam("Reds")}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  background: selectedTeam === "Reds" ? "red" : "#eee",
+                  color: selectedTeam === "Reds" ? "white" : "black",
+                }}
+              >
+                Reds
+              </div>
+
+
+
+              <div
+                onClick={() => setManualFlip(!manualFlip)}
+                style={{
+                  width: 70,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  background: "#bbb",
+                  cursor: "pointer",
+                  transform: manualFlip ? "rotate(180deg)" : "rotate(0deg)",
+                  fontSize: "20px"
+                }}
+              >
+                🔄
+              </div>
+
+
+
+              <div
+                onClick={() => setSelectedTeam("Away")}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  background: selectedTeam === "Away" ? "blue" : "#eee",
+                  color: selectedTeam === "Away" ? "white" : "black",
+                }}
+              >
+                Away
+              </div>
+            </div>
+          </div>
+
+
+
+          <div className="bg-light text-dark p-3 mt-3">
+            <h5 className="text-center">Event Actions</h5>
+            <Row>
+              {Object.keys(actionToCode).map((action, i) => (
+                <Col xs={6} md={3} key={i} className="mb-3">
+                  <Button className="w-100" onClick={() => handleAction(action)}>
+                    {action}
+                  </Button>
+                </Col>
+              ))}
+            </Row>
+          </div>
         </Col>
       </Row>
-
-      {saveMessage && (
-        <div
-          className="position-fixed bottom-0 end-0 m-4 px-3 py-2 bg-dark text-white"
-          role="status"
-          style={{ borderLeft: "5px solid #4CAF50", zIndex: 1050 }}
-        >
-          {saveMessage}
-        </div>
-      )}
     </Container>
   );
 }
 
-export default Settings;
+
+
+export default EventCapture;
