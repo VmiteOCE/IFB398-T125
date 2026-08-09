@@ -114,48 +114,38 @@ footer {
   cursor: pointer;
 }
 
-.dashboard-toolbar {
-    display: block;
-    width: 100%;
-    height: auto;
-    padding: 12px;
-    background-color: #321A1A;
-    border-radius: 16px 16px 0 0;
+.analysis-view-buttons  {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-.dashboard-toolbar-top {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 10px;
+.analysis-view-buttons button {
+  border: none;
+  border-radius: 9px;
+  padding: 7px 24px;
+  font-size: 15px;
 }
 
-.dashboard-create-button:hover {
-    background: #772433;
+.analysis-table-card {
+  background: white;
+  color: black;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  overflow-x: auto;
 }
 
-.dashboard-toolbar .form-label {
-    color: white;
-    margin-bottom: 4px;
+.analysis-table {
+  border-collapse: collapse;
+  width: 100%;
 }
 
-.dashboard-filter-buttons {
-    display: flex;
-    gap: 8px;
+.reds-cell {
+  background-color: #ff969dff;
 }
 
-.dashboard-filter-buttons button {
-    flex: 1;
-    min-height: 38px;
-    background: #641d2a;
-    color: white;
-    border: none;
-    border-radius: 9px;
-}
-
-.dashboard-filter-buttons button:hover {
-    background: #772433;
-}
-
-#advanced-game-filters {
-    padding-top: 4px;
+.away-cell {
+  background-color: #b0d1fc;
 }
