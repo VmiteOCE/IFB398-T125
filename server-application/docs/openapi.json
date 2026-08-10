@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.4",
   "info": {
-    "title": "Swagger Petstore - OpenAPI 3.0",
-    "description": "This is a sample Pet Store Server based on the OpenAPI 3.0 specification.  You can find out more about\nSwagger at [https://swagger.io](https://swagger.io). In the third iteration of the pet store, we've switched to the design first approach!\nYou can now help us improve the API whether it's by making changes to the definition itself or to the code.\nThat way, with time, we can improve the API in general, and expose some of the new features in OAS3.\n\nSome useful links:\n- [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)\n- [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)",
+    "title": "Reds App API: Swagger Documentation - OpenAPI 3.0",
+    "description": "This is a documentation page for the Reds App server-side API created by IFB398/IFB399 Team 125 based on the OpenAPI 3.0 specification.\n\nLinks:\n- [GitHub Repository](https://github.com/VmiteOCE/IFB398-T125)",
     "termsOfService": "https://swagger.io/terms/",
     "contact": {
       "email": "apiteam@swagger.io"
@@ -19,404 +19,201 @@
   },
   "servers": [
     {
-      "url": "/api/v3"
+      "url": "https://localhost:3000/",
+      "description": "Local Development Server"
     }
   ],
   "tags": [
     {
-      "name": "pet",
-      "description": "Everything about your Pets",
-      "externalDocs": {
-        "description": "Find out more",
-        "url": "https://swagger.io"
-      }
+      "name": "games",
+      "description": "Create, delete, or modify a game"
     },
     {
-      "name": "store",
-      "description": "Access to Petstore orders",
-      "externalDocs": {
-        "description": "Find out more about our store",
-        "url": "https://swagger.io"
-      }
+      "name": "events",
+      "description": "Create, delete, or modify a game event"
     },
     {
       "name": "user",
-      "description": "Operations about user"
+      "description": "User authentication and management"
     }
   ],
   "paths": {
-    "/pet": {
+    "/games": {
+      "post": {
+        "tags": [
+          "games"
+        ],
+        "summary": "Create a new game",
+        "description": "Creates a new game in the database with an auto-incrementing ID value. Accepts JSON or URL-encoded form data.",
+        "operationId": "createGame",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/GameInputRequestBody"
+        },
+        "responses": {
+          "201": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameCreateResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "games"
+        ],
+        "summary": "Get all game details",
+        "description": "Retrieves a list of all games stored in the database.",
+        "operationId": "getAllGames",
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllGamesResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No games in database",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoGamesErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ]
+      }
+    },
+    "/games/{game_id}": {
+      "get": {
+        "tags": [
+          "games"
+        ],
+        "summary": "Get details of an existing game",
+        "description": "Gets the details of a game with the entered game_id.",
+        "operationId": "getGameDetails",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the game to get details of",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSingleGameResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Game not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissingGameErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ]
+      },
       "put": {
         "tags": [
-          "pet"
+          "games"
         ],
-        "summary": "Update an existing pet.",
-        "description": "Update an existing pet by Id.",
-        "operationId": "updatePet",
-        "requestBody": {
-          "description": "Update an existent pet in the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Pet"
-              }
-            },
-            "application/xml": {
-              "schema": {
-                "$ref": "#/components/schemas/Pet"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Pet"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Pet"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/Pet"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid ID supplied"
-          },
-          "404": {
-            "description": "Pet not found"
-          },
-          "422": {
-            "description": "Validation exception"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "pet"
-        ],
-        "summary": "Add a new pet to the store.",
-        "description": "Add a new pet to the store.",
-        "operationId": "addPet",
-        "requestBody": {
-          "description": "Create a new pet in the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Pet"
-              }
-            },
-            "application/xml": {
-              "schema": {
-                "$ref": "#/components/schemas/Pet"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Pet"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Pet"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/Pet"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "422": {
-            "description": "Validation exception"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
-      }
-    },
-    "/pet/findByStatus": {
-      "get": {
-        "tags": [
-          "pet"
-        ],
-        "summary": "Finds Pets by status.",
-        "description": "Multiple status values can be provided with comma separated strings.",
-        "operationId": "findPetsByStatus",
+        "summary": "Update details of an existing game",
+        "description": "Updates the details of a game with the entered game_id. Accepts JSON or URL-encoded form data.",
+        "operationId": "updateGame",
         "parameters": [
           {
-            "name": "status",
-            "in": "query",
-            "description": "Status values that need to be considered for filter",
-            "required": true,
-            "explode": true,
-            "schema": {
-              "type": "string",
-              "default": "available",
-              "enum": [
-                "available",
-                "pending",
-                "sold"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Pet"
-                  }
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Pet"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid status value"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
-      }
-    },
-    "/pet/findByTags": {
-      "get": {
-        "tags": [
-          "pet"
-        ],
-        "summary": "Finds Pets by tags.",
-        "description": "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.",
-        "operationId": "findPetsByTags",
-        "parameters": [
-          {
-            "name": "tags",
-            "in": "query",
-            "description": "Tags to filter by",
-            "required": true,
-            "explode": true,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Pet"
-                  }
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Pet"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid tag value"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
-      }
-    },
-    "/pet/{petId}": {
-      "get": {
-        "tags": [
-          "pet"
-        ],
-        "summary": "Find pet by ID.",
-        "description": "Returns a single pet.",
-        "operationId": "getPetById",
-        "parameters": [
-          {
-            "name": "petId",
+            "name": "game_id",
             "in": "path",
-            "description": "ID of pet to return",
             "required": true,
+            "description": "The unique ID of the game to update",
             "schema": {
               "type": "integer",
-              "format": "int64"
+              "example": 1
             }
           }
         ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/GameInputRequestBody"
+        },
         "responses": {
           "200": {
-            "description": "successful operation",
+            "description": "Success response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Pet"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/Pet"
+                  "$ref": "#/components/schemas/GameUpdateResponse"
                 }
               }
             }
-          },
-          "400": {
-            "description": "Invalid ID supplied"
           },
           "404": {
-            "description": "Pet not found"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        },
-        "security": [
-          {
-            "api_key": []
-          },
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "pet"
-        ],
-        "summary": "Updates a pet in the store with form data.",
-        "description": "Updates a pet resource based on the form data.",
-        "operationId": "updatePetWithForm",
-        "parameters": [
-          {
-            "name": "petId",
-            "in": "path",
-            "description": "ID of pet that needs to be updated",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "description": "Name of pet that needs to be updated",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "description": "Status of pet that needs to be updated",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
+            "description": "Game not found",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Pet"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/Pet"
+                  "$ref": "#/components/schemas/MissingGameErrorResponse"
                 }
               }
             }
           },
-          "400": {
-            "description": "Invalid input"
-          },
-          "default": {
-            "description": "Unexpected error"
+          "500": {
+            "description": "Database error"
           }
         },
         "security": [
@@ -430,41 +227,46 @@
       },
       "delete": {
         "tags": [
-          "pet"
+          "games"
         ],
-        "summary": "Deletes a pet.",
-        "description": "Delete a pet.",
-        "operationId": "deletePet",
+        "summary": "Delete an existing game",
+        "description": "Deletes a game with the entered game_id. Additionally deletes all events associated with the entered game.",
+        "operationId": "deleteGame",
         "parameters": [
           {
-            "name": "api_key",
-            "in": "header",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "petId",
+            "name": "game_id",
             "in": "path",
-            "description": "Pet id to delete",
             "required": true,
+            "description": "The unique ID of the game to delete",
             "schema": {
               "type": "integer",
-              "format": "int64"
+              "example": 1
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Pet deleted"
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDeleteResponse"
+                }
+              }
+            }
           },
-          "400": {
-            "description": "Invalid pet value"
+          "404": {
+            "description": "Game not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissingGameErrorResponse"
+                }
+              }
+            }
           },
-          "default": {
-            "description": "Unexpected error"
+          "500": {
+            "description": "Database error"
           }
         },
         "security": [
@@ -477,64 +279,30 @@
         ]
       }
     },
-    "/pet/{petId}/uploadImage": {
+    "/events": {
       "post": {
         "tags": [
-          "pet"
+          "events"
         ],
-        "summary": "Uploads an image.",
-        "description": "Upload image of the pet.",
-        "operationId": "uploadFile",
-        "parameters": [
-          {
-            "name": "petId",
-            "in": "path",
-            "description": "ID of pet to update",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "additionalMetadata",
-            "in": "query",
-            "description": "Additional Metadata",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "summary": "Log a game event",
+        "description": "Creates a new game event in the database with an auto-incrementing ID value. Accepts JSON or URL-encoded form data.",
+        "operationId": "createEvent",
         "requestBody": {
-          "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            }
-          }
+          "$ref": "#/components/requestBodies/EventInputRequestBody"
         },
         "responses": {
-          "200": {
-            "description": "successful operation",
+          "201": {
+            "description": "Success response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
+                  "$ref": "#/components/schemas/EventCreateResponse"
                 }
               }
             }
           },
-          "400": {
-            "description": "No file uploaded"
-          },
-          "404": {
-            "description": "Pet not found"
-          },
-          "default": {
-            "description": "Unexpected error"
+          "500": {
+            "description": "Database error"
           }
         },
         "security": [
@@ -547,170 +315,223 @@
         ]
       }
     },
-    "/store/inventory": {
+    "/events/game/{game_id}": {
       "get": {
         "tags": [
-          "store"
+          "events"
         ],
-        "summary": "Returns pet inventories by status.",
-        "description": "Returns a map of status codes to quantities.",
-        "operationId": "getInventory",
+        "summary": "Get all game events for a specific game_id",
+        "description": "Gets the details of a game with the entered game_id.",
+        "operationId": "getGameEvents",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the game to get details of",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "successful operation",
+            "description": "Success response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
+                  "$ref": "#/components/schemas/GetGameEventsResponse"
                 }
               }
             }
           },
-          "default": {
-            "description": "Unexpected error"
+          "404": {
+            "description": "Game not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissingGameErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
           }
         },
         "security": [
           {
-            "api_key": []
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
           }
         ]
       }
     },
-    "/store/order": {
-      "post": {
+    "/events/{event_id}": {
+      "get": {
         "tags": [
-          "store"
+          "events"
         ],
-        "summary": "Place an order for a pet.",
-        "description": "Place a new order in the store.",
-        "operationId": "placeOrder",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Order"
-              }
-            },
-            "application/xml": {
-              "schema": {
-                "$ref": "#/components/schemas/Order"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Order"
-              }
+        "summary": "Get details of an existing game event",
+        "description": "Gets the details of a game event with the entered event_id.",
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the game event to get details of",
+            "schema": {
+              "type": "integer",
+              "example": 1
             }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetEventResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissingEventErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Update an existing game event",
+        "description": "Updates the details of a game game event with the entered event_id. Accepts JSON or URL-encoded form data",
+        "operationId": "updateEvent",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the event to update",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/EventInputRequestBody"
         },
         "responses": {
           "200": {
-            "description": "successful operation",
+            "description": "Success response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Order"
+                  "$ref": "#/components/schemas/EventUpdateResponse"
                 }
               }
             }
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "422": {
-            "description": "Validation exception"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        }
-      }
-    },
-    "/store/order/{orderId}": {
-      "get": {
-        "tags": [
-          "store"
-        ],
-        "summary": "Find purchase order by ID.",
-        "description": "For valid response try integer IDs with value <= 5 or > 10. Other values will generate exceptions.",
-        "operationId": "getOrderById",
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "description": "ID of order that needs to be fetched",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Order"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/Order"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid ID supplied"
           },
           "404": {
-            "description": "Order not found"
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissingEventErrorResponse"
+                }
+              }
+            }
           },
-          "default": {
-            "description": "Unexpected error"
+          "500": {
+            "description": "Database error"
           }
-        }
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
-          "store"
+          "events"
         ],
-        "summary": "Delete purchase order by identifier.",
-        "description": "For valid response try integer IDs with value < 1000. Anything above 1000 or non-integers will generate API errors.",
-        "operationId": "deleteOrder",
+        "summary": "Delete an existing game event",
+        "description": "Deletes a game event with the entered event_id",
+        "operationId": "deleteEvent",
         "parameters": [
           {
-            "name": "orderId",
+            "name": "event_id",
             "in": "path",
-            "description": "ID of the order that needs to be deleted",
             "required": true,
+            "description": "The unique ID of the game event to delete",
             "schema": {
               "type": "integer",
-              "format": "int64"
+              "example": 1
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "order deleted"
-          },
-          "400": {
-            "description": "Invalid ID supplied"
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDeleteResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Order not found"
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissingEventErrorResponse"
+                }
+              }
+            }
           },
-          "default": {
-            "description": "Unexpected error"
+          "500": {
+            "description": "Database error"
           }
-        }
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ]
       }
     },
     "/user": {
@@ -744,48 +565,6 @@
         "responses": {
           "200": {
             "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        }
-      }
-    },
-    "/user/createWithList": {
-      "post": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Creates list of users with given input array.",
-        "description": "Creates list of users with given input array.",
-        "operationId": "createUsersWithListInput",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
@@ -892,356 +671,464 @@
           }
         }
       }
-    },
-    "/user/{username}": {
-      "get": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Get user by user name.",
-        "description": "Get user detail based on username.",
-        "operationId": "getUserByName",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "description": "The name that needs to be fetched. Use user1 for testing",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid username supplied"
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Update user resource.",
-        "description": "This can only be done by the logged in user.",
-        "operationId": "updateUser",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "description": "name that need to be deleted",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "description": "Update an existent user in the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            },
-            "application/xml": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "successful operation"
-          },
-          "400": {
-            "description": "bad request"
-          },
-          "404": {
-            "description": "user not found"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Delete user resource.",
-        "description": "This can only be done by the logged in user.",
-        "operationId": "deleteUser",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "description": "The name that needs to be deleted",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User deleted"
-          },
-          "400": {
-            "description": "Invalid username supplied"
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "default": {
-            "description": "Unexpected error"
-          }
-        }
-      }
     }
   },
   "components": {
     "schemas": {
-      "Order": {
+      "GameCreate": {
         "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64",
-            "example": 10
-          },
-          "petId": {
-            "type": "integer",
-            "format": "int64",
-            "example": 198772
-          },
-          "quantity": {
-            "type": "integer",
-            "format": "int32",
-            "example": 7
-          },
-          "shipDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "status": {
-            "type": "string",
-            "description": "Order Status",
-            "example": "approved",
-            "enum": [
-              "placed",
-              "approved",
-              "delivered"
-            ]
-          },
-          "complete": {
-            "type": "boolean"
-          }
-        },
-        "xml": {
-          "name": "order"
-        }
-      },
-      "Category": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "example": "Dogs"
-          }
-        },
-        "xml": {
-          "name": "category"
-        }
-      },
-      "User": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64",
-            "example": 10
-          },
-          "username": {
-            "type": "string",
-            "example": "theUser"
-          },
-          "firstName": {
-            "type": "string",
-            "example": "John"
-          },
-          "lastName": {
-            "type": "string",
-            "example": "James"
-          },
-          "email": {
-            "type": "string",
-            "example": "john@email.com"
-          },
-          "password": {
-            "type": "string",
-            "example": "12345"
-          },
-          "phone": {
-            "type": "string",
-            "example": "12345"
-          },
-          "userStatus": {
-            "type": "integer",
-            "description": "User Status",
-            "format": "int32",
-            "example": 1
-          }
-        },
-        "xml": {
-          "name": "user"
-        }
-      },
-      "Tag": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "xml": {
-          "name": "tag"
-        }
-      },
-      "Pet": {
         "required": [
-          "name",
-          "photoUrls"
+          "game_name",
+          "vs_team",
+          "start_time",
+          "game_status"
         ],
-        "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64",
-            "example": 10
-          },
-          "name": {
+          "game_name": {
             "type": "string",
-            "example": "doggie"
+            "example": "Test Game"
           },
-          "category": {
-            "$ref": "#/components/schemas/Category"
+          "vs_team": {
+            "type": "string",
+            "example": "VS Team Name"
           },
-          "photoUrls": {
-            "type": "array",
-            "xml": {
-              "wrapped": true
-            },
-            "items": {
-              "type": "string",
-              "xml": {
-                "name": "photoUrl"
+          "start_time": {
+            "type": "string",
+            "description": "ISO string representation of game start time",
+            "example": "2026-06-01T14:30:00Z"
+          },
+          "game_status": {
+            "type": "string",
+            "description": "Status of current game",
+            "default": "scheduled",
+            "enum": [
+              "scheduled",
+              "in-progress",
+              "completed",
+              "cancelled"
+            ],
+            "example": "scheduled"
+          }
+        }
+      },
+      "GameFull": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "game_id"
+            ],
+            "properties": {
+              "game_id": {
+                "type": "integer",
+                "description": "Auto-incremented unique ID for the game",
+                "example": 1
               }
             }
           },
-          "tags": {
-            "type": "array",
-            "xml": {
-              "wrapped": true
-            },
-            "items": {
-              "$ref": "#/components/schemas/Tag"
-            }
-          },
-          "status": {
-            "type": "string",
-            "description": "pet status in the store",
-            "enum": [
-              "available",
-              "pending",
-              "sold"
-            ]
+          {
+            "$ref": "#/components/schemas/GameCreate"
           }
-        },
-        "xml": {
-          "name": "pet"
+        ]
+      },
+      "EventCreate": {
+        "type": "object",
+        "required": [
+          "game_id",
+          "event_code",
+          "zone_id",
+          "team_id",
+          "game_clock",
+          "game_half"
+        ],
+        "properties": {
+          "game_id": {
+            "type": "integer",
+            "description": "Associated game_id",
+            "example": 1
+          },
+          "event_code": {
+            "type": "string",
+            "enum": [
+              "A",
+              "C",
+              "E",
+              "K",
+              "L",
+              "M",
+              "P",
+              "R",
+              "S",
+              "T",
+              "V",
+              "Y"
+            ],
+            "example": "P"
+          },
+          "zone_id": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "M",
+              "C",
+              "D"
+            ],
+            "example": "M"
+          },
+          "team_id": {
+            "type": "integer",
+            "description": "Team 1 - Reds, Team 2 - VS team",
+            "enum": [
+              1,
+              2
+            ],
+            "example": 1
+          },
+          "game_clock": {
+            "type": "integer",
+            "description": "Match time (in seconds)",
+            "minimum": 0,
+            "example": 20
+          },
+          "game_half": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ],
+            "example": 1
+          }
         }
       },
-      "ApiResponse": {
+      "EventFull": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "event_id"
+            ],
+            "properties": {
+              "event_id": {
+                "type": "integer",
+                "description": "Auto-incremented unique ID for the event",
+                "example": 1
+              }
+            }
+          },
+          {
+            "$ref": "#/components/schemas/EventCreate"
+          }
+        ]
+      },
+      "GameCreateResponse": {
         "type": "object",
         "properties": {
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "type": {
-            "type": "string"
+          "error": {
+            "type": "boolean",
+            "example": false
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "example": "Game created successfully"
+          },
+          "game_id": {
+            "type": "integer",
+            "example": 1
           }
-        },
-        "xml": {
-          "name": "##default"
+        }
+      },
+      "GameUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Game updated successfully"
+          },
+          "game_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "GameDeleteResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Game deleted successfully"
+          },
+          "game_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "EventCreateResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Event logged successfully"
+          },
+          "game_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "EventUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Event updated successfully"
+          },
+          "game_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "EventDeleteResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Event deleted successfully"
+          },
+          "game_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "GetAllGamesResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          },
+          "games": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GameFull"
+            },
+            "example": [
+              {
+                "game_id": 1,
+                "game_name": "Season 2026 - Week 12",
+                "vs_team": "Waratahs",
+                "start_time": "2026-05-25T14:30:00.000Z",
+                "game_status": "completed"
+              },
+              {
+                "game_id": 2,
+                "game_name": "Practice Game vs Storm",
+                "vs_team": "Storm",
+                "start_time": "2026-06-01T18:00:00.000Z",
+                "game_status": "scheduled"
+              }
+            ]
+          }
+        }
+      },
+      "GetSingleGameResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          },
+          "game": {
+            "$ref": "#/components/schemas/GameFull"
+          }
+        }
+      },
+      "MissingGameErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Game not found"
+          }
+        }
+      },
+      "NoGamesErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "No games found"
+          }
+        }
+      },
+      "GetEventResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          },
+          "event": {
+            "$ref": "#/components/schemas/EventFull"
+          }
+        }
+      },
+      "MissingEventErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Event not found"
+          }
+        }
+      },
+      "NoEventsErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "No Events found"
+          }
+        }
+      },
+      "GetGameEventsResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventFull"
+            },
+            "example": [
+              {
+                "event_id": 1,
+                "game_id": 1,
+                "event_code": "P",
+                "zone_id": "M",
+                "team_id": 1,
+                "game_clock": 10,
+                "game_half": 1
+              },
+              {
+                "event_id": 2,
+                "game_id": 1,
+                "event_code": "C",
+                "zone_id": "B",
+                "team_id": 1,
+                "game_clock": 70,
+                "game_half": 1
+              },
+              {
+                "event_id": 3,
+                "game_id": 1,
+                "event_code": "K",
+                "zone_id": "A",
+                "team_id": 1,
+                "game_clock": 130,
+                "game_half": 1
+              },
+              {
+                "event_id": 4,
+                "game_id": 1,
+                "event_code": "T",
+                "zone_id": "A",
+                "team_id": 1,
+                "game_clock": 610,
+                "game_half": 1
+              }
+            ]
+          }
         }
       }
     },
     "requestBodies": {
-      "Pet": {
-        "description": "Pet object that needs to be added to the store",
+      "GameInputRequestBody": {
+        "description": "Payload required to create/update a game record",
+        "required": true,
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/Pet"
+              "$ref": "#/components/schemas/GameCreate"
             }
           },
-          "application/xml": {
+          "application/x-www-form-urlencoded": {
             "schema": {
-              "$ref": "#/components/schemas/Pet"
+              "$ref": "#/components/schemas/GameCreate"
             }
           }
         }
       },
-      "UserArray": {
-        "description": "List of user object",
+      "EventInputRequestBody": {
+        "description": "Payload required to create/update a game event",
+        "required": true,
         "content": {
           "application/json": {
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/User"
-              }
+              "$ref": "#/components/schemas/EventCreate"
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/EventCreate"
             }
           }
         }

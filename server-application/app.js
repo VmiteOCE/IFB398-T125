@@ -19,6 +19,14 @@ const port = process.env.PORT || 3000;
 // Initialize Knex
 const db = knex(knexConfig);
 
+// Swagger configuration
+const swaggerOptions = {
+  swaggerOptions: {
+    defaultModelsExpandDepth: 0, // 0 = Collapsed, -1 = Hidden
+    docExpansion: 'list'
+  }
+};
+
 // Run migrations if they haven't been run yet
 db.migrate.latest()
   .then(async () => {
@@ -55,10 +63,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve documentation at server root
-app.use('/', swaggerUI.serve);
-app.get('/', swaggerUI.setup(swaggerDocument));
-
 // Mount routers
 // https://localhost:3000/games
 // ./routes/games.js
@@ -71,6 +75,9 @@ app.use('/events', eventsRouter);
 // https://localhost:3000/user
 // ./routes/user.js
 app.use('/user', userRouter);
+
+// Serve documentation at server root
+app.use('/', swaggerUI.serve, swaggerUI.setup(swaggerDocument, swaggerOptions));
 
 // Attempt to start HTTPS server instance
 try {

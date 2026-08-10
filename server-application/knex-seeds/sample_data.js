@@ -22,11 +22,19 @@ export async function seed(knex) {
   ];
 
   // Add test games and capture auto-increment id values
-  // SQLite returns an array of the inserted ids: [ id1, id2 ]
-  const [game1id, game2id] = await knex('games').insert([
-    { game_name: 'Season 2026 - Week 12', vs_team: 'Waratahs', start_time: sampleDates[0], game_status: 'completed' },
-    { game_name: 'Practice Game vs Storm', vs_team: 'Storm', start_time: sampleDates[1], game_status: 'scheduled' }
-  ]);
+  const [game1id] = await knex('games').insert({
+    game_name: 'Season 2026 - Week 12',
+    vs_team: 'Waratahs',
+    start_time: sampleDates[0],
+    game_status: 'completed'
+  });
+
+  const [game2id] = await knex('games').insert({
+    game_name: 'Practice Game vs Storm',
+    vs_team: 'Storm',
+    start_time: sampleDates[1],
+    game_status: 'scheduled'
+  });
 
   // Add test events using captured auto-increment id values
   await knex('events').insert([
