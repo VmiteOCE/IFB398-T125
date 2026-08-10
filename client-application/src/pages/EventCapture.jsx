@@ -3,19 +3,29 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import GameClock from "../components/GameClock";
 
+
+
 function EventCapture() {
   const { id } = useParams();
   const gameId = parseInt(id, 10) || 1;
+
+
 
   const [selectedZone, setSelectedZone] = useState("M");
   const [selectedTeam, setSelectedTeam] = useState("Reds");
   const [manualFlip, setManualFlip] = useState(false);
 
+
+
   const [events, setEvents] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
 
+
+
   const [currentTime, setCurrentTime] = useState("00:00");
   const [gameInfo, setGameInfo] = useState(null);
+
+
 
   // ---------------- GAME INFO ----------------
   useEffect(() => {
@@ -24,6 +34,8 @@ function EventCapture() {
         const res = await fetch(`/games/${gameId}`);
         const result = await res.json();
 
+
+
         if (!res.ok || result.error) throw new Error(result.message);
         setGameInfo(result.game);
       } catch (err) {
@@ -31,8 +43,12 @@ function EventCapture() {
       }
     };
 
+
+
     fetchGameInfo();
   }, [gameId]);
+
+
 
   // ---------------- HELPERS ----------------
   const toSeconds = (timeStr) => {
@@ -40,11 +56,15 @@ function EventCapture() {
     return mins * 60 + secs;
   };
 
+
+
   const formatSeconds = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+
+
 
   const actionToCode = {
     Pass: "P",
@@ -61,9 +81,13 @@ function EventCapture() {
     Maul: "M",
   };
 
+
+
   const codeToAction = Object.fromEntries(
     Object.entries(actionToCode).map(([k, v]) => [v, k])
   );
+
+
 
   const baseZones = [
     { label: "A", color: "red", text: "(0–22m)" },
@@ -73,11 +97,39 @@ function EventCapture() {
     { label: "D", color: "blue", text: "(72–94m)" },
   ];
 
+  const oppositeZones = {
+    A: "D",
+    B: "C",
+    M: "M",
+    C: "B",
+    D: "A",
+  };
+
+  const swapSelectedZone = () => {
+    setSelectedZone((previousZone) => {
+      return oppositeZones[previousZone] || previousZone;
+    });
+  };
+
+  const handleTeamChange = (newTeam) => {
+    // Do not swap if the selected team is clicked again.
+    if (newTeam === selectedTeam) return;
+
+    setSelectedTeam(newTeam);
+    swapSelectedZone();
+  };
+
+  const handleManualFlip = () => {
+    setManualFlip((previousFlip) => !previousFlip);
+    swapSelectedZone();
+  }; 
+
   const isTeamReversed = selectedTeam === "Away";
   const finalReversed = isTeamReversed !== manualFlip;
   const zones = finalReversed ? [...baseZones].reverse() : baseZones;
 
   const currentZone = baseZones.find((z) => z.label === selectedZone);
+
 
   const actionKeys = {
     r: "Ruck",
@@ -94,6 +146,8 @@ function EventCapture() {
     v: "Conversion",
   };
 
+
+
   // ---------------- FETCH EVENTS ----------------
   useEffect(() => {
     const fetchEvents = async () => {
@@ -101,7 +155,11 @@ function EventCapture() {
         const res = await fetch(`/events/game/${gameId}`);
         const result = await res.json();
 
+
+
         if (!res.ok || result.error) throw new Error(result.message);
+
+
 
         const mapped = result.events
           .slice()
@@ -114,14 +172,20 @@ function EventCapture() {
             time: formatSeconds(e.game_clock),
           }));
 
+
+
         setEvents(mapped);
       } catch (err) {
         console.error("Fetch events error:", err);
       }
     };
 
+
+
     fetchEvents();
   }, [gameId]);
+
+
 
   // ---------------- CREATE ----------------
   const postEvent = async (action) => {
@@ -134,6 +198,8 @@ function EventCapture() {
       game_half: 1,
     };
 
+
+
     try {
       const res = await fetch("/events", {
         method: "POST",
@@ -141,11 +207,17 @@ function EventCapture() {
         body: JSON.stringify(payload),
       });
 
+
+
       const result = await res.json();
+
+
 
       if (!res.ok || result.error) {
         throw new Error(result.message);
       }
+
+
 
       return result.event_id;
     } catch (err) {
@@ -154,10 +226,14 @@ function EventCapture() {
     }
   };
 
+
+
   // ---------------- CREATE + UPDATE ----------------
   const handleAction = async (action) => {
     if (editingIndex !== null) {
       const event = events[editingIndex];
+
+
 
       const payload = {
         game_id: gameId,
@@ -168,6 +244,8 @@ function EventCapture() {
         game_half: 1,
       };
 
+
+
       try {
         const res = await fetch(`/events/update/${event.id}`, {
           method: "PUT",
@@ -175,9 +253,15 @@ function EventCapture() {
           body: JSON.stringify(payload),
         });
 
+
+
         const result = await res.json();
 
+
+
         if (!res.ok || result.error) throw new Error(result.message);
+
+
 
         const updated = [...events];
         updated[editingIndex] = {
@@ -188,6 +272,8 @@ function EventCapture() {
           time: currentTime,
         };
 
+
+
         setEvents(updated);
         setEditingIndex(null);
       } catch (err) {
@@ -197,6 +283,8 @@ function EventCapture() {
       const eventId = await postEvent(action);
       if (!eventId) return;
 
+
+
       const newEvent = {
         id: eventId,
         action,
@@ -205,30 +293,46 @@ function EventCapture() {
         time: currentTime,
       };
 
+
+
       setEvents((prev) => [newEvent, ...prev]);
     }
   };
 
+
+
   // ---------------- DELETE ----------------
   const deleteEvent = async (index) => {
     const event = events[index];
+
+
 
     try {
       const res = await fetch(`/events/delete/${event.id}`, {
         method: "DELETE",
       });
 
+
+
       const result = await res.json();
+
+
 
       if (!res.ok || result.error) throw new Error(result.message);
 
+
+
       if (editingIndex === index) setEditingIndex(null);
+
+
 
       setEvents(events.filter((_, i) => i !== index));
     } catch (err) {
       console.error("Delete error:", err);
     }
   };
+
+
 
   // ---------------- EDIT ----------------
   const toggleEdit = (index) => {
@@ -242,10 +346,14 @@ function EventCapture() {
     }
   };
 
+
+
   // ---------------- KEYBOARD ----------------
   useEffect(() => {
     const handleKeyDown = (e) => {
       const currentIndex = zones.findIndex((z) => z.label === selectedZone);
+
+
 
       if (e.key === "ArrowRight") {
         const nextIndex = currentIndex + 1;
@@ -255,6 +363,8 @@ function EventCapture() {
         }
       }
 
+
+
       if (e.key === "ArrowLeft") {
         const prevIndex = currentIndex - 1;
         if (prevIndex >= 0) {
@@ -263,12 +373,17 @@ function EventCapture() {
         }
       }
 
+
+
       if (e.key === "Tab") {
         e.preventDefault();
-        setSelectedTeam((prev) =>
-          prev === "Reds" ? "Away" : "Reds"
-        );
+        const newTeam = 
+          selectedTeam === "Reds" ? "Away" : "Reds";
+
+        handleTeamChange(newTeam); 
       }
+
+
 
       const action = actionKeys[e.key.toLowerCase()];
       if (action) {
@@ -277,10 +392,14 @@ function EventCapture() {
       }
     };
 
+
+
     window.addEventListener("keydown", handleKeyDown);
     return () =>
       window.removeEventListener("keydown", handleKeyDown);
   }, [selectedZone, zones, selectedTeam, currentTime, editingIndex, events]);
+
+
 
   // ---------------- UI ----------------
   return (
@@ -294,14 +413,20 @@ function EventCapture() {
         </h4>
       </div>
 
+
+
       <Row className="mt-3">
         <Col md={4}>
           <div className="text-center bg-light text-dark p-2">
             <GameClock setCurrentTime={setCurrentTime} />
           </div>
 
+
+
           <div className="bg-light text-dark p-2" style={{ maxHeight: "500px", overflowY: "auto" }}>
             <h5>Event History (Last 8)</h5>
+
+
 
             {events.slice(0, 8).map((event, index) => (
               <div
@@ -317,6 +442,8 @@ function EventCapture() {
                   {event.action} ({event.zone}) - ({event.time}) - {event.team}
                 </div>
 
+
+
                 <div style={{ display: "flex", gap: 6 }}>
                   <button onClick={() => toggleEdit(index)}>✏️</button>
                   <button onClick={() => deleteEvent(index)}>🗑️</button>
@@ -326,11 +453,15 @@ function EventCapture() {
           </div>
         </Col>
 
+
+
         <Col md={8}>
           <div className="p-3 text-center bg-dark text-white">
             <p>
               Zone Selected: {currentZone.label} {currentZone.text}
             </p>
+
+
 
             <div style={{ display: "flex", transition: "all 0.3s ease" }}>
               {zones.map((zone) => (
@@ -353,6 +484,8 @@ function EventCapture() {
               ))}
             </div>
 
+
+
             {/* TEAM SELECT FIXED */}
             <div
               style={{
@@ -365,7 +498,7 @@ function EventCapture() {
               }}
             >
               <div
-                onClick={() => setSelectedTeam("Reds")}
+                onClick={() => handleTeamChange("Reds")}
                 style={{
                   flex: 1,
                   display: "flex",
@@ -379,8 +512,18 @@ function EventCapture() {
                 Reds
               </div>
 
+
+
               <div
-                onClick={() => setManualFlip(!manualFlip)}
+                onClick={handleManualFlip}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleManualFlip();
+                  }
+                }}
                 style={{
                   width: 70,
                   display: "flex",
@@ -395,8 +538,10 @@ function EventCapture() {
                 🔄
               </div>
 
+
+
               <div
-                onClick={() => setSelectedTeam("Away")}
+                onClick={() => handleTeamChange("Away")}
                 style={{
                   flex: 1,
                   display: "flex",
@@ -411,6 +556,8 @@ function EventCapture() {
               </div>
             </div>
           </div>
+
+
 
           <div className="bg-light text-dark p-3 mt-3">
             <h5 className="text-center">Event Actions</h5>
@@ -429,5 +576,7 @@ function EventCapture() {
     </Container>
   );
 }
+
+
 
 export default EventCapture;
