@@ -159,3 +159,39 @@ footer {
 #advanced-game-filters {
     padding-top: 4px;
 }
+
+.analysis-view-buttons  {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.analysis-view-buttons button {
+  border: none;
+  border-radius: 9px;
+  padding: 7px 24px;
+  font-size: 15px;
+}
+
+.analysis-table-card {
+  background: white;
+  color: black;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.analysis-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.reds-cell {
+  background-color: #ff969dff;
+}
+
+.away-cell {
+  background-color: #b0d1fc;
+}
