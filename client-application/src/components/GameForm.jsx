@@ -104,7 +104,7 @@ export default function GameForm({gameId, onSaved, buttonText, buttonClassName})
             setSaving(true);
             setError("");
 
-            const endpoint = isEditing ? `/games/update/${resolvedGameId}` : "/games";
+            const endpoint = isEditing ? `/games/${resolvedGameId}` : "/games";
             const method = isEditing ? "PUT" : "POST";
 
             const response = await fetch(endpoint, {
