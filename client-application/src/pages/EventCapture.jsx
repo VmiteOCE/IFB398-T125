@@ -122,7 +122,7 @@ function EventCapture() {
   const handleManualFlip = () => {
     setManualFlip((previousFlip) => !previousFlip);
     swapSelectedZone();
-  }; 
+  };
 
   const isTeamReversed = selectedTeam === "Away";
   const finalReversed = isTeamReversed !== manualFlip;
@@ -247,7 +247,7 @@ function EventCapture() {
 
 
       try {
-        const res = await fetch(`/events/update/${event.id}`, {
+        const res = await fetch(`/events/${event.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -308,7 +308,7 @@ function EventCapture() {
 
 
     try {
-      const res = await fetch(`/events/delete/${event.id}`, {
+      const res = await fetch(`/events/${event.id}`, {
         method: "DELETE",
       });
 
@@ -377,10 +377,10 @@ function EventCapture() {
 
       if (e.key === "Tab") {
         e.preventDefault();
-        const newTeam = 
+        const newTeam =
           selectedTeam === "Reds" ? "Away" : "Reds";
 
-        handleTeamChange(newTeam); 
+        handleTeamChange(newTeam);
       }
 
 
