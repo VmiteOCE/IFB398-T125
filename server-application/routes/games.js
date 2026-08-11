@@ -16,8 +16,8 @@ router.post('/', async (req, res) => {
         game_status
       });
 
-    // Success response
-    res.json({ error: false, message: "Game created successfully", game_id: insertedId });
+    // Success response - 201 Created
+    res.status(201).json({ error: false, message: "Game created successfully", game_id: insertedId });
 
   } catch (err) {
     console.error(err);
@@ -97,7 +97,7 @@ router.get('/', async (req, res) => {
     const totalPages = Math.ceil(total / parsedLimit);
 
     // Empty results are valid, so return 200 with an empty array
-    res.json({
+    res.status(200).json({
       error: false,
       message: 'Success',
       games: games,
@@ -127,11 +127,36 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ============================== PUT https://localhost:3000/games/update/{id} ==============================
-// Update the stored data for a given game_id
-router.put('/update/:id', async (req, res) => {
+// ============================== GET https://localhost:3000/games/{id} ==============================
+// Get details for a specific game_id
+router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10); // Parse to integer base-10
+
+    const game = await req.db('games')
+      .select('*')
+      .where('game_id', '=', id)
+      .first() // Get single game object instead of array
+
+    // Check if game exists
+    if (!game) {
+      return res.status(404).json({ error: true, message: "Game not found" });
+    }
+
+    // Success response - 200 OK
+    res.status(200).json({ error: false, message: "Success", game: game });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: true, message: "Database read error" });
+  }
+});
+
+// ============================== PUT https://localhost:3000/games/{id} ==============================
+// Update the stored data for a given game_id
+router.put('/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
     const { game_name, vs_team, start_time, game_status } = req.body;
 
@@ -148,8 +173,8 @@ router.put('/update/:id', async (req, res) => {
       return res.status(404).json({ error: true, message: "Game not found" });
     }
 
-    // Success response
-    res.json({ error: false, message: "Game updated successfully", game_id: id });
+    // Success response - 200 OK
+    res.status(200).json({ error: false, message: "Game updated successfully", game_id: id });
 
   } catch (err) {
     console.error(err);
@@ -157,18 +182,13 @@ router.put('/update/:id', async (req, res) => {
   }
 });
 
-// ============================== DELETE https://localhost:3000/games/delete/{id} ==============================
+// ============================== DELETE https://localhost:3000/games/{id} ==============================
 // Delete the game with a given game_id
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
-    // Delete game events to allow for game deletion (foreign key restraint)
-    await req.db('events')
-      .where('game_id', '=', id)
-      .del();
-
-    // Delete game record
+    // Delete game record (.onDelete('CASCADE') deletes children from events table)
     const deleted = await req.db('games')
       .where('game_id', '=', id)
       .del();
@@ -177,36 +197,12 @@ router.delete('/delete/:id', async (req, res) => {
       return res.status(404).json({ error: true, message: "Game not found" });
     }
 
-    // Success response
-    res.json({ error: false, message: "Game deleted successfully", game_id: id });
+    // Success response - 200 OK
+    res.status(200).json({ error: false, message: "Game deleted successfully", game_id: id });
 
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: true, message: "Database deletion error" });
-  }
-});
-
-// ============================== GET https://localhost:3000/games/{id} ==============================
-// Get details for a specific game_id
-router.get('/:id', async (req, res) => {
-  try {
-    const game = await req.db
-      .from('games')
-      .select('*')
-      .where('game_id', '=', req.params.id)
-      .first() // Get single game object instead of array
-
-    // Check if game exists
-    if (!game) {
-      return res.status(404).json({ error: true, message: "Game not found" });
-    }
-
-    // Success response
-    res.json({ error: false, message: "Success", game: game });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: true, message: "Database read error" });
   }
 });
 
