@@ -19,6 +19,9 @@ beforeAll(async () => {
         client: 'sqlite3',
         connection: { filename: ':memory:' },
         useNullAsDefault: true,
+        pool: { afterCreate: (connection, done) => {
+            connection.run('PRAGMA foreign_keys = ON', done);
+        }},
         migrations: { directory: './knex-migrations' }
     });
 
@@ -28,6 +31,7 @@ beforeAll(async () => {
     // Create Express app using the test database
     app = createApp(db);
 });
+
 
 beforeEach(async () => {
     // Reset users before every test

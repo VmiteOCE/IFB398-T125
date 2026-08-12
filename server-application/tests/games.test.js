@@ -19,6 +19,9 @@ beforeAll(async () => {
         client: 'sqlite3',
         connection: { filename: ':memory:' },
         useNullAsDefault: true,
+        pool: { afterCreate: (connection, done) => {
+            connection.run('PRAGMA foreign_keys = ON', done);
+        }},
         migrations: { directory: './knex-migrations' }
     });
 
@@ -107,6 +110,63 @@ describe('POST /games', () => {
         expect(savedGame).toMatchObject(newGame);
     });
 
+    test("returns 400 when game_name is missing", async () => {
+        const response = await request(app)
+            .post("/games")
+            .send({
+                vs_team: "Brumbies",
+                start_time: "2026-08-20T19:30:00",
+                game_status: "scheduled",
+            });
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe(true);
+        expect(response.body.message).toBe("Game name is required.");
+    });
+
+    test("returns 400 when vs_team is missing", async () => {
+        const response = await request(app)
+            .post("/games")
+            .send({
+                game_name: "Round 1",
+                start_time: "2026-08-20T19:30:00",
+                game_status: "scheduled",
+            });
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe(true);
+        expect(response.body.message).toBe("Opponent is required.");
+    });
+
+    test("returns 400 when start_time is invalid", async () => {
+        const response = await request(app)
+            .post("/games")
+            .send({
+                game_name: "Round 1",
+                vs_team: "Brumbies",
+                start_time: "not-a-date",
+                game_status: "scheduled",
+            });
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe(true);
+        expect(response.body.message).toBe("A valid start time is required.");
+    });
+
+    test("returns 400 when game_status is invalid", async () => {
+        const response = await request(app)
+            .post("/games")
+            .send({
+                game_name: "Round 1",
+                vs_team: "Brumbies",
+                start_time: "2026-08-20T19:30:00",
+                game_status: "playing",
+            });
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe(true);
+        expect(response.body.message).toBe("Invalid game status.");
+    });
 });
 
 
@@ -237,22 +297,32 @@ describe('DELETE /games/:id', () => {
             game_status: 'scheduled'
         });
 
+        const [eventId] = await db('events').insert({
+            game_id: gameId,
+            event_code: 'R',
+            zone_id: 'M',
+            team_id: 1,
+            game_clock: 120,
+            game_half: 1
+        });
+
         const response = await request(app).delete(`/games/${gameId}`);
 
         expect(response.status).toBe(200);
 
-        expect(response.body).toMatchObject({
-            error: false,
-            message: 'Game deleted successfully',
-            game_id: gameId
-        });
-
-        // Verify it was actually removed from SQLite
+        // Game should be deleted
         const deletedGame = await db('games')
             .where('game_id', gameId)
             .first();
 
         expect(deletedGame).toBeUndefined();
+
+        // Related event should also be deleted by ON DELETE CASCADE
+        const deletedEvent = await db('events')
+            .where('event_id', eventId)
+            .first();
+
+        expect(deletedEvent).toBeUndefined();
     });
 
 
@@ -385,7 +455,6 @@ describe('GET /games filters', () => {
         });
     });
 
-
     test('returns the second page correctly', async () => {
         const response = await request(app).get('/games?page=2&limit=2&sortBy=start_time&sortOrder=asc');
 
@@ -403,6 +472,101 @@ describe('GET /games filters', () => {
             totalPages: 2,
             nextPage: null,
             previousPage: 1
+        });
+    });
+
+    test('returns 400 for an invalid status filter', async () => {
+        const response = await request(app).get('/games?status=playing');
+
+        expect(response.status).toBe(400);
+
+        expect(response.body).toMatchObject({
+            error: true,
+            message: 'Invalid game status.'
+        });
+    });
+
+
+    test('returns 400 for an invalid start date', async () => {
+        const response = await request(app).get('/games?start=not-a-date');
+
+        expect(response.status).toBe(400);
+
+        expect(response.body).toMatchObject({
+            error: true,
+            message: 'Invalid start date.'
+        });
+    });
+
+
+    test('returns 400 for an invalid end date', async () => {
+        const response = await request(app).get('/games?end=not-a-date');
+
+        expect(response.status).toBe(400);
+
+        expect(response.body).toMatchObject({
+            error: true,
+            message: 'Invalid end date.'
+        });
+    });
+
+
+    test('returns 400 when start date is after end date', async () => {
+        const response = await request(app).get('/games?start=2026-08-20T00:00&end=2026-08-10T00:00');
+
+        expect(response.status).toBe(400);
+
+        expect(response.body).toMatchObject({
+            error: true,
+            message: 'Start date cannot be after end date.'
+        });
+    });
+
+
+    test('returns 400 for an invalid sort field', async () => {
+        const response = await request(app).get('/games?sortBy=password');
+
+        expect(response.status).toBe(400);
+
+        expect(response.body).toMatchObject({
+            error: true,
+            message: 'Invalid sort field.'
+        });
+    });
+
+
+    test('returns 400 for an invalid sort order', async () => {
+        const response = await request(app).get('/games?sortOrder=random');
+
+        expect(response.status).toBe(400);
+
+        expect(response.body).toMatchObject({
+            error: true,
+            message: 'Invalid sort order.'
+        });
+    });
+
+
+    test('returns 400 for an invalid page', async () => {
+        const response = await request(app).get('/games?page=0');
+
+        expect(response.status).toBe(400);
+
+        expect(response.body).toMatchObject({
+            error: true,
+            message: 'Page must be a positive integer.'
+        });
+    });
+
+
+    test('returns 400 for an invalid limit', async () => {
+        const response = await request(app).get('/games?limit=101');
+
+        expect(response.status).toBe(400);
+
+        expect(response.body).toMatchObject({
+            error: true,
+            message: 'Limit must be between 1 and 100.'
         });
     });
 

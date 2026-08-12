@@ -2,11 +2,68 @@ import express from 'express';
 
 const router = express.Router();
 
+const VALID_GAME_STATUSES = [
+  "scheduled",
+  "in_progress",
+  "completed",
+  "cancelled",
+];
+
+function validateGameInput({game_name, vs_team, start_time, game_status}) {
+  if (typeof game_name !== "string" || game_name.trim() === "") return "Game name is required.";
+  if (typeof vs_team !== "string" || vs_team.trim() === "") return "Opponent is required.";
+  if (!start_time ||Number.isNaN(Date.parse(start_time))) return "A valid start time is required.";
+  if (!VALID_GAME_STATUSES.includes(game_status)) return "Invalid game status.";
+  return null;
+}
+
+const VALID_SORT_FIELDS = [
+  "game_id",
+  "game_name",
+  "vs_team",
+  "start_time",
+  "game_status",
+];
+
+const VALID_SORT_ORDERS = [
+  "asc",
+  "desc",
+];
+
+function validateGameQuery({status, start, end, sortBy, sortOrder, page, limit}) {
+  if (status && !VALID_GAME_STATUSES.includes(status)) return "Invalid game status.";
+  if (start && Number.isNaN(Date.parse(start))) return "Invalid start date.";
+  if (end && Number.isNaN(Date.parse(end))) return "Invalid end date.";
+
+  if (start && end && Date.parse(start) > Date.parse(end)) return "Start date cannot be after end date.";
+  if (!VALID_SORT_FIELDS.includes(sortBy)) return "Invalid sort field.";
+  if (!VALID_SORT_ORDERS.includes(sortOrder)) return "Invalid sort order.";
+
+  const parsedPage = Number(page);
+
+  if (!Number.isInteger(parsedPage) || parsedPage < 1) return "Page must be a positive integer.";
+
+  const parsedLimit = Number(limit);
+
+  if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) return "Limit must be between 1 and 100.";
+
+  return null;
+}
+
 // ============================== POST https://localhost:3000/games ==============================
 // Create a new game
 router.post('/', async (req, res) => {
   try {
     const { game_name, vs_team, start_time, game_status } = req.body;
+
+    const validationError = validateGameInput({ game_name, vs_team, start_time, game_status });
+
+    if (validationError) {
+      return res.status(400).json({
+        error: true,
+        message: validationError,
+      });
+    }
 
     const [insertedId] = await req.db('games')
       .insert({
@@ -39,6 +96,15 @@ router.get('/', async (req, res) => {
       page = '1',
       limit = '20'
     } = req.query;
+
+    const validationError = validateGameQuery({ status, start, end, sortBy, sortOrder, page, limit});
+
+    if (validationError) {
+      return res.status(400).json({
+        error: true,
+        message: validationError
+      });
+    }
 
     const allowedSortFields = [
       'game_id',
@@ -159,6 +225,15 @@ router.put('/:id', async (req, res) => {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
     const { game_name, vs_team, start_time, game_status } = req.body;
+
+    const validationError = validateGameInput({ game_name, vs_team, start_time, game_status });
+
+    if (validationError) {
+      return res.status(400).json({
+        error: true,
+        message: validationError,
+      });
+    }
 
     const updated = await req.db('games')
       .where('game_id', '=', id)

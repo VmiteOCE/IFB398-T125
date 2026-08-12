@@ -2,11 +2,48 @@ import express from 'express';
 
 const router = express.Router();
 
+const VALID_EVENT_CODES = [
+  "P", // Pass
+  "K", // Kick
+  "C", // Catch
+  "R", // Ruck
+  "S", // Scrum
+  "E", // Penalty
+  "A", // Advantage
+  "T", // Turnover
+  "L", // Lineout
+  "V", // Conversion
+  "Y", // Try
+  "M", // Maul
+];
+
+const VALID_ZONES = ["A", "B", "M", "C", "D"];
+
+function validateEventInput({game_id, event_code, zone_id, team_id, game_clock, game_half}) {
+    if (!Number.isInteger(game_id) || game_id <= 0) return "A valid game ID is required.";
+    if (!VALID_EVENT_CODES.includes(event_code)) return "Invalid event code.";
+    if (!VALID_ZONES.includes(zone_id)) return "Invalid zone.";
+    if (![1, 2].includes(team_id)) return "Invalid team ID.";
+    if (typeof game_clock !== "number" || game_clock < 0) return "A valid game clock is required.";
+    if (![1, 2].includes(game_half)) return "Invalid game half.";
+
+    return null;
+}
+
 // ============================== POST https://localhost:3000/events ==============================
 // Log a game event
 router.post('/', async (req, res) => {
   try {
     const { game_id, event_code, zone_id, team_id, game_clock, game_half } = req.body;
+
+    const validationError = validateEventInput({game_id, event_code, zone_id, team_id, game_clock, game_half});
+
+    if (validationError) {
+        return res.status(400).json({
+            error: true,
+            message: validationError,
+        });
+    }
 
     const [insertedId] = await req.db('events')
       .insert({
@@ -89,6 +126,15 @@ router.put('/:id', async (req, res) => {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
     const { game_id, event_code, zone_id, team_id, game_clock, game_half } = req.body;
+
+    const validationError = validateEventInput({game_id, event_code, zone_id, team_id, game_clock, game_half});
+
+    if (validationError) {
+        return res.status(400).json({
+            error: true,
+            message: validationError,
+        });
+    }
 
     const updated = await req.db('events')
       .where('event_id', '=', id)
