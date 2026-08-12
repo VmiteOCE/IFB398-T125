@@ -167,7 +167,7 @@ export default function Dashboard() {
         if (!confirmDelete) return;
 
         try {
-            const response = await fetch(`/games/delete/${gameId}`, { method: "DELETE" });
+            const response = await fetch(`/games/${gameId}`, { method: "DELETE" });
             const data = await response.json().catch(() => null);
             console.log("Delete response:", data);
 

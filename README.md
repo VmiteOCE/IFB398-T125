@@ -37,7 +37,7 @@
 > ```
 > If certificate generation fails, make sure you have OpenSSL installed.
 >
->  Click [here](https://slproweb.com/download/Win64OpenSSL_Light-4_0_0.msi) to download OpenSSL Light for 64-bit Windows. Otherwise, follow [this link](https://slproweb.com/products/Win32OpenSSL.html) and download your desired installer.
+>  Click [here](https://slproweb.com/download/Win64OpenSSL_Light-4_0_1.msi) to download OpenSSL Light for 64-bit Windows. Otherwise, follow [this link](https://slproweb.com/products/Win32OpenSSL.html) and download your desired installer.
 >
 > Once you have installed OpenSSL, add it to your system PATH using the following steps (for Windows):
 >

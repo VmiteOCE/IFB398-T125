@@ -4,12 +4,12 @@ export function up(knex) {
       table.increments('game_id').primary();
       table.string('game_name').notNullable();
       table.string('vs_team').notNullable();
-      table.integer('start_time').notNullable();
+      table.string('start_time').notNullable();
       table.string('game_status').notNullable().defaultTo('scheduled');
     })
     .createTable('events', (table) => {
       table.increments('event_id').primary();
-      table.integer('game_id').references('game_id').inTable('games').onDelete('CASCADE');
+      table.integer('game_id').references('game_id').inTable('games').notNullable().onDelete('CASCADE');
       table.string('event_code', 1).notNullable();
       table.string('zone_id', 1).notNullable();
       table.integer('team_id').notNullable();
