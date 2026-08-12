@@ -522,6 +522,8 @@ const AZoneTable = () => {
         {loading ? (
           <p>Loading...</p>
         ) : (
+          <div
+          style={{maxHeight: "300px", overflowY: "auto",}}>
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
@@ -561,6 +563,7 @@ const AZoneTable = () => {
               )}
             </tbody>
           </table>
+        </div>
         )}
       </div>
 

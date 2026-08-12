@@ -76,8 +76,6 @@ function EventCapture() {
     Advantage: "A",
     Turnover: "T",
     Lineout: "L",
-    Conversion: "V",
-    Try: "Y",
     Maul: "M",
   };
 
@@ -90,11 +88,11 @@ function EventCapture() {
 
 
   const baseZones = [
-    { label: "A", color: "red", text: "(0–22m)" },
-    { label: "B", color: "pink", text: "(22–40m)" },
-    { label: "M", color: "gray", text: "(Midfield)" },
-    { label: "C", color: "lightblue", text: "(60–72m)" },
-    { label: "D", color: "blue", text: "(72–94m)" },
+    { label: "A", text: "(0–22m)" },
+    { label: "B", text: "(22–40m)" },
+    { label: "M", text: "(Midfield)" },
+    { label: "C", text: "(60–72m)" },
+    { label: "D", text: "(72–94m)" },
   ];
 
   const oppositeZones = {
@@ -142,8 +140,6 @@ function EventCapture() {
     l: "Lineout",
     s: "Scrum",
     m: "Maul",
-    y: "Try",
-    v: "Conversion",
   };
 
 
@@ -460,7 +456,7 @@ function EventCapture() {
             <p>
               Zone Selected: {currentZone.label} {currentZone.text}
             </p>
-
+            
 
 
             <div style={{ display: "flex", transition: "all 0.3s ease" }}>
@@ -470,13 +466,20 @@ function EventCapture() {
                   onClick={() => setSelectedZone(zone.label)}
                   style={{
                     flex: 1,
-                    background: zone.color,
+                    background: selectedZone === zone.label
+                    ? selectedTeam === "Reds"
+                    ? "red"
+                    : "blue"
+                    : "white",
+                    color: selectedZone === zone.label
+                    ? "white"
+                    : "black",
                     padding: 30,
                     cursor: "pointer",
                     border:
                       selectedZone === zone.label
                         ? "4px solid #4CAF50"
-                        : "2px solid transparent",
+                        : "2px solid black",
                   }}
                 >
                   {zone.label}
@@ -484,7 +487,15 @@ function EventCapture() {
               ))}
             </div>
 
-
+            <div style={{
+              fontSize: "30px",
+              fontWeight: "bold",
+              marginBottom: "10px",
+              color: "#4CAF50"
+              }}
+              >
+                {finalReversed ? "◀━━━━━━" : "━━━━━━▶"}
+              </div>
 
             {/* TEAM SELECT FIXED */}
             <div
@@ -561,7 +572,7 @@ function EventCapture() {
 
           <div className="bg-light text-dark p-3 mt-3">
             <h5 className="text-center">Event Actions</h5>
-            <Row>
+            <Row className="justify-content-center">
               {Object.keys(actionToCode).map((action, i) => (
                 <Col xs={6} md={3} key={i} className="mb-3">
                   <Button className="w-100" onClick={() => handleAction(action)}>
