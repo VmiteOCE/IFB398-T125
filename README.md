@@ -64,7 +64,7 @@
 > - ```swagger-ui-express @ 5.0.1```
 > - ```supertest @ 7.2.2```
 >
->
+> #
 > ### Github Actions (CI)
 > Runs the tests locally without requiring a pull request (Ensure you run this from the ```server-application/``` directory)
 > ```
