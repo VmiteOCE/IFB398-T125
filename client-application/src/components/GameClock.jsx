@@ -1,6 +1,18 @@
 
 import { useState, useRef, useEffect } from "react";
 
+  // Format mm:ss
+  function formatTime(secondsPassed) {
+    let minutes = Math.floor(secondsPassed / 60);
+    let seconds = Math.floor(secondsPassed % 60);
+
+    minutes = String(minutes).padStart(2, "0");
+    seconds = String(seconds).padStart(2, "0");
+
+    return `${minutes}:${seconds}`;
+  }
+
+
 export default function GameClock({ setCurrentTime }) {
   const [startTime, setStartTime] = useState(null);
   const [now, setNow] = useState(null);
@@ -39,7 +51,9 @@ export default function GameClock({ setCurrentTime }) {
   }
 
   // Always keep latest function reference
-  toggleRef.current = toggleClock;
+  useEffect(() => {
+    toggleRef.current = toggleClock;
+  });
 
   // Calculate time
   let secondsPassed = 0;
@@ -47,7 +61,9 @@ export default function GameClock({ setCurrentTime }) {
     secondsPassed = Math.max(0, (now - startTime) / 1000 + offset);
   }
 
-  secondsPassedRef.current = secondsPassed;
+  useEffect(() => {
+    secondsPassedRef.current = secondsPassed;
+  }, [secondsPassed]);
 
   function decreaseTime(){
     const currentTime = secondsPassedRef.current;
@@ -55,17 +71,6 @@ export default function GameClock({ setCurrentTime }) {
         return;
     }
     setOffset((prev) => prev - Math.min(1,currentTime));
-  }
-
-  // Format mm:ss
-  function formatTime() {
-    let minutes = Math.floor(secondsPassed / 60);
-    let seconds = Math.floor(secondsPassed % 60);
-
-    minutes = String(minutes).padStart(2, "0");
-    seconds = String(seconds).padStart(2, "0");
-
-    return `${minutes}:${seconds}`;
   }
 
   // Keyboard controls
@@ -100,8 +105,8 @@ export default function GameClock({ setCurrentTime }) {
 
   // Update parent
   useEffect(() => {
-    setCurrentTime(formatTime());
-  }, [secondsPassed]);
+    setCurrentTime(formatTime(secondsPassed));
+  }, [secondsPassed, setCurrentTime]);
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -123,7 +128,7 @@ export default function GameClock({ setCurrentTime }) {
         textAlign: "center",
       }}
     >
-      <h1>{formatTime()}</h1>
+      <h1>{formatTime(secondsPassed)}</h1>
 
       <button onClick={decreaseTime}>
         -1 sec

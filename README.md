@@ -45,7 +45,7 @@
 > - **Open Environment Variables:** Search for "Edit the system environment variables" in your Start menu.
 > - **Edit Path:** Click Environment Variables, find Path under "System variables," and click Edit.
 > - **Add New Entry:** Click New and paste the path to your OpenSSL bin folder (e.g., C:\Program Files\OpenSSL-Win64\bin).
-> - **Restart Terminal:** Open a fresh Command Prompt or PowerShell window and type openssl version to verify. 
+> - **Restart Terminal:** Open a fresh Command Prompt or PowerShell window and type openssl version to verify.
 >
 > #### Express + Node.js API Server
 > Start the Express + Node.js API server by running this at the server application sub-directory, then navigate to https://localhost:3000/ for documentation.
@@ -62,6 +62,14 @@
 > - ```sqlite3 @ 6.0.1```
 > - ```nodemon @ 3.1.14```
 > - ```swagger-ui-express @ 5.0.1```
+> - ```supertest @ 7.2.2```
+>
+> #
+> ### Github Actions (CI)
+> Runs the tests locally without requiring a pull request (Ensure you run this from the ```server-application/``` directory)
+> ```
+> npm test
+> ```
 
 # React + Vite
 
