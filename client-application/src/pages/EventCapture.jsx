@@ -1,8 +1,37 @@
 import { Container, Row, Col, Button } from "react-bootstrap";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import GameClock from "../components/GameClock";
 
+const actionToCode = {
+  Pass: "P",
+  Kick: "K",
+  Catch: "C",
+  Ruck: "R",
+  Scrum: "S",
+  Penalty: "E",
+  Advantage: "A",
+  Turnover: "T",
+  Lineout: "L",
+  Maul: "M",
+};
+
+const codeToAction = Object.fromEntries(
+  Object.entries(actionToCode).map(([k, v]) => [v, k])
+);
+
+const actionKeys = {
+  r: "Ruck",
+  k: "Kick",
+  p: "Pass",
+  c: "Catch",
+  t: "Turnover",
+  a: "Advantage",
+  e: "Penalty",
+  l: "Lineout",
+  s: "Scrum",
+  m: "Maul",
+};
 
 
 function EventCapture() {
@@ -64,29 +93,6 @@ function EventCapture() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-
-
-  const actionToCode = {
-    Pass: "P",
-    Kick: "K",
-    Catch: "C",
-    Ruck: "R",
-    Scrum: "S",
-    Penalty: "E",
-    Advantage: "A",
-    Turnover: "T",
-    Lineout: "L",
-    Maul: "M",
-  };
-
-
-
-  const codeToAction = Object.fromEntries(
-    Object.entries(actionToCode).map(([k, v]) => [v, k])
-  );
-
-
-
   const baseZones = [
     { label: "A", text: "(0–22m)" },
     { label: "B", text: "(22–40m)" },
@@ -127,22 +133,6 @@ function EventCapture() {
   const zones = finalReversed ? [...baseZones].reverse() : baseZones;
 
   const currentZone = baseZones.find((z) => z.label === selectedZone);
-
-
-  const actionKeys = {
-    r: "Ruck",
-    k: "Kick",
-    p: "Pass",
-    c: "Catch",
-    t: "Turnover",
-    a: "Advantage",
-    e: "Penalty",
-    l: "Lineout",
-    s: "Scrum",
-    m: "Maul",
-  };
-
-
 
   // ---------------- FETCH EVENTS ----------------
   useEffect(() => {
@@ -345,11 +335,20 @@ function EventCapture() {
 
 
   // ---------------- KEYBOARD ----------------
+  const handleActionRef = useRef(handleAction);
+  const handleTeamChangeRef = useRef(handleTeamChange);
+
+  useEffect(() => {
+    handleActionRef.current = handleAction;
+  });
+
+  useEffect(() => {
+    handleTeamChangeRef.current = handleTeamChange;
+  });
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       const currentIndex = zones.findIndex((z) => z.label === selectedZone);
-
-
 
       if (e.key === "ArrowRight") {
         const nextIndex = currentIndex + 1;
@@ -359,8 +358,6 @@ function EventCapture() {
         }
       }
 
-
-
       if (e.key === "ArrowLeft") {
         const prevIndex = currentIndex - 1;
         if (prevIndex >= 0) {
@@ -369,26 +366,20 @@ function EventCapture() {
         }
       }
 
-
-
       if (e.key === "Tab") {
         e.preventDefault();
         const newTeam =
           selectedTeam === "Reds" ? "Away" : "Reds";
 
-        handleTeamChange(newTeam);
+        handleTeamChangeRef.current(newTeam);
       }
-
-
 
       const action = actionKeys[e.key.toLowerCase()];
       if (action) {
         e.preventDefault();
-        handleAction(action);
+        handleActionRef.current(action);
       }
     };
-
-
 
     window.addEventListener("keydown", handleKeyDown);
     return () =>

@@ -1,5 +1,5 @@
 import { useEffect, useState} from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button, Col, Collapse, Form, Row } from "react-bootstrap";
 import GameForm from "../components/GameForm";
 
@@ -54,6 +54,25 @@ function buildGameSearchParams(filters) {
     return params;
 }
 
+// Request Games ------------------------------------------
+async function requestGames(filters, signal) {
+    const params = buildGameSearchParams(filters);
+    const queryString = params.toString();
+
+    const response = await fetch(queryString ? `/games?${queryString}` : "/games", { signal });
+
+    const data = await response
+        .json()
+        .catch(() => null);
+
+    if (!response.ok || data?.error) {
+        throw new Error( data?.message || `Failed to fetch games. Status: ${response.status}`);
+    }
+
+    return data;
+}
+
+
 export default function Dashboard() {
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -63,7 +82,6 @@ export default function Dashboard() {
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
     const [filters, setFilters] = useState(() => filtersFromSearchParams(searchParams));
-    const [pagination, setPagination] = useState(null);
 
     const navigate = useNavigate();
 
@@ -80,29 +98,14 @@ export default function Dashboard() {
             setLoading(true);
             setError("");
 
-            const params = buildGameSearchParams(filtersToUse);
-            const queryString = params.toString();
-
-            const response = await fetch(queryString ? `/games?${queryString}` : "/games");
-
-            const data = await response
-                .json()
-                .catch(() => null);
-
-            if (!response.ok || data?.error) {
-                throw new Error( data?.message || `Failed to fetch games. Status: ${response.status}`);
-            }
-
+            const data = await requestGames(filtersToUse);
             setGames(Array.isArray(data?.games) ? data.games : []);
-
-            setPagination(data?.pagination ?? null);
-        } catch (err) {
-            console.error("Fetch games error:", err);
+        } catch (error) {
+            console.error("Fetch games error:", error);
 
             setGames([]);
-            setPagination(null);
 
-            setError(err.message || "Unknown error fetching games");
+            setError(error.message || "Unknown error fetching games");
         } finally {
             setLoading(false);
         }
@@ -143,10 +146,31 @@ export default function Dashboard() {
 
     // Fetch Games-------------------------------------------
     useEffect(() => {
+        const controller = new AbortController();
         const nextParams = buildGameSearchParams(filters);
         setSearchParams(nextParams, { replace: true });
 
-        fetchGames(filters);
+        async function loadGames() {
+            try {
+                const data = await requestGames(filters, controller.signal);
+                if (controller.signal.aborted) return;
+
+                setGames(Array.isArray(data?.games) ? data.games : []);
+                setError("")
+                setLoading(false)
+            } catch (error) {
+                if (error.name === "AbortError") return;
+
+                console.error("Fetch games error:", error);
+
+                setGames([]);
+                setError(error.message || "Unknown error fetching games");
+                setLoading(false);
+            }
+        }
+
+        loadGames();
+        return () => {controller.abort()}
     }, [filters, setSearchParams]);
 
     // Change Filter ----------------------------------------
@@ -178,9 +202,9 @@ export default function Dashboard() {
             setGames((currentGames) => currentGames.filter((game) => game.id !== gameId));
             setOpenGameId(null);
             await fetchGames();
-        } catch (err) {
-            console.error("Delete game error:", err);
-            setError(err.message || "Unknown error deleting game");
+        } catch (error) {
+            console.error("Delete game error:", error);
+            setError(error.message || "Unknown error deleting game");
         }
     }
 

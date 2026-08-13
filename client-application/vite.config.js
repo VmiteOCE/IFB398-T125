@@ -1,8 +1,3 @@
-
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-
 export default {
   server: {
     proxy: {
@@ -11,7 +6,7 @@ export default {
         changeOrigin: true,
         secure: false,
       },
-      '/games': { // ✅ ADD THIS
+      '/games': {
         target: 'https://localhost:3000',
         changeOrigin: true,
         secure: false,
@@ -19,5 +14,4 @@ export default {
     }
   }
 }
-
 

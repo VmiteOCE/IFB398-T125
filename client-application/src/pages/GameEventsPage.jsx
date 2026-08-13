@@ -1,7 +1,45 @@
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import { useParams } from "react-router-dom";
+
+  // Format Event Time
+  const formatTime = (seconds) => {
+    if (seconds === null || seconds === undefined) return "-";
+
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  async function requestGameEvents(gameId, awayName) {
+    const response = await fetch(`/events/game/${gameId}`);
+    const result = await response.json();
+
+    if (!response.ok || result.error) {
+      throw new Error(result.message || "Failed to fetch");
+    }
+
+    const eventsArray = Array.isArray(result.events)
+      ? result.events
+      : [];
+
+    return eventsArray.map((e) => ({
+      event_id: e.event_id,
+      team_id: e.team_id,
+      team_name:
+        e.team_id === 1
+          ? "Reds"
+          : awayName || "Away",
+      event_code: e.event_code,
+      zone_id: e.zone_id,
+      //raw time for the tables
+      game_clock: e.game_clock,
+      // formatted time for raw data
+      formatted_time: formatTime(e.game_clock),
+    }));
+  }
+
 
 const GameEventsPage = () => {
   const { id } = useParams();
@@ -14,15 +52,6 @@ const GameEventsPage = () => {
 
   // Switch between table and graph analysis
   const [analysisView, setAnalysisView] = useState("table");
-
-  // Format Event Time
-  const formatTime = (seconds) => {
-    if (seconds === null || seconds === undefined) return "-";
-
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
 
   // FETCH GAME INFO
   useEffect(() => {
@@ -49,44 +78,39 @@ const GameEventsPage = () => {
     try {
       setLoading(true);
 
-      const response = await fetch(`/events/game/${gameId}`);
-      const result = await response.json();
-
-      if (!response.ok || result.error) {
-        throw new Error(result.message || "Failed to fetch");
-      }
-
-      const eventsArray = Array.isArray(result.events)
-        ? result.events
-        : [];
-
-      const mappedEvents = eventsArray.map((e) => ({
-        event_id: e.event_id,
-        team_id: e.team_id,
-        team_name:
-          e.team_id === 1
-            ? "Reds"
-            : gameInfo?.vs_team || "Away",
-        event_code: e.event_code,
-        zone_id: e.zone_id,
-        //raw time for the tables 
-        game_clock: e.game_clock,
-        // formatted time for raw data
-        formatted_time: formatTime(e.game_clock),
-      }));
-
-      setData(mappedEvents);
-      setLoading(false);
+      const events = await requestGameEvents(gameId, gameInfo?.vs_team)
+      setData(events);
     } catch (error) {
       console.error("Fetch error:", error);
       setData([]);
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchGameEvents();
-  }, [gameId]); // <-- removed gameInfo
+    let cancelled = false;
+
+    async function loadGameEvents() {
+      try {
+        const events = await requestGameEvents(gameId, gameInfo?.vs_team);
+        if (cancelled) return;
+
+        setData(events);
+        setLoading(false);
+      } catch (error) {
+        if (cancelled) return;
+
+        console.error("Fetch error:", error);
+        setData([]);
+        setLoading(false);
+      }
+    }
+
+    loadGameEvents();
+
+    return () => { cancelled = true;}
+  }, [gameId, gameInfo?.vs_team]); // <-- removed gameInfo
 
   const gameTitle = gameInfo
     ? `Reds vs ${gameInfo.vs_team}`
@@ -137,7 +161,7 @@ const GameEventsPage = () => {
   { label: "70-80", start: 4200, end: 4800 },
 ];
 
-// Count the number of Events 
+// Count the number of Events
 const countEvents = (eventCode, teamId, zone, start, end) => {
   return data.filter((event) => {
     return (
@@ -189,7 +213,7 @@ const getZoneTime = (teamId, zone, start, end) => {
 
 
  // Reusable analysis table
-  const EventZoneTable = ({ title, eventCode, cumulative = false, }) => {
+  const renderEventZoneTable  = ({ title, eventCode, cumulative = false, }) => {
     const awayName = gameInfo?.vs_team || "Away";
     return (
       <div className="analysis-table-card">
@@ -241,7 +265,7 @@ const getZoneTime = (teamId, zone, start, end) => {
               const start = cumulative
               ? 0
               : interval.start;
-              
+
               const label = cumulative
               ? `0-${interval.end / 60}`
               : interval.label;
@@ -312,7 +336,7 @@ const getZoneTime = (teamId, zone, start, end) => {
   };
 
   // Reusable table for time spent in each zone
-const ZoneTimeTable = ({
+const renderZoneTimeTable  = ({
   title,
   cumulative = false, // for cumulative tables
   }) => {
@@ -322,19 +346,19 @@ const ZoneTimeTable = ({
         <div className="analysis-table-card">
         <h5>{title}</h5>
         <table className="analysis-table">
-        
+
         <thead>
         <tr>
           <th style={styles.header}></th>
-          <th className="reds-cell" style={styles.header} colSpan={5}> 
+          <th className="reds-cell" style={styles.header} colSpan={5}>
             Reds
             </th>
-            
+
             <th className="away-cell" style={styles.header} colSpan={5}>
               {awayName}
               </th>
           </tr>
-              
+
         <tr>
         <th style={styles.header}>Interval</th>
 
@@ -356,7 +380,7 @@ const ZoneTimeTable = ({
         ))}
       </tr>
 </thead>
-        
+
         <tbody>
           {intervals.map((interval) => {
             const start = cumulative
@@ -372,7 +396,7 @@ const ZoneTimeTable = ({
                 <td style={styles.cell}>
                   <strong>{label}</strong>
                 </td>
-                
+
 
                 {/* Reds */}
                 {zones.map((zone) => (
@@ -435,7 +459,7 @@ const ZoneTimeTable = ({
 };
 
 {/* A Zone Table */}
-const AZoneTable = () => {
+const renderAZoneTable = () => {
   const awayName = gameInfo?.vs_team || "Away";
 
   return (
@@ -544,7 +568,7 @@ const AZoneTable = () => {
               ) : (
                 data.map((event) => (
                   <tr
-                    key={event.event_id}  
+                    key={event.event_id}
                     style={{
                       background:
                         event.team_id === 1
@@ -643,42 +667,42 @@ const AZoneTable = () => {
 
 
 {/* Tables */}
-<ZoneTimeTable
-  title="Minutes per zone"
-/>
+{renderZoneTimeTable({
+  title: "Minutes per zone"
+})}
 
-<ZoneTimeTable
-  title="Cumulative minutes per zone"
-  cumulative={true}
-/>
+{renderZoneTimeTable({
+  title: "Cumulative minutes per zone",
+  cumulative: true
+})}
 
-<AZoneTable />
+{renderAZoneTable()}
 
-<EventZoneTable
-  title="Rucks per zone"
-  eventCode="R"
-/>
+{renderEventZoneTable({
+  title: "Rucks per zone",
+  eventCode: "R"
+})}
 
-<EventZoneTable
-  title="Cumulative rucks per zone"
-  eventCode="R"
-  cumulative = {true}
-/>
+{renderEventZoneTable({
+  title: "Cumulative rucks per zone",
+  eventCode: "R",
+  cumulative: true
+})}
 
-<EventZoneTable
-  title="Lineouts per zone"
-  eventCode="L"
-/>
+{renderEventZoneTable({
+  title: "Lineouts per zone",
+  eventCode: "L"
+})}
 
-<EventZoneTable
-  title="Scrums per zone"
-  eventCode="S"
-/>
+{renderEventZoneTable({
+  title: "Scrums per zone",
+  eventCode: "S"
+})}
 
-<EventZoneTable
-  title="Kicks per zone"
-  eventCode="K"
-/>
+{renderEventZoneTable({
+  title: "Kicks per zone",
+  eventCode: "K"
+})}
     </Container>
   );
 };
