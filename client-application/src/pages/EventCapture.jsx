@@ -575,7 +575,8 @@ function EventCapture() {
             <Row className="justify-content-center">
               {Object.keys(actionToCode).map((action, i) => (
                 <Col xs={6} md={3} key={i} className="mb-3">
-                  <Button className="w-100" onClick={() => handleAction(action)}>
+                  <Button className="w-100" onClick={() => handleAction(action)}
+                  style={{whiteSpace: "nowrap", fontSize: "clamp(12px, 1.2vw, 16px)", padding: "10px 4px",}}>
                     {action}
                   </Button>
                 </Col>
