@@ -482,10 +482,10 @@ function EventCapture() {
               fontSize: "30px",
               fontWeight: "bold",
               marginBottom: "10px",
-              color: "#4CAF50"
+              color: "#ffffffff"
               }}
               >
-                {finalReversed ? "◀━━━━━━" : "━━━━━━▶"}
+                {finalReversed ? "━━━━━━▶" : "◀━━━━━━"}
               </div>
 
             {/* TEAM SELECT FIXED */}
