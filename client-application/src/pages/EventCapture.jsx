@@ -329,136 +329,138 @@ function EventCapture() {
   // ---------------- UI ----------------
   return (
     <Container fluid className="event-capture-page">
-      <div className="event-capture-header">
-        <h3>
-          {gameInfo ? `Reds vs ${gameInfo.vs_team}` : `Game ID: ${gameId}`}
-        </h3>
+      <div className="dashboard-content event-capture-content">
+        <div className="event-capture-header">
+          <h3>
+            {gameInfo ? `Reds vs ${gameInfo.vs_team}` : `Game ID: ${gameId}`}
+          </h3>
 
-        <h4>{gameInfo ? gameInfo.game_name : "Score: 12 - 7"}</h4>
-      </div>
+          
+        </div>
 
-      <Row className="event-capture-row">
-        <Col md={4}>
-          <div className="game-clock-panel">
-            <GameClock setCurrentTime={setCurrentTime} />
-          </div>
+        <Row className="event-capture-row">
+          <Col md={4}>
+            <div className="game-clock-panel">
+              <GameClock setCurrentTime={setCurrentTime} />
+            </div>
 
-          <div className="event-history-panel">
-            <h5>Event History (Last 8)</h5>
+            <div className="event-history-panel">
+              <h5>Event History (Last 8)</h5>
 
-            {events.slice(0, 8).map((event, index) => (
-              <div
-                key={event.id}
-                className={`event-history-item ${
-                  event.team === "R"
-                    ? "event-history-item-red"
-                    : "event-history-item-blue"
-                } ${
-                  editingIndex === index ? "event-history-item-editing" : ""
-                }`}
-              >
-                <div>
-                  {event.action} ({event.zone}) - ({event.time}) - {event.team}
-                </div>
-
-                <div className="event-history-actions">
-                  <button onClick={() => toggleEdit(index)}>✏️</button>
-                  <button onClick={() => deleteEvent(index)}>🗑️</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Col>
-
-        <Col md={8}>
-          <div className="field-panel">
-            <p>
-              Zone Selected: {currentZone.label} {currentZone.text}
-            </p>
-
-            <div className="zone-row">
-              {zones.map((zone) => (
+              {events.slice(0, 8).map((event, index) => (
                 <div
-                  key={zone.label}
-                  onClick={() => setSelectedZone(zone.label)}
-                  className={`zone-box ${
-                    selectedZone === zone.label ? "zone-box-selected" : ""
+                  key={event.id}
+                  className={`event-history-item ${
+                    event.team === "R"
+                      ? "event-history-item-red"
+                      : "event-history-item-blue"
                   } ${
-                    selectedZone === zone.label && selectedTeam === "Reds"
-                      ? "zone-box-red"
-                      : ""
-                  } ${
-                    selectedZone === zone.label && selectedTeam === "Away"
-                      ? "zone-box-blue"
-                      : ""
+                    editingIndex === index ? "event-history-item-editing" : ""
                   }`}
                 >
-                  {zone.label}
+                  <div>
+                    {event.action} ({event.zone}) - ({event.time}) - {event.team}
+                  </div>
+
+                  <div className="event-history-actions">
+                    <button onClick={() => toggleEdit(index)}>✏️</button>
+                    <button onClick={() => deleteEvent(index)}>🗑️</button>
+                  </div>
                 </div>
               ))}
             </div>
+          </Col>
 
-            <div className="field-direction">
-              {finalReversed ? "◀━━━━━━" : "━━━━━━▶"}
-            </div>
+          <Col md={8}>
+            <div className="field-panel">
+              <p>
+                Zone Selected: {currentZone.label} {currentZone.text}
+              </p>
 
-            {/* TEAM SELECT FIXED */}
-            <div className="team-selector">
-              <div
-                onClick={() => handleTeamChange("Reds")}
-                className={`team-option ${
-                  selectedTeam === "Reds" ? "team-option-red-selected" : ""
-                }`}
-              >
-                Reds
-              </div>
-
-              <div
-                onClick={handleManualFlip}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    handleManualFlip();
-                  }
-                }}
-                className={`team-flip ${
-                  manualFlip ? "team-flip-active" : ""
-                }`}
-              >
-                🔄
-              </div>
-
-              <div
-                onClick={() => handleTeamChange("Away")}
-                className={`team-option ${
-                  selectedTeam === "Away" ? "team-option-blue-selected" : ""
-                }`}
-              >
-                Away
-              </div>
-            </div>
-          </div>
-
-          <div className="event-actions-panel">
-            <h5 className="event-actions-title">Event Actions</h5>
-
-            <Row className="event-actions-row">
-              {Object.keys(actionToCode).map((action, i) => (
-                <Col xs={6} md={3} key={i} className="event-action-col">
-                  <Button
-                    className="event-action-button"
-                    onClick={() => handleAction(action)}
+              <div className="zone-row">
+                {zones.map((zone) => (
+                  <div
+                    key={zone.label}
+                    onClick={() => setSelectedZone(zone.label)}
+                    className={`zone-box ${
+                      selectedZone === zone.label ? "zone-box-selected" : ""
+                    } ${
+                      selectedZone === zone.label && selectedTeam === "Reds"
+                        ? "zone-box-red"
+                        : ""
+                    } ${
+                      selectedZone === zone.label && selectedTeam === "Away"
+                        ? "zone-box-blue"
+                        : ""
+                    }`}
                   >
-                    {action}
-                  </Button>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </Col>
-      </Row>
+                    {zone.label}
+                  </div>
+                ))}
+              </div>
+
+              <div className="field-direction">
+                {finalReversed ? "◀━━━━━━" : "━━━━━━▶"}
+              </div>
+
+              {/* TEAM SELECT FIXED */}
+              <div className="team-selector">
+                <div
+                  onClick={() => handleTeamChange("Reds")}
+                  className={`team-option ${
+                    selectedTeam === "Reds" ? "team-option-red-selected" : ""
+                  }`}
+                >
+                  Reds
+                </div>
+
+                <div
+                  onClick={handleManualFlip}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleManualFlip();
+                    }
+                  }}
+                  className={`team-flip ${
+                    manualFlip ? "team-flip-active" : ""
+                  }`}
+                >
+                  🔄
+                </div>
+
+                <div
+                  onClick={() => handleTeamChange("Away")}
+                  className={`team-option ${
+                    selectedTeam === "Away" ? "team-option-blue-selected" : ""
+                  }`}
+                >
+                  Away
+                </div>
+              </div>
+            </div>
+
+            <div className="event-actions-panel">
+              <h5 className="event-actions-title">Event Actions</h5>
+
+              <Row className="event-actions-row">
+                {Object.keys(actionToCode).map((action, i) => (
+                  <Col xs={6} md={3} key={i} className="event-action-col">
+                    <Button
+                      className="event-action-button"
+                      onClick={() => handleAction(action)}
+                    >
+                      {action}
+                    </Button>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          </Col>
+        </Row>
+      </div>
     </Container>
   );
 }

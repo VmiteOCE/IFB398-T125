@@ -1,16 +1,31 @@
 .event-capture-page {
-  background-color: #5a1f28;
-  min-height: 100vh;
-  color: white;
+  flex: 1;
+  display: flex;
+  width: 100%;
+  padding: 0;
+}
+
+.event-capture-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .event-capture-header {
   text-align: center;
-  padding: 1rem;
+  padding: 12px;
+  color: white;
+  background-color: #321A1A;
+  border-radius: 16px 16px 0 0;
 }
 
 .event-capture-row {
-  margin-top: 1rem;
+  flex: 1;
+  margin: 0;
+  padding: 12px;
+  background-color: #8C5F5F;
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
 }
 
 .game-clock-panel {
