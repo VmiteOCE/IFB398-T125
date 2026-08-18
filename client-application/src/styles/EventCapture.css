@@ -1,0 +1,167 @@
+.event-capture-page {
+  background-color: #5a1f28;
+  min-height: 100vh;
+  color: white;
+}
+
+.event-capture-header {
+  text-align: center;
+  padding: 1rem;
+}
+
+.event-capture-row {
+  margin-top: 1rem;
+}
+
+.game-clock-panel {
+  text-align: center;
+  background-color: #f8f9fa;
+  color: #212529;
+  padding: 0.5rem;
+}
+
+.event-history-panel {
+  background-color: #f8f9fa;
+  color: #212529;
+  padding: 0.5rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.event-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: white;
+  border: 2px solid transparent;
+}
+
+.event-history-item-red {
+  background: #b30000;
+}
+
+.event-history-item-blue {
+  background: #0033cc;
+}
+
+.event-history-item-editing {
+  border: 3px solid #4caf50;
+}
+
+.event-history-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.field-panel {
+  padding: 1rem;
+  text-align: center;
+  background-color: #212529;
+  color: white;
+}
+
+.zone-row {
+  display: flex;
+  transition: all 0.3s ease;
+}
+
+.zone-box {
+  flex: 1;
+  background: white;
+  color: black;
+  padding: 30px;
+  cursor: pointer;
+  border: 2px solid black;
+}
+
+.zone-box-selected {
+  color: white;
+  border: 4px solid #4caf50;
+}
+
+.zone-box-red {
+  background: red;
+}
+
+.zone-box-blue {
+  background: blue;
+}
+
+.field-direction {
+  font-size: 30px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #4caf50;
+}
+
+.team-selector {
+  display: flex;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ddd;
+  height: 60px;
+}
+
+.team-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #eee;
+  color: black;
+}
+
+.team-option-red-selected {
+  background: red;
+  color: white;
+}
+
+.team-option-blue-selected {
+  background: blue;
+  color: white;
+}
+
+.team-flip {
+  width: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #bbb;
+  cursor: pointer;
+  transform: rotate(0deg);
+  font-size: 20px;
+}
+
+.team-flip-active {
+  transform: rotate(180deg);
+}
+
+.event-actions-panel {
+  background-color: #f8f9fa;
+  color: #212529;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.event-actions-title {
+  text-align: center;
+}
+
+.event-actions-row {
+  justify-content: center;
+}
+
+.event-action-col {
+  margin-bottom: 1rem;
+}
+
+.event-action-button {
+  width: 100%;
+  white-space: nowrap;
+  font-size: clamp(12px, 1.2vw, 16px);
+  padding: 10px 4px;
+}
