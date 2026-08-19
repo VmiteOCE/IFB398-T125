@@ -1,6 +1,18 @@
 
 import { useState, useRef, useEffect } from "react";
 
+  // Format mm:ss
+  function formatTime(secondsPassed) {
+    let minutes = Math.floor(secondsPassed / 60);
+    let seconds = Math.floor(secondsPassed % 60);
+
+    minutes = String(minutes).padStart(2, "0");
+    seconds = String(seconds).padStart(2, "0");
+
+    return `${minutes}:${seconds}`;
+  }
+
+
 export default function GameClock({ setCurrentTime }) {
   const [startTime, setStartTime] = useState(null);
   const [now, setNow] = useState(null);
@@ -12,6 +24,9 @@ export default function GameClock({ setCurrentTime }) {
   // Keep latest toggleClock reference (fix for keyboard bug)
   const toggleRef = useRef(null);
   const secondsPassedRef = useRef(0);
+
+  /// Manual Time entry 
+  const [manualTime, setManualTime] = useState("");
 
   function toggleClock() {
     if (isRunning) {
@@ -39,7 +54,9 @@ export default function GameClock({ setCurrentTime }) {
   }
 
   // Always keep latest function reference
-  toggleRef.current = toggleClock;
+  useEffect(() => {
+    toggleRef.current = toggleClock;
+  });
 
   // Calculate time
   let secondsPassed = 0;
@@ -47,7 +64,9 @@ export default function GameClock({ setCurrentTime }) {
     secondsPassed = Math.max(0, (now - startTime) / 1000 + offset);
   }
 
-  secondsPassedRef.current = secondsPassed;
+  useEffect(() => {
+    secondsPassedRef.current = secondsPassed;
+  }, [secondsPassed]);
 
   function decreaseTime(){
     const currentTime = secondsPassedRef.current;
@@ -57,16 +76,29 @@ export default function GameClock({ setCurrentTime }) {
     setOffset((prev) => prev - Math.min(1,currentTime));
   }
 
-  // Format mm:ss
-  function formatTime() {
-    let minutes = Math.floor(secondsPassed / 60);
-    let seconds = Math.floor(secondsPassed % 60);
-
-    minutes = String(minutes).padStart(2, "0");
-    seconds = String(seconds).padStart(2, "0");
-
-    return `${minutes}:${seconds}`;
+  // Manual clock function
+  function setManualClockTime() {
+    const [minutes,seconds] = manualTime.split(":").map(Number);
+  //Check if time entered is valid 
+  if ( 
+    Number.isNaN(minutes) ||
+    Number.isNaN(seconds) ||
+    minutes < 0 ||
+    minutes > 80 || // 80 minutes in a game 
+    seconds < 0 ||
+    seconds > 59
+  ) {
+    return;
   }
+  // reset elapsed time 
+  const currentTime = Date.now();
+  setStartTime(currentTime);
+  setNow(currentTime);
+  
+  setOffset(minutes * 60 + seconds);
+  
+  setManualTime(""); // clear after setting time
+}
 
   // Keyboard controls
   useEffect(() => {
@@ -100,8 +132,8 @@ export default function GameClock({ setCurrentTime }) {
 
   // Update parent
   useEffect(() => {
-    setCurrentTime(formatTime());
-  }, [secondsPassed]);
+    setCurrentTime(formatTime(secondsPassed));
+  }, [secondsPassed, setCurrentTime]);
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -123,7 +155,7 @@ export default function GameClock({ setCurrentTime }) {
         textAlign: "center",
       }}
     >
-      <h1>{formatTime()}</h1>
+      <h1>{formatTime(secondsPassed)}</h1>
 
       <button onClick={decreaseTime}>
         -1 sec
@@ -136,6 +168,18 @@ export default function GameClock({ setCurrentTime }) {
       <button onClick={() => setOffset((prev) => prev + 1)}>
         +1 sec
       </button>
+
+      <div style={{ marginTop: "15px" }}>
+        <input
+        type="text"
+        placeholder="40:00" // placeholder is 40:00 for coming back after half time
+        value={manualTime}
+        onChange={(e) => setManualTime(e.target.value)}
+        style={{width: "90px", textAlign: "center", marginRight: "5px",}}/>
+        <button onClick={setManualClockTime}>
+             Set Game Time
+             </button>
+        </div>
     </div>
   );
 }
