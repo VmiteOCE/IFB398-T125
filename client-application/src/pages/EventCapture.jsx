@@ -2,6 +2,7 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import GameClock from "../components/GameClock";
+import "../styles/EventCapture.css";
 
 const actionToCode = {
   Pass: "P",
@@ -33,28 +34,19 @@ const actionKeys = {
   m: "Maul",
 };
 
-
 function EventCapture() {
   const { id } = useParams();
   const gameId = parseInt(id, 10) || 1;
-
-
 
   const [selectedZone, setSelectedZone] = useState("M");
   const [selectedTeam, setSelectedTeam] = useState("Reds");
   const [manualFlip, setManualFlip] = useState(false);
 
-
-
   const [events, setEvents] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
 
-
-
   const [currentTime, setCurrentTime] = useState("00:00");
   const [gameInfo, setGameInfo] = useState(null);
-
-
 
   // ---------------- GAME INFO ----------------
   useEffect(() => {
@@ -63,29 +55,22 @@ function EventCapture() {
         const res = await fetch(`/games/${gameId}`);
         const result = await res.json();
 
-
-
         if (!res.ok || result.error) throw new Error(result.message);
+
         setGameInfo(result.game);
       } catch (err) {
         console.error("Game fetch error:", err);
       }
     };
 
-
-
     fetchGameInfo();
   }, [gameId]);
-
-
 
   // ---------------- HELPERS ----------------
   const toSeconds = (timeStr) => {
     const [mins, secs] = timeStr.split(":").map(Number);
     return mins * 60 + secs;
   };
-
-
 
   const formatSeconds = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -141,11 +126,7 @@ function EventCapture() {
         const res = await fetch(`/events/game/${gameId}`);
         const result = await res.json();
 
-
-
         if (!res.ok || result.error) throw new Error(result.message);
-
-
 
         const mapped = result.events
           .slice()
@@ -158,20 +139,14 @@ function EventCapture() {
             time: formatSeconds(e.game_clock),
           }));
 
-
-
         setEvents(mapped);
       } catch (err) {
         console.error("Fetch events error:", err);
       }
     };
 
-
-
     fetchEvents();
   }, [gameId]);
-
-
 
   // ---------------- CREATE ----------------
   const postEvent = async (action) => {
@@ -184,8 +159,6 @@ function EventCapture() {
       game_half: 1,
     };
 
-
-
     try {
       const res = await fetch("/events", {
         method: "POST",
@@ -193,17 +166,11 @@ function EventCapture() {
         body: JSON.stringify(payload),
       });
 
-
-
       const result = await res.json();
-
-
 
       if (!res.ok || result.error) {
         throw new Error(result.message);
       }
-
-
 
       return result.event_id;
     } catch (err) {
@@ -212,14 +179,10 @@ function EventCapture() {
     }
   };
 
-
-
   // ---------------- CREATE + UPDATE ----------------
   const handleAction = async (action) => {
     if (editingIndex !== null) {
       const event = events[editingIndex];
-
-
 
       const payload = {
         game_id: gameId,
@@ -230,8 +193,6 @@ function EventCapture() {
         game_half: 1,
       };
 
-
-
       try {
         const res = await fetch(`/events/${event.id}`, {
           method: "PUT",
@@ -239,17 +200,12 @@ function EventCapture() {
           body: JSON.stringify(payload),
         });
 
-
-
         const result = await res.json();
-
-
 
         if (!res.ok || result.error) throw new Error(result.message);
 
-
-
         const updated = [...events];
+
         updated[editingIndex] = {
           ...event,
           action,
@@ -258,8 +214,6 @@ function EventCapture() {
           time: currentTime,
         };
 
-
-
         setEvents(updated);
         setEditingIndex(null);
       } catch (err) {
@@ -267,9 +221,8 @@ function EventCapture() {
       }
     } else {
       const eventId = await postEvent(action);
+
       if (!eventId) return;
-
-
 
       const newEvent = {
         id: eventId,
@@ -279,46 +232,30 @@ function EventCapture() {
         time: currentTime,
       };
 
-
-
       setEvents((prev) => [newEvent, ...prev]);
     }
   };
 
-
-
   // ---------------- DELETE ----------------
   const deleteEvent = async (index) => {
     const event = events[index];
-
-
 
     try {
       const res = await fetch(`/events/${event.id}`, {
         method: "DELETE",
       });
 
-
-
       const result = await res.json();
-
-
 
       if (!res.ok || result.error) throw new Error(result.message);
 
-
-
       if (editingIndex === index) setEditingIndex(null);
-
-
 
       setEvents(events.filter((_, i) => i !== index));
     } catch (err) {
       console.error("Delete error:", err);
     }
   };
-
-
 
   // ---------------- EDIT ----------------
   const toggleEdit = (index) => {
@@ -331,8 +268,6 @@ function EventCapture() {
       setCurrentTime(events[index].time);
     }
   };
-
-
 
   // ---------------- KEYBOARD ----------------
   const handleActionRef = useRef(handleAction);
@@ -352,6 +287,7 @@ function EventCapture() {
 
       if (e.key === "ArrowRight") {
         const nextIndex = currentIndex + 1;
+
         if (nextIndex < zones.length) {
           e.preventDefault();
           setSelectedZone(zones[nextIndex].label);
@@ -360,6 +296,7 @@ function EventCapture() {
 
       if (e.key === "ArrowLeft") {
         const prevIndex = currentIndex - 1;
+
         if (prevIndex >= 0) {
           e.preventDefault();
           setSelectedZone(zones[prevIndex].label);
@@ -368,13 +305,14 @@ function EventCapture() {
 
       if (e.key === "Tab") {
         e.preventDefault();
-        const newTeam =
-          selectedTeam === "Reds" ? "Away" : "Reds";
+
+        const newTeam = selectedTeam === "Reds" ? "Away" : "Reds";
 
         handleTeamChangeRef.current(newTeam);
       }
 
       const action = actionKeys[e.key.toLowerCase()];
+
       if (action) {
         e.preventDefault();
         handleActionRef.current(action);
@@ -382,101 +320,84 @@ function EventCapture() {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () =>
+
+    return () => {
       window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [selectedZone, zones, selectedTeam, currentTime, editingIndex, events]);
-
-
 
   // ---------------- UI ----------------
   return (
-    <Container fluid style={{ backgroundColor: "#5a1f28", minHeight: "100vh", color: "white" }}>
-      <div className="text-center p-3">
-        <h3>
-          {gameInfo ? `Reds vs ${gameInfo.vs_team}` : `Game ID: ${gameId}`}
-        </h3>
-        <h4>
-          {gameInfo ? gameInfo.game_name : "Score: 12 - 7"}
-        </h4>
-      </div>
+    <Container fluid className="event-capture-page">
+      <div className="dashboard-content event-capture-content">
+        <div className="event-capture-header">
+          <h3>
+            {gameInfo ? `Reds vs ${gameInfo.vs_team}` : `Game ID: ${gameId}`}
+          </h3>
 
+          
+        </div>
 
+        <Row className="event-capture-row">
+          <Col md={4}>
+            <div className="game-clock-panel">
+              <GameClock setCurrentTime={setCurrentTime} />
+            </div>
 
-      <Row className="mt-3">
-        <Col md={4}>
-          <div className="text-center bg-light text-dark p-2">
-            <GameClock setCurrentTime={setCurrentTime} />
-          </div>
+            <div className="event-history-panel">
+              <h5>Event History (Last 8)</h5>
 
-
-
-          <div className="bg-light text-dark p-2" style={{ maxHeight: "500px", overflowY: "auto" }}>
-            <h5>Event History (Last 8)</h5>
-
-
-
-            {events.slice(0, 8).map((event, index) => (
-              <div
-                key={event.id}
-                className="d-flex justify-content-between align-items-center p-2 mb-2"
-                style={{
-                  background: event.team === "R" ? "#b30000" : "#0033cc",
-                  color: "white",
-                  border: editingIndex === index ? "3px solid #4CAF50" : "2px solid transparent",
-                }}
-              >
-                <div>
-                  {event.action} ({event.zone}) - ({event.time}) - {event.team}
-                </div>
-
-
-
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={() => toggleEdit(index)}>✏️</button>
-                  <button onClick={() => deleteEvent(index)}>🗑️</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Col>
-
-
-
-        <Col md={8}>
-          <div className="p-3 text-center bg-dark text-white">
-            <p>
-              Zone Selected: {currentZone.label} {currentZone.text}
-            </p>
-            
-
-
-            <div style={{ display: "flex", transition: "all 0.3s ease" }}>
-              {zones.map((zone) => (
+              {events.slice(0, 8).map((event, index) => (
                 <div
-                  key={zone.label}
-                  onClick={() => setSelectedZone(zone.label)}
-                  style={{
-                    flex: 1,
-                    background: selectedZone === zone.label
-                    ? selectedTeam === "Reds"
-                    ? "red"
-                    : "blue"
-                    : "white",
-                    color: selectedZone === zone.label
-                    ? "white"
-                    : "black",
-                    padding: 30,
-                    cursor: "pointer",
-                    border:
-                      selectedZone === zone.label
-                        ? "4px solid #4CAF50"
-                        : "2px solid black",
-                  }}
+                  key={event.id}
+                  className={`event-history-item ${
+                    event.team === "R"
+                      ? "event-history-item-red"
+                      : "event-history-item-blue"
+                  } ${
+                    editingIndex === index ? "event-history-item-editing" : ""
+                  }`}
                 >
-                  {zone.label}
+                  <div>
+                    {event.action} ({event.zone}) - ({event.time}) - {event.team}
+                  </div>
+
+                  <div className="event-history-actions">
+                    <button onClick={() => toggleEdit(index)}>✏️</button>
+                    <button onClick={() => deleteEvent(index)}>🗑️</button>
+                  </div>
                 </div>
               ))}
             </div>
+          </Col>
+
+          <Col md={8}>
+            <div className="field-panel">
+              <p>
+                Zone Selected: {currentZone.label} {currentZone.text}
+              </p>
+
+              <div className="zone-row">
+                {zones.map((zone) => (
+                  <div
+                    key={zone.label}
+                    onClick={() => setSelectedZone(zone.label)}
+                    className={`zone-box ${
+                      selectedZone === zone.label ? "zone-box-selected" : ""
+                    } ${
+                      selectedZone === zone.label && selectedTeam === "Reds"
+                        ? "zone-box-red"
+                        : ""
+                    } ${
+                      selectedZone === zone.label && selectedTeam === "Away"
+                        ? "zone-box-blue"
+                        : ""
+                    }`}
+                  >
+                    {zone.label}
+                  </div>
+                ))}
+              </div>
 
             <div style={{
               fontSize: "30px",
@@ -488,98 +409,66 @@ function EventCapture() {
                 {finalReversed ? "━━━━━━▶" : "◀━━━━━━"}
               </div>
 
-            {/* TEAM SELECT FIXED */}
-            <div
-              style={{
-                display: "flex",
-                marginTop: 10,
-                borderRadius: "8px",
-                overflow: "hidden",
-                background: "#ddd",
-                height: 60,
-              }}
-            >
-              <div
-                onClick={() => handleTeamChange("Reds")}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  background: selectedTeam === "Reds" ? "red" : "#eee",
-                  color: selectedTeam === "Reds" ? "white" : "black",
-                }}
-              >
-                Reds
-              </div>
+              {/* TEAM SELECT FIXED */}
+              <div className="team-selector">
+                <div
+                  onClick={() => handleTeamChange("Reds")}
+                  className={`team-option ${
+                    selectedTeam === "Reds" ? "team-option-red-selected" : ""
+                  }`}
+                >
+                  Reds
+                </div>
 
+                <div
+                  onClick={handleManualFlip}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleManualFlip();
+                    }
+                  }}
+                  className={`team-flip ${
+                    manualFlip ? "team-flip-active" : ""
+                  }`}
+                >
+                  🔄
+                </div>
 
-
-              <div
-                onClick={handleManualFlip}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    handleManualFlip();
-                  }
-                }}
-                style={{
-                  width: 70,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  background: "#bbb",
-                  cursor: "pointer",
-                  transform: manualFlip ? "rotate(180deg)" : "rotate(0deg)",
-                  fontSize: "20px"
-                }}
-              >
-                🔄
-              </div>
-
-
-
-              <div
-                onClick={() => handleTeamChange("Away")}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  background: selectedTeam === "Away" ? "blue" : "#eee",
-                  color: selectedTeam === "Away" ? "white" : "black",
-                }}
-              >
-                Away
+                <div
+                  onClick={() => handleTeamChange("Away")}
+                  className={`team-option ${
+                    selectedTeam === "Away" ? "team-option-blue-selected" : ""
+                  }`}
+                >
+                  Away
+                </div>
               </div>
             </div>
-          </div>
 
+            <div className="event-actions-panel">
+              <h5 className="event-actions-title">Event Actions</h5>
 
-
-          <div className="bg-light text-dark p-3 mt-3">
-            <h5 className="text-center">Event Actions</h5>
-            <Row className="justify-content-center">
-              {Object.keys(actionToCode).map((action, i) => (
-                <Col xs={6} md={3} key={i} className="mb-3">
-                  <Button className="w-100" onClick={() => handleAction(action)}
-                  style={{whiteSpace: "nowrap", fontSize: "clamp(12px, 1.2vw, 16px)", padding: "10px 4px",}}>
-                    {action}
-                  </Button>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </Col>
-      </Row>
+              <Row className="event-actions-row">
+                {Object.keys(actionToCode).map((action, i) => (
+                  <Col xs={6} md={3} key={i} className="event-action-col">
+                    <Button
+                      className="event-action-button"
+                      onClick={() => handleAction(action)}
+                    >
+                      {action}
+                    </Button>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          </Col>
+        </Row>
+      </div>
     </Container>
   );
 }
-
-
 
 export default EventCapture;

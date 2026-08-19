@@ -1,5 +1,6 @@
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { useState } from "react";
+import "../styles/Settings.css";
 
 function Settings() {
   const [activeSection, setActiveSection] = useState("Profile");
@@ -107,7 +108,9 @@ function Settings() {
     ];
 
     const csv = rows
-      .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(","))
+      .map((row) =>
+        row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(",")
+      )
       .join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -135,7 +138,7 @@ function Settings() {
 
   // ---------------- PROFILE UI ----------------
   const renderProfile = () => (
-    <div className="bg-light text-dark p-3 h-100">
+    <div className="settings-section-panel">
       <div className="text-center mb-4">
         <h4>Profile</h4>
         <p className="text-muted mb-0">Manage your account details.</p>
@@ -143,20 +146,7 @@ function Settings() {
 
       <Row className="justify-content-center">
         <Col lg={4} className="text-center mb-4 mb-lg-0">
-          <div
-            className="mx-auto mb-3 d-flex align-items-center justify-content-center"
-            style={{
-              width: 130,
-              height: 130,
-              borderRadius: "50%",
-              overflow: "hidden",
-              background: "#b30000",
-              color: "white",
-              border: "5px solid #5a1f28",
-              fontSize: 34,
-              fontWeight: "bold",
-            }}
-          >
+          <div className="settings-profile-avatar mx-auto mb-3 d-flex align-items-center justify-content-center">
             {profile.profilePicture ? (
               <img
                 src={profile.profilePicture}
@@ -170,7 +160,7 @@ function Settings() {
 
           <Form.Label
             htmlFor="profile-picture"
-            className="btn btn-outline-danger mb-0"
+            className="btn settings-outline-button mb-0"
             style={controlButtonStyle}
           >
             Change Picture
@@ -217,7 +207,7 @@ function Settings() {
 
   // ---------------- ACCESSIBILITY UI ----------------
   const renderAccessibility = () => (
-    <div className="bg-light text-dark p-3 h-100">
+    <div className="settings-section-panel">
       <div className="text-center mb-4">
         <h4>Accessibility</h4>
         <p className="text-muted mb-0">Adjust text and controls across the app.</p>
@@ -227,7 +217,9 @@ function Settings() {
         <Row className="align-items-center">
           <Col md={7}>
             <strong>Font Size</strong>
-            <div className="text-muted small">Change the size of text in the interface.</div>
+            <div className="text-muted small">
+              Change the size of text in the interface.
+            </div>
           </Col>
           <Col md={5} className="mt-3 mt-md-0">
             <div className="d-flex align-items-center gap-3">
@@ -243,7 +235,9 @@ function Settings() {
                   })
                 }
               />
-              <strong style={{ minWidth: 48 }}>{accessibility.fontSize}%</strong>
+              <strong className="settings-font-size-value">
+                {accessibility.fontSize}%
+              </strong>
             </div>
           </Col>
         </Row>
@@ -291,7 +285,7 @@ function Settings() {
 
   // ---------------- MATCH SETTINGS UI ----------------
   const renderMatchSettings = () => (
-    <div className="bg-light text-dark p-3 h-100">
+    <div className="settings-section-panel">
       <div className="text-center mb-4">
         <h4>Match Settings</h4>
         <p className="text-muted mb-0">Set the defaults used by the capture page.</p>
@@ -350,19 +344,13 @@ function Settings() {
         </Col>
       </Row>
 
-      <div className="bg-dark text-white p-3 mt-2">
+      <div className="settings-preview-panel">
         <div className="text-center mb-2">Capture Page Preview</div>
-        <div className="d-flex" style={{ minHeight: 60 }}>
-          {["A", "B", "M", "C", "D"].map((zone, index) => (
+        <div className="d-flex settings-preview">
+          {["A", "B", "M", "C", "D"].map((zone) => (
             <div
               key={zone}
-              className="d-flex align-items-center justify-content-center"
-              style={{
-                flex: 1,
-                color: index === 1 || index === 3 ? "#333" : "white",
-                background: ["red", "pink", "gray", "lightblue", "blue"][index],
-                border: zone === "M" ? "3px solid #4CAF50" : "2px solid transparent",
-              }}
+              className={`settings-zone settings-zone-${zone.toLowerCase()} d-flex align-items-center justify-content-center`}
             >
               {zone}
             </div>
@@ -374,7 +362,7 @@ function Settings() {
 
   // ---------------- SECURITY UI ----------------
   const renderSecurity = () => (
-    <div className="bg-light text-dark p-3 h-100">
+    <div className="settings-section-panel">
       <div className="text-center mb-4">
         <h4>Security</h4>
         <p className="text-muted mb-0">Manage password and user access levels.</p>
@@ -383,9 +371,11 @@ function Settings() {
       <div className="d-flex justify-content-between align-items-center gap-3 p-3 border-bottom">
         <div>
           <strong>Change Password</strong>
-          <div className="text-muted small">Update the password used to access the app.</div>
+          <div className="text-muted small">
+            Update the password used to access the app.
+          </div>
         </div>
-        <Button variant="outline-danger" style={controlButtonStyle}>
+        <Button className="settings-outline-button" style={controlButtonStyle}>
           Change Password
         </Button>
       </div>
@@ -406,7 +396,7 @@ function Settings() {
                   onChange={(event) =>
                     setAccessLevels({
                       ...accessLevels,
-                      [role]: event.target.value,
+                      [role]: event.target.value
                     })
                   }
                 >
@@ -425,26 +415,29 @@ function Settings() {
 
   // ---------------- DATA UI ----------------
   const renderDataExport = () => (
-    <div className="bg-light text-dark p-3 h-100">
+    <div className="settings-section-panel">
       <div className="text-center mb-4">
         <h4>Data & Export</h4>
         <p className="text-muted mb-0">Download app data in CSV format.</p>
       </div>
 
-      <div className="border p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+      <div className="settings-data-card border p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
         <div className="d-flex align-items-center gap-3">
-          <div
-            className="d-flex align-items-center justify-content-center text-white fw-bold"
-            style={{ width: 58, height: 58, background: "#b30000" }}
-          >
+          <div className="settings-data-icon d-flex align-items-center justify-content-center text-white fw-bold">
             CSV
           </div>
           <div>
             <strong>Export Data as CSV</strong>
-            <div className="text-muted small">Download the available match and event data.</div>
+            <div className="text-muted small">
+              Download the available match and event data.
+            </div>
           </div>
         </div>
-        <Button variant="danger" onClick={exportCsv} style={controlButtonStyle}>
+        <Button
+          className="settings-danger-button"
+          onClick={exportCsv}
+          style={controlButtonStyle}
+        >
           Export CSV
         </Button>
       </div>
@@ -453,7 +446,7 @@ function Settings() {
 
   // ---------------- HELP UI ----------------
   const renderHelp = () => (
-    <div className="bg-light text-dark p-3 h-100">
+    <div className="settings-section-panel">
       <div className="text-center mb-4">
         <h4>Help</h4>
         <p className="text-muted mb-0">Guide on how to use the app.</p>
@@ -468,10 +461,7 @@ function Settings() {
         ["6", "Export Data", "Open Data & Export to download the available data as CSV."],
       ].map(([number, title, description]) => (
         <div className="d-flex gap-3 p-3 border-bottom" key={number}>
-          <div
-            className="d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-            style={{ width: 36, height: 36, background: "#b30000" }}
-          >
+          <div className="settings-help-number d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0">
             {number}
           </div>
           <div>
@@ -504,78 +494,75 @@ function Settings() {
   return (
     <Container
       fluid
-      style={{
-        backgroundColor: accessibility.highContrast ? "#000" : "#5a1f28",
-        minHeight: "100vh",
-        color: "white",
-        fontSize: `${accessibility.fontSize}%`,
-        paddingBottom: 40,
-      }}
+      className={`settings-page ${
+        accessibility.highContrast ? "settings-page-high-contrast" : ""
+      }`}
     >
-      <div className="text-center p-3">
-        <h3>Settings</h3>
-        <h5>Manage your Reds app preferences</h5>
-      </div>
-
-      <Row className="mt-3 justify-content-center">
-        <Col xl={3} lg={4} md={4} className="mb-3 mb-md-0">
-          <div className="bg-dark text-white p-3 h-100">
-            <h5 className="text-center mb-3">Settings Menu</h5>
-
-            {settingsSections.map((section) => (
-              <Button
-                key={section.label}
-                variant={activeSection === section.label ? "danger" : "dark"}
-                className="w-100 mb-2 text-start d-flex align-items-center"
-                style={{
-                  minHeight: accessibility.largeButtons ? 60 : 50,
-                  border:
-                    activeSection === section.label
-                      ? "3px solid #4CAF50"
-                      : "2px solid #555",
-                }}
-                onClick={() => setActiveSection(section.label)}
-              >
-                <span
-                  className="d-inline-flex align-items-center justify-content-center me-3"
-                  style={{
-                    width: 30,
-                    height: 30,
-                    border: "1px solid #aaa",
-                    borderRadius: 4,
-                    fontWeight: "bold",
-                  }}
-                >
-                  {section.icon}
-                </span>
-                <span>{section.label}</span>
-              </Button>
-            ))}
-          </div>
-        </Col>
-
-        <Col xl={7} lg={8} md={8}>
-          <div style={{ minHeight: 560 }}>{renderActiveSection()}</div>
-
-          {!["Data & Export", "Help"].includes(activeSection) && (
-            <div className="bg-light text-dark p-3 mt-3 d-flex justify-content-end">
-              <Button variant="danger" onClick={handleSave} style={controlButtonStyle}>
-                Save Changes
-              </Button>
-            </div>
-          )}
-        </Col>
-      </Row>
-
-      {saveMessage && (
-        <div
-          className="position-fixed bottom-0 end-0 m-4 px-3 py-2 bg-dark text-white"
-          role="status"
-          style={{ borderLeft: "5px solid #4CAF50", zIndex: 1050 }}
-        >
-          {saveMessage}
+      <div
+        className="dashboard-content settings-content-wrapper"
+        style={{
+          fontSize: `${accessibility.fontSize}%`,
+        }}
+      >
+        <div className="settings-title-box">
+          <h3>Settings</h3>
+          <h5>Manage your Reds app preferences</h5>
         </div>
-      )}
+
+        <Row className="settings-row">
+          <Col xl={3} lg={4} md={4} className="mb-3 mb-md-0">
+            <div className="settings-menu-panel">
+              <h5 className="settings-panel-title">Settings Menu</h5>
+
+              {settingsSections.map((section) => (
+                <Button
+                  key={section.label}
+                  variant="dark"
+                  className={`settings-menu-button ${
+                    activeSection === section.label
+                      ? "settings-menu-button-active"
+                      : ""
+                  }`}
+                  style={{
+                    minHeight: accessibility.largeButtons ? 60 : 50,
+                  }}
+                  onClick={() => setActiveSection(section.label)}
+                >
+                  <span className="settings-menu-icon d-inline-flex align-items-center justify-content-center me-3">
+                    {section.icon}
+                  </span>
+                  <span>{section.label}</span>
+                </Button>
+              ))}
+            </div>
+          </Col>
+
+          <Col xl={7} lg={8} md={8}>
+            <div className="settings-main-panel">{renderActiveSection()}</div>
+
+            {!["Data & Export", "Help"].includes(activeSection) && (
+              <div className="settings-save-panel">
+                <Button
+                  className="settings-danger-button"
+                  onClick={handleSave}
+                  style={controlButtonStyle}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            )}
+          </Col>
+        </Row>
+
+        {saveMessage && (
+          <div
+            className="settings-toast position-fixed bottom-0 end-0 m-4 px-3 py-2"
+            role="status"
+          >
+            {saveMessage}
+          </div>
+        )}
+      </div>
     </Container>
   );
 }
