@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import { useParams } from "react-router-dom";
+import ZoneTimeGraphs from "../components/GameGraphs";
 
   // Format Event Time
   const formatTime = (seconds) => {
@@ -345,7 +346,8 @@ const renderZoneTimeTable  = ({
   return (
         <div className="analysis-table-card">
         <h5>{title}</h5>
-        <table className="analysis-table">
+        <table className="analysis-table"
+        style={{tableLayout: "fixed", fontSize: "clamp(10px, 1.2vw, 16px)"}}>
 
         <thead>
         <tr>
@@ -360,7 +362,7 @@ const renderZoneTimeTable  = ({
           </tr>
 
         <tr>
-        <th style={styles.header}>Interval</th>
+        <th style={{...styles.header,paddingLeft: "0px"}}>Interval</th>
 
         {zones.map((zone) => (
           <th
@@ -662,11 +664,10 @@ const renderAZoneTable = () => {
   </button>
 </div>
 
-{/* Will eventually be able to swithc between views */}
-
-
-
+{/* SWITCH BETWEEN TABLES AND GRAPHS */}
 {/* Tables */}
+{analysisView === "table" ? (
+<>
 {renderZoneTimeTable({
   title: "Minutes per zone"
 })}
@@ -703,6 +704,18 @@ const renderAZoneTable = () => {
   title: "Kicks per zone",
   eventCode: "K"
 })}
+ </>
+
+) : (
+// Graphs
+  <ZoneTimeGraphs
+    getZoneTime={getZoneTime}
+    intervals={intervals}
+    zones={zones}
+    awayName={gameInfo?.vs_team || "Away"}
+    formatTime={formatTime}
+  />
+)}
     </Container>
   );
 };
