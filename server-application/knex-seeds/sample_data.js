@@ -1,13 +1,24 @@
+import bcrypt from 'bcrypt';
+
 export async function seed(knex) {
   // Wipe tables in reverse order to respect foreign key constraints
   await knex('users').del();
   await knex('events').del();
   await knex('games').del();
 
-  // Add default user
-  await knex('users').insert([
-    { username: 'admin', password: 'admin' }
-  ]);
+  // Number of times to salt password
+  const NUM_SALTS = 10;
+
+  // Hash plaintext password
+  const hashedPassword = await bcrypt.hash('admin', NUM_SALTS);
+
+  // Add default user with hashed password
+  await knex('users').insert([{
+    username: 'admin',
+    password: hashedPassword,
+    role: 'admin',
+    keybinds: null
+  }]);
 
   // ===========================================================================
   // DATE FORMATTING DETAILS

@@ -19,6 +19,8 @@ export function up(knex) {
     .createTable('users', (table) => {
       table.string('username').primary();
       table.string('password').notNullable();
+      table.string('role').notNullable().defaultTo('viewer');
+      table.text('keybinds').nullable().defaultTo(null);
     });
 }
 
