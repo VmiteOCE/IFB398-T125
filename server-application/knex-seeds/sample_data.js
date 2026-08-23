@@ -17,7 +17,8 @@ export async function seed(knex) {
     username: 'admin',
     password: hashedPassword,
     role: 'admin',
-    keybinds: null
+    keybinds: null,
+    settings: null
   }]);
 
   // ===========================================================================

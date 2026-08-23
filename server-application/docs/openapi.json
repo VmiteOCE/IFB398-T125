@@ -637,7 +637,6 @@
                 },
                 "examples": {
                   "keybindsFound": {
-                    "summary": "Custom Keybinds Saved",
                     "$ref": "#/components/schemas/Keybinds"
                   },
                   "noKeybinds": {
@@ -695,6 +694,91 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResetKeybindsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      }
+    },
+    "/user/settings": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Retrieves settings for the logged in user.",
+        "description": "Returns a JSON object containing a full settings map if the user has modified any settings. If no settings have been altered, settings returns as null.",
+        "operationId": "getSettings",
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSettingsResponse"
+                },
+                "examples": {
+                  "settingsFound": {
+                    "$ref": "#/components/schemas/Settings"
+                  },
+                  "noSettings": {
+                    "value": {
+                      "error": false,
+                      "keybinds": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Updates settings for the logged in user.",
+        "description": "Takes a full settings map and saves the cusom settings for the logged in user.",
+        "operationId": "updateSettings",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UpdateSettingsRequestBody"
+        },
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSettingsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Resets settings for the logged in user to default.",
+        "description": "Resets any existing settings, reverting the user to default settings.",
+        "operationId": "resetSettings",
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetSettingsResponse"
                 }
               }
             }
@@ -1365,7 +1449,6 @@
       },
       "UserUpdate": {
         "type": "object",
-        
         "required": [
           "username"
         ],
@@ -1651,7 +1734,8 @@
         "type": "object",
         "required": [
           "error",
-          "message"
+          "message",
+          "keybinds"
         ],
         "properties": {
           "error": {
@@ -1661,6 +1745,9 @@
           "message": {
             "type": "string",
             "example": "Keybinds updated successfully."
+          },
+          "keybinds": {
+            "$ref": "#/components/schemas/Keybinds"
           }
         }
       },
@@ -1678,6 +1765,111 @@
           "message": {
             "type": "string",
             "example": "Keybinds successfully reset to default."
+          }
+        }
+      },
+      "Settings": {
+        "type": "object",
+        "description": "Modified user settings",
+        "required": [
+          "Event_History_Length",
+          "Outline_Colour",
+          "Enable_Keybinds",
+          "Large_Buttons",
+          "Dark_Mode",
+          "Default_Home_Team"
+        ],
+        "properties": {
+          "Event_History_Length": {
+            "type": "integer",
+            "example": 8
+          },
+          "Outline_Colour": {
+            "type": "string",
+            "example": "Green"
+          },
+          "Enable_Keybinds": {
+            "type": "boolean",
+            "example": true
+          },
+          "Large_Buttons": {
+            "type": "boolean",
+            "example": false
+          },
+          "Dark_Mode": {
+            "type": "boolean",
+            "example": false
+          },
+          "Default_Home_Team": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "example": {
+          "Event_History_Length": 8,
+          "Outline_Colour": "Green",
+          "Enable_Keybinds": true,
+          "Large_Buttons": false,
+          "Dark_Mode": false,
+          "Default_Home_Team": true
+        }
+      },
+      "GetSettingsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "settings"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "settings": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Settings"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateSettingsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message",
+          "settings"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Settings updated successfully."
+          },
+          "settings": {
+            "$ref": "#/components/schemas/Settings"
+          }
+        }
+      },
+      "ResetSettingsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Settings successfully reset to default."
           }
         }
       }
@@ -1858,6 +2050,22 @@
           "application/x-www-form-urlencoded": {
             "schema": {
               "$ref": "#/components/schemas/Keybinds"
+            }
+          }
+        }
+      },
+      "UpdateSettingsRequestBody": {
+        "description": "Payload required to update user settings",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Settings"
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/Settings"
             }
           }
         }

@@ -367,6 +367,112 @@ router.delete('/keybinds', verifyToken, async (req, res) => {
   }
 });
 
+// ============================== GET https://localhost:3000/user/settings ==============================
+// Get settings for logged in user
+router.get('/settings', verifyToken, async (req, res) => {
+  try {
+    const user = await req.db('users')
+      .where('username', '=', req.user.username)
+      .select('settings')
+      .first();
+
+    if (!user) {
+      return res.status(404).json({ error: true, message: "User not found." });
+    }
+
+    // Parse string stored in SQLite into JSON, or return JSON if already formatted correctly
+    // Returns null if no settings are saved
+    let jsonSettings = null;
+    if (user.settings && typeof user.settings === 'string') {
+      try {
+        jsonSettings = JSON.parse(user.settings);
+      } catch {
+        jsonSettings = null;
+      }
+    }
+
+    res.status(200).json({
+      error: false,
+      settings: jsonSettings
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: true, message: "Database error reading settings." });
+  }
+});
+
+// ============================== PUT https://localhost:3000/user/settings ==============================
+// Replace full settings map for logged in user
+router.put('/settings', verifyToken, async (req, res) => {
+  try {
+    const settingsmap = req.body;
+
+    // Validate settings payload
+    if (!settingsmap || typeof settingsmap !== 'object' || Array.isArray(settingsmap)) {
+      return res.status(400).json({ 
+        error: true, 
+        message: "Request body must be a JSON object containing key-value settings." 
+      });
+    }
+
+    // Ensure request body is not empty
+    const settings = Object.keys(settingsmap);
+    if (settings.length === 0) {
+      return res.status(400).json({ 
+        error: true, 
+        message: "Settings object cannot be empty." 
+      });
+    }
+
+    // No validation for KVP data types
+
+    const settingsData = JSON.stringify(settingsmap);
+
+    const updated = await req.db('users')
+      .where('username', '=', req.user.username)
+      .update({ settings: settingsData });
+
+    if (updated === 0) {
+      return res.status(404).json({ error: true, message: "User not found." });
+    }
+
+    res.status(200).json({
+      error: false,
+      message: "Settings updated successfully.",
+      settings: settingsmap
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: true, message: "Database error updating settings." });
+  }
+});
+
+// ============================== DELETE https://localhost:3000/user/settings ==============================
+// Reset settings for logged in user
+router.delete('/settings', verifyToken, async (req, res) => {
+  try {
+    const updated = await req.db('users')
+      .where('username', '=', req.user.username)
+      .update({ settings: null });
+
+    if (updated === 0) {
+      return res.status(404).json({ error: true, message: "User not found." });
+    }
+
+    res.status(200).json({
+      error: false,
+      message: "Settings successfully reset to default.",
+      settings: null
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: true, message: "Database error resetting settings." });
+  }
+});
+
 // ============================== GET https://localhost:3000/user/verify ==============================
 // Basic Auth Check: Any logged-in user
 router.get('/verify', verifyToken, (req, res) => {

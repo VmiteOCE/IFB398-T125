@@ -21,6 +21,7 @@ export function up(knex) {
       table.string('password').notNullable();
       table.string('role').notNullable().defaultTo('viewer');
       table.text('keybinds').nullable().defaultTo(null);
+      table.text('settings').nullable().defaultTo(null);
     });
 }
 
