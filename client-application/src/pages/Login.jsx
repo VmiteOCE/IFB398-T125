@@ -76,7 +76,7 @@ export default function LoginPage() {
 
         } catch (err) {
             setSuccess("");
-            setError("Unable to connect to the server.");
+            setError("Unable to connect to the server. Errors:", err);
         } finally {
             setLoading(false);
         }

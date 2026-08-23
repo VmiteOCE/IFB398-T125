@@ -13,20 +13,13 @@ export default function ProtectedRoute() {
             const authenticated = await checkAuth();
 
             if (!authenticated) {
-                const originalUrl =
-                    location.pathname +
-                    location.search +
-                    location.hash;
-
+                const originalUrl = location.pathname + location.search + location.hash;
                 sessionStorage.setItem("redirectAfterLogin", originalUrl);
                 setAuthStatus("unauthenticated");
                 return;
             }
 
-            const currentUrl =
-                location.pathname +
-                location.search +
-                location.hash;
+            const currentUrl = location.pathname + location.search + location.hash;
 
             sessionStorage.setItem("lastVisitedPage", currentUrl);
 
