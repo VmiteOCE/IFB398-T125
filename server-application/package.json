@@ -14,12 +14,15 @@
     "cert": "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout certs/selfsigned.key -out certs/selfsigned.crt -subj \"/CN=localhost\" -addext \"subjectAltName=DNS:localhost,IP:127.0.0.1\"",
     "db:init": "npx knex migrate:latest && npx knex seed:run",
     "db:seed": "npx knex seed:run",
-    "db:reset": "npx knex migrate:rollback && npx knex migrate:latest && npx knex seed:run"
+    "db:reset": "npx knex migrate:rollback && npx knex migrate:latest && npx knex seed:run",
+    "jwt": "openssl rand -hex 64"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "knex": "^3.2.10",
     "morgan": "^1.10.1",
     "sqlite3": "^6.0.1",
