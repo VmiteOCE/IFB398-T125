@@ -12,12 +12,33 @@
 }
 
 .event-capture-header {
+  position: relative;
   text-align: center;
   padding: 12px;
   color: white;
   background-color: #321A1A;
   border-radius: 16px 16px 0 0;
 }
+
+.event-capture-back-button {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.event-capture-back-button:hover {
+  color: #ff4d4d;
+}
+
 
 .event-capture-row {
   flex: 1;

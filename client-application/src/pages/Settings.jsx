@@ -1,8 +1,11 @@
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/Settings.css";
 
 function Settings() {
+  const navigate = useNavigate();
+
   const [activeSection, setActiveSection] = useState("Profile");
   const [saveMessage, setSaveMessage] = useState("");
 
@@ -505,6 +508,14 @@ function Settings() {
         }}
       >
         <div className="settings-title-box">
+          <button
+            className="settings-back-button"
+            onClick={() => navigate("/dashboard")}
+            aria-label="Go Back"
+          >
+            ←
+          </button>
+
           <h3>Settings</h3>
           <h5>Manage your Reds app preferences</h5>
         </div>
