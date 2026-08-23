@@ -13,9 +13,9 @@ router.post('/', verifyToken, requireRole('admin'), async (req, res) => {
 
     // Ensure all parameters are present
     if (!username || !password || !role) {
-      return res.status(400).json({ 
-        error: true, 
-        message: "Please provide 'username', 'password', and 'role'." 
+      return res.status(400).json({
+        error: true,
+        message: "Please provide 'username', 'password', and 'role'."
       });
     }
 
@@ -69,8 +69,8 @@ router.patch('/', verifyToken, requireRole('admin'), async (req, res) => {
     const { username, role, password } = req.body;
 
     if (!username) {
-      return res.status(400).json({ 
-        error: true, 
+      return res.status(400).json({
+        error: true,
         message: "Please provide the username of the account to update."
       });
     }
@@ -84,8 +84,8 @@ router.patch('/', verifyToken, requireRole('admin'), async (req, res) => {
     }
 
     if (!role && !password) {
-      return res.status(400).json({ 
-        error: true, 
+      return res.status(400).json({
+        error: true,
         message: "Please provide at least a role or a password to update."
       });
     }
@@ -95,9 +95,9 @@ router.patch('/', verifyToken, requireRole('admin'), async (req, res) => {
     if (role) {
       const allowedRoles = ['editor', 'viewer'];
       if (!allowedRoles.includes(role)) {
-        return res.status(400).json({ 
-          error: true, 
-          message: `Invalid role. Allowed roles: ${allowedRoles.join(', ')}` 
+        return res.status(400).json({
+          error: true,
+          message: `Invalid role. Allowed roles: ${allowedRoles.join(', ')}`
         });
       }
       updateData.role = role;
@@ -166,6 +166,13 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({
+        error: true,
+        message: "Please provide both a username and password."
+      });
+    }
+
     // Get single user object insead of array
     const user = await req.db('users')
       .where('username', '=', username)
@@ -184,23 +191,24 @@ router.post('/login', async (req, res) => {
 
     // Create Bearer Token (expires in 24 hours)
     const token = jwt.sign({
-      username: user.username, 
+      username: user.username,
       role: user.role
     },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    // Decode token to retrieve full payload including generated iat & exp timestamps
-    const decodedPayload = jwt.decode(token);
-
     // Return token to user
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
     res.status(200).json({
       error: false,
-      message: "Login successful",
-      token_type: "Bearer",
-      token: token,
-      token_payload: decodedPayload
+      message: "Login successful"
     });
 
   } catch (err) {
@@ -297,18 +305,18 @@ router.put('/keybinds', verifyToken, async (req, res) => {
 
     // Validate keybinds payload
     if (!keymap || typeof keymap !== 'object' || Array.isArray(keymap)) {
-      return res.status(400).json({ 
-        error: true, 
-        message: "Request body must be a JSON object containing key-value keybind mappings." 
+      return res.status(400).json({
+        error: true,
+        message: "Request body must be a JSON object containing key-value keybind mappings."
       });
     }
 
     // Ensure request body is not empty
     const keys = Object.keys(keymap);
     if (keys.length === 0) {
-      return res.status(400).json({ 
-        error: true, 
-        message: "Keybind object cannot be empty." 
+      return res.status(400).json({
+        error: true,
+        message: "Keybind object cannot be empty."
       });
     }
 
@@ -410,18 +418,18 @@ router.put('/settings', verifyToken, async (req, res) => {
 
     // Validate settings payload
     if (!settingsmap || typeof settingsmap !== 'object' || Array.isArray(settingsmap)) {
-      return res.status(400).json({ 
-        error: true, 
-        message: "Request body must be a JSON object containing key-value settings." 
+      return res.status(400).json({
+        error: true,
+        message: "Request body must be a JSON object containing key-value settings."
       });
     }
 
     // Ensure request body is not empty
     const settings = Object.keys(settingsmap);
     if (settings.length === 0) {
-      return res.status(400).json({ 
-        error: true, 
-        message: "Settings object cannot be empty." 
+      return res.status(400).json({
+        error: true,
+        message: "Settings object cannot be empty."
       });
     }
 
@@ -499,4 +507,19 @@ router.get('/admin-test', verifyToken, requireRole('admin'), (req, res) => {
   });
 });
 
+// ============================== POST https://localhost:3000/user/logout ==============================
+router.post('/logout', (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+    });
+
+    res.status(200).json({
+        error: false,
+        message: 'Logged out successfully'
+    });
+});
+
 export default router;
+

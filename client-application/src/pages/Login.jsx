@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { checkAuth } from "../utils/auth";
+
 
 export default function LoginPage() {
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -10,6 +13,25 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const redirectIfAuthenticated = async () => {
+            const authenticated = await checkAuth();
+
+            if (authenticated) {
+                const redirectUrl =
+                    sessionStorage.getItem("redirectAfterLogin") ||
+                    sessionStorage.getItem("lastVisitedPage") ||
+                    "/dashboard";
+
+                sessionStorage.removeItem("redirectAfterLogin");
+
+                navigate(redirectUrl, { replace: true });
+            }
+        };
+
+        redirectIfAuthenticated();
+    }, [navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -40,14 +62,17 @@ export default function LoginPage() {
             }
 
             setError("");
-            setSuccess("Success. Redirecting to dashboard.");
+            setSuccess("Success. Redirecting...");
             console.log("Login successful:", data);
 
-            // Store token
+            const redirectUrl =
+                sessionStorage.getItem("redirectAfterLogin") ||
+                sessionStorage.getItem("lastVisitedPage") ||
+                "/dashboard";
 
-            setTimeout(() => {
-                navigate("/dashboard");
-            }, 1500);
+            sessionStorage.removeItem("redirectAfterLogin");
+
+            navigate(redirectUrl, { replace: true });
 
         } catch (err) {
             setSuccess("");

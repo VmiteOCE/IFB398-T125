@@ -1,11 +1,13 @@
 import { beforeAll, beforeEach, afterAll, describe, expect, test } from 'vitest';
 import request from 'supertest';
 import knex from 'knex';
+import bcrypt from "bcrypt";
 
 import { createApp } from '../app.js';
 
 let db;
 let app;
+let agent;
 
 // =========================================================
 // Test Setup
@@ -13,6 +15,7 @@ let app;
 
 beforeAll(async () => {
     process.env.NODE_ENV = 'test';
+    process.env.JWT_SECRET = 'test-secret-key';
 
     // Create a completely separate in-memory SQLite database
     db = knex({
@@ -35,6 +38,26 @@ beforeAll(async () => {
 beforeEach(async () => {
     await db('events').del();
     await db('games').del();
+    await db('users').del();
+
+    const hashedPassword = await bcrypt.hash("testpassword", 10);
+
+    await db('users').insert({
+        username: 'testuser',
+        password: hashedPassword,
+        role: 'admin'
+    });
+
+    agent = request.agent(app);
+
+    const loginResponse = await agent
+        .post("/user/login")
+        .send({
+            username: "testuser",
+            password: "testpassword"
+        });
+
+    expect(loginResponse.status).toBe(200);
 });
 
 afterAll(async () => {
@@ -58,7 +81,7 @@ describe('GET /games', () => {
             game_status: 'scheduled'
         });
 
-        const response = await request(app).get('/games');
+        const response = await agent.get('/games');
 
         // Conditions
         expect(response.status).toBe(200);
@@ -92,7 +115,7 @@ describe('POST /games', () => {
             game_status: 'scheduled'
         };
 
-        const response = await request(app).post('/games').send(newGame);
+        const response = await agent.post('/games').send(newGame);
 
         expect(response.status).toBe(201);
         expect(response.body).toMatchObject({
@@ -111,7 +134,7 @@ describe('POST /games', () => {
     });
 
     test("returns 400 when game_name is missing", async () => {
-        const response = await request(app)
+        const response = await agent
             .post("/games")
             .send({
                 vs_team: "Brumbies",
@@ -125,7 +148,7 @@ describe('POST /games', () => {
     });
 
     test("returns 400 when vs_team is missing", async () => {
-        const response = await request(app)
+        const response = await agent
             .post("/games")
             .send({
                 game_name: "Round 1",
@@ -139,7 +162,7 @@ describe('POST /games', () => {
     });
 
     test("returns 400 when start_time is invalid", async () => {
-        const response = await request(app)
+        const response = await agent
             .post("/games")
             .send({
                 game_name: "Round 1",
@@ -154,7 +177,7 @@ describe('POST /games', () => {
     });
 
     test("returns 400 when game_status is invalid", async () => {
-        const response = await request(app)
+        const response = await agent
             .post("/games")
             .send({
                 game_name: "Round 1",
@@ -184,7 +207,7 @@ describe('GET /games/:id', () => {
             game_status: 'scheduled'
         });
 
-        const response = await request(app).get(`/games/${gameId}`);
+        const response = await agent.get(`/games/${gameId}`);
 
         expect(response.status).toBe(200);
 
@@ -203,7 +226,7 @@ describe('GET /games/:id', () => {
     });
 
     test('returns 404 when game does not exist', async () => {
-        const response = await request(app).get('/games/999999');
+        const response = await agent.get('/games/999999');
 
         expect(response.status).toBe(404);
 
@@ -237,7 +260,7 @@ describe('PUT /games/update/:id', () => {
             game_status: 'in_progress'
         };
 
-        const response = await request(app)
+        const response = await agent
             .put(`/games/${gameId}`)
             .send(updatedGame);
 
@@ -263,7 +286,7 @@ describe('PUT /games/update/:id', () => {
 
 
     test('returns 404 when updating a game that does not exist', async () => {
-        const response = await request(app)
+        const response = await agent
             .put('/games/999999')
             .send({
                 game_name: 'Missing Game',
@@ -306,7 +329,7 @@ describe('DELETE /games/:id', () => {
             game_half: 1
         });
 
-        const response = await request(app).delete(`/games/${gameId}`);
+        const response = await agent.delete(`/games/${gameId}`);
 
         expect(response.status).toBe(200);
 
@@ -327,7 +350,7 @@ describe('DELETE /games/:id', () => {
 
 
     test('returns 404 when deleting a game that does not exist', async () => {
-        const response = await request(app).delete('/games/999999');
+        const response = await agent.delete('/games/999999');
 
         expect(response.status).toBe(404);
 
@@ -370,7 +393,7 @@ describe('GET /games filters', () => {
     });
 
     test('searches game name and opponent', async () => {
-        const response = await request(app).get('/games?search=Storm');
+        const response = await agent.get('/games?search=Storm');
 
         expect(response.status).toBe(200);
         expect(response.body.games).toHaveLength(2);
@@ -385,7 +408,7 @@ describe('GET /games filters', () => {
     });
 
     test('filters by status', async () => {
-        const response = await request(app).get('/games?status=in_progress');
+        const response = await agent.get('/games?status=in_progress');
 
         expect(response.status).toBe(200);
         expect(response.body.games).toHaveLength(1);
@@ -397,7 +420,7 @@ describe('GET /games filters', () => {
     });
 
     test('filters games on or after the start date', async () => {
-        const response = await request(app).get('/games?start=2026-08-15T00:00');
+        const response = await agent.get('/games?start=2026-08-15T00:00');
 
         expect(response.status).toBe(200);
         expect(response.body.games).toHaveLength(2);
@@ -412,7 +435,7 @@ describe('GET /games filters', () => {
 
 
     test('filters games between start and end dates', async () => {
-        const response = await request(app).get('/games?start=2026-08-11T00:00&end=2026-08-19T23:59');
+        const response = await agent.get('/games?start=2026-08-11T00:00&end=2026-08-19T23:59');
 
         expect(response.status).toBe(200);
         expect(response.body.games).toHaveLength(1);
@@ -424,7 +447,7 @@ describe('GET /games filters', () => {
     });
 
     test('sorts games by start time ascending', async () => {
-        const response = await request(app).get('/games?sortBy=start_time&sortOrder=asc');
+        const response = await agent.get('/games?sortBy=start_time&sortOrder=asc');
 
         expect(response.status).toBe(200);
         expect(response.body.games.map((game) => game.game_name)).toEqual(['Reds vs Storm', 'Practice Match', 'Final Game']);
@@ -432,14 +455,14 @@ describe('GET /games filters', () => {
 
 
     test('sorts games by start time descending', async () => {
-        const response = await request(app).get('/games?sortBy=start_time&sortOrder=desc');
+        const response = await agent.get('/games?sortBy=start_time&sortOrder=desc');
 
         expect(response.status).toBe(200);
         expect(response.body.games.map((game) => game.game_name)).toEqual(['Final Game', 'Practice Match', 'Reds vs Storm']);
     });
 
     test('returns the requested page and limit', async () => {
-        const response = await request(app).get('/games?page=1&limit=2&sortBy=start_time&sortOrder=asc');
+        const response = await agent.get('/games?page=1&limit=2&sortBy=start_time&sortOrder=asc');
 
         expect(response.status).toBe(200);
         expect(response.body.games).toHaveLength(2);
@@ -456,7 +479,7 @@ describe('GET /games filters', () => {
     });
 
     test('returns the second page correctly', async () => {
-        const response = await request(app).get('/games?page=2&limit=2&sortBy=start_time&sortOrder=asc');
+        const response = await agent.get('/games?page=2&limit=2&sortBy=start_time&sortOrder=asc');
 
         expect(response.status).toBe(200);
         expect(response.body.games).toHaveLength(1);
@@ -476,7 +499,7 @@ describe('GET /games filters', () => {
     });
 
     test('returns 400 for an invalid status filter', async () => {
-        const response = await request(app).get('/games?status=playing');
+        const response = await agent.get('/games?status=playing');
 
         expect(response.status).toBe(400);
 
@@ -488,7 +511,7 @@ describe('GET /games filters', () => {
 
 
     test('returns 400 for an invalid start date', async () => {
-        const response = await request(app).get('/games?start=not-a-date');
+        const response = await agent.get('/games?start=not-a-date');
 
         expect(response.status).toBe(400);
 
@@ -500,7 +523,7 @@ describe('GET /games filters', () => {
 
 
     test('returns 400 for an invalid end date', async () => {
-        const response = await request(app).get('/games?end=not-a-date');
+        const response = await agent.get('/games?end=not-a-date');
 
         expect(response.status).toBe(400);
 
@@ -512,7 +535,7 @@ describe('GET /games filters', () => {
 
 
     test('returns 400 when start date is after end date', async () => {
-        const response = await request(app).get('/games?start=2026-08-20T00:00&end=2026-08-10T00:00');
+        const response = await agent.get('/games?start=2026-08-20T00:00&end=2026-08-10T00:00');
 
         expect(response.status).toBe(400);
 
@@ -524,7 +547,7 @@ describe('GET /games filters', () => {
 
 
     test('returns 400 for an invalid sort field', async () => {
-        const response = await request(app).get('/games?sortBy=password');
+        const response = await agent.get('/games?sortBy=password');
 
         expect(response.status).toBe(400);
 
@@ -536,7 +559,7 @@ describe('GET /games filters', () => {
 
 
     test('returns 400 for an invalid sort order', async () => {
-        const response = await request(app).get('/games?sortOrder=random');
+        const response = await agent.get('/games?sortOrder=random');
 
         expect(response.status).toBe(400);
 
@@ -548,7 +571,7 @@ describe('GET /games filters', () => {
 
 
     test('returns 400 for an invalid page', async () => {
-        const response = await request(app).get('/games?page=0');
+        const response = await agent.get('/games?page=0');
 
         expect(response.status).toBe(400);
 
@@ -560,7 +583,7 @@ describe('GET /games filters', () => {
 
 
     test('returns 400 for an invalid limit', async () => {
-        const response = await request(app).get('/games?limit=101');
+        const response = await agent.get('/games?limit=101');
 
         expect(response.status).toBe(400);
 
