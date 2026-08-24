@@ -1,6 +1,6 @@
 import { Container, Row, Col, Button } from "react-bootstrap";
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import GameClock from "../components/GameClock";
 import "../styles/EventCapture.css";
 
@@ -37,7 +37,7 @@ const actionKeys = {
 function EventCapture() {
   const { id } = useParams();
   const gameId = parseInt(id, 10) || 1;
-
+  const navigate = useNavigate();
   const [selectedZone, setSelectedZone] = useState("M");
   const [selectedTeam, setSelectedTeam] = useState("Reds");
   const [manualFlip, setManualFlip] = useState(false);
@@ -331,11 +331,17 @@ function EventCapture() {
     <Container fluid className="event-capture-page">
       <div className="dashboard-content event-capture-content">
         <div className="event-capture-header">
+          <button
+            className="event-capture-back-button"
+            onClick={() => navigate("/dashboard")}
+            aria-label="Go Back"
+          >
+            ←
+          </button>
+
           <h3>
             {gameInfo ? `Reds vs ${gameInfo.vs_team}` : `Game ID: ${gameId}`}
           </h3>
-
-          
         </div>
 
         <Row className="event-capture-row">
