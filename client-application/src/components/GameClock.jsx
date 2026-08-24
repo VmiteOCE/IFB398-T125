@@ -25,6 +25,9 @@ export default function GameClock({ setCurrentTime }) {
   const toggleRef = useRef(null);
   const secondsPassedRef = useRef(0);
 
+  /// Manual Time entry 
+  const [manualTime, setManualTime] = useState("");
+
   function toggleClock() {
     if (isRunning) {
       clearInterval(intervalRef.current);
@@ -72,6 +75,30 @@ export default function GameClock({ setCurrentTime }) {
     }
     setOffset((prev) => prev - Math.min(1,currentTime));
   }
+
+  // Manual clock function
+  function setManualClockTime() {
+    const [minutes,seconds] = manualTime.split(":").map(Number);
+  //Check if time entered is valid 
+  if ( 
+    Number.isNaN(minutes) ||
+    Number.isNaN(seconds) ||
+    minutes < 0 ||
+    minutes > 80 || // 80 minutes in a game 
+    seconds < 0 ||
+    seconds > 59
+  ) {
+    return;
+  }
+  // reset elapsed time 
+  const currentTime = Date.now();
+  setStartTime(currentTime);
+  setNow(currentTime);
+  
+  setOffset(minutes * 60 + seconds);
+  
+  setManualTime(""); // clear after setting time
+}
 
   // Keyboard controls
   useEffect(() => {
@@ -141,6 +168,18 @@ export default function GameClock({ setCurrentTime }) {
       <button onClick={() => setOffset((prev) => prev + 1)}>
         +1 sec
       </button>
+
+      <div style={{ marginTop: "15px" }}>
+        <input
+        type="text"
+        placeholder="40:00" // placeholder is 40:00 for coming back after half time
+        value={manualTime}
+        onChange={(e) => setManualTime(e.target.value)}
+        style={{width: "90px", textAlign: "center", marginRight: "5px",}}/>
+        <button onClick={setManualClockTime}>
+             Set Game Time
+             </button>
+        </div>
     </div>
   );
 }

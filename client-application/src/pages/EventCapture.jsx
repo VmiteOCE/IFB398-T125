@@ -405,8 +405,14 @@ function EventCapture() {
                 ))}
               </div>
 
-              <div className="field-direction">
-                {finalReversed ? "◀━━━━━━" : "━━━━━━▶"}
+            <div style={{
+              fontSize: "30px",
+              fontWeight: "bold",
+              marginBottom: "10px",
+              color: "#ffffffff"
+              }}
+              >
+                {finalReversed ? "━━━━━━▶" : "◀━━━━━━"}
               </div>
 
               {/* TEAM SELECT FIXED */}

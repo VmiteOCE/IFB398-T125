@@ -1,6 +1,7 @@
 import knex from 'knex';
 import https from 'node:https';
 import fs from 'node:fs';
+import bcrypt from 'bcrypt';
 import 'dotenv/config';
 
 import knexConfig from './knexfile.js';
@@ -25,9 +26,11 @@ async function initialieDatabase() {
         if (users.length === 0) {
             console.log('No users found. Creating default account...');
 
+            const hashedPassword = await bcrypt.hash('admin', NUM_SALTS);
+
             await db('users').insert({
                 username: 'admin',
-                password: 'admin'
+                password: hashedPassword
             });
 
             console.log('Default user created...');

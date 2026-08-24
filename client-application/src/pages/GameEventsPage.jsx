@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
 
+import ZoneTimeGraphs from "../components/GameGraphs";
 
   // Format Event Time
   const formatTime = (seconds) => {
@@ -348,7 +349,8 @@ const renderZoneTimeTable  = ({
   return (
         <div className="analysis-table-card">
         <h5>{title}</h5>
-        <table className="analysis-table">
+        <table className="analysis-table"
+        style={{tableLayout: "fixed", fontSize: "clamp(10px, 1.2vw, 16px)"}}>
 
         <thead>
         <tr>
@@ -363,7 +365,7 @@ const renderZoneTimeTable  = ({
           </tr>
 
         <tr>
-        <th style={styles.header}>Interval</th>
+        <th style={{...styles.header,paddingLeft: "0px"}}>Interval</th>
 
         {zones.map((zone) => (
           <th
@@ -785,22 +787,92 @@ const renderAZoneTable = () => {
             cumulative: true,
           })}
 
-          {renderEventZoneTable({
-            title: "Lineouts per zone",
-            eventCode: "L",
-          })}
+      {/* GAME ANALYSIS */}
+<h3
+  style={{marginTop: "40px", marginBottom: "20px", textAlign: "center",}}
+>
+  Game Analysis
+</h3>
 
-          {renderEventZoneTable({
-            title: "Scrums per zone",
-            eventCode: "S",
-          })}
+{/* TABLE / GRAPH BUTTONS */}
+<div className="analysis-view-buttons">
+  <button
+    onClick={() => setAnalysisView("table")}
+    style={{
+      backgroundColor:
+        analysisView === "table"
+          ? "#ff969dff"
+          : "white",
+    }}
+  >
+    Table View
+  </button>
 
-          {renderEventZoneTable({
-            title: "Kicks per zone",
-            eventCode: "K",
-          })}
-        </div>
-      </div>
+  <button
+    onClick={() => setAnalysisView("graph")}
+    style={{
+      backgroundColor:
+        analysisView === "graph"
+          ? "#ff969dff"
+          : "white",
+    }}
+  >
+    Graph View
+  </button>
+</div>
+
+{/* SWITCH BETWEEN TABLES AND GRAPHS */}
+{/* Tables */}
+{analysisView === "table" ? (
+<>
+{renderZoneTimeTable({
+  title: "Minutes per zone"
+})}
+
+{renderZoneTimeTable({
+  title: "Cumulative minutes per zone",
+  cumulative: true
+})}
+
+{renderAZoneTable()}
+
+{renderEventZoneTable({
+  title: "Rucks per zone",
+  eventCode: "R"
+})}
+
+{renderEventZoneTable({
+  title: "Cumulative rucks per zone",
+  eventCode: "R",
+  cumulative: true
+})}
+
+{renderEventZoneTable({
+  title: "Lineouts per zone",
+  eventCode: "L"
+})}
+
+{renderEventZoneTable({
+  title: "Scrums per zone",
+  eventCode: "S"
+})}
+
+{renderEventZoneTable({
+  title: "Kicks per zone",
+  eventCode: "K"
+})}
+ </>
+
+) : (
+// Graphs
+  <ZoneTimeGraphs
+    getZoneTime={getZoneTime}
+    intervals={intervals}
+    zones={zones}
+    awayName={gameInfo?.vs_team || "Away"}
+    formatTime={formatTime}
+  />
+)}
     </Container>
   );
 

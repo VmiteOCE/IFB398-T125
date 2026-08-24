@@ -1,11 +1,13 @@
 import { beforeAll, beforeEach, afterAll, describe, expect, test} from 'vitest';
 import request from 'supertest';
 import knex from 'knex';
+import bcrypt from "bcrypt";
 
 import { createApp } from '../app.js';
 
 let db;
 let app;
+let agent;
 let gameId;
 
 // =========================================================
@@ -14,6 +16,7 @@ let gameId;
 
 beforeAll(async () => {
     process.env.NODE_ENV = 'test';
+    process.env.JWT_SECRET = 'test-secret-key';
 
     // Create a completely separate in-memory SQLite database
     db = knex({
@@ -33,10 +36,18 @@ beforeAll(async () => {
     app = createApp(db);
 });
 
-
 beforeEach(async () => {
     await db('events').del();
     await db('games').del();
+    await db('users').del();
+
+    const hashedPassword = await bcrypt.hash("testpassword", 10);
+
+    await db('users').insert({
+        username: 'testuser',
+        password: hashedPassword,
+        role: 'admin'
+    });
 
     [gameId] = await db('games').insert({
         game_name: 'Test Game',
@@ -44,6 +55,17 @@ beforeEach(async () => {
         start_time: '2026-08-20T18:30',
         game_status: 'scheduled'
     });
+
+    agent = request.agent(app);
+
+    const loginResponse = await agent
+        .post("/user/login")
+        .send({
+            username: "testuser",
+            password: "testpassword"
+        });
+
+    expect(loginResponse.status).toBe(200);
 });
 
 afterAll(async () => {
@@ -68,7 +90,7 @@ describe('POST /events', () => {
             game_half: 1
         };
 
-        const response = await request(app)
+        const response = await agent
             .post('/events')
             .send(newEvent);
 
@@ -90,7 +112,7 @@ describe('POST /events', () => {
 
 
     test('returns 400 when game_id is invalid', async () => {
-        const response = await request(app)
+        const response = await agent
             .post('/events')
             .send({
                 game_id: 0,
@@ -111,7 +133,7 @@ describe('POST /events', () => {
 
 
     test('returns 400 when event_code is invalid', async () => {
-        const response = await request(app)
+        const response = await agent
             .post('/events')
             .send({
                 game_id: gameId,
@@ -132,7 +154,7 @@ describe('POST /events', () => {
 
 
     test('returns 400 when zone_id is invalid', async () => {
-        const response = await request(app)
+        const response = await agent
             .post('/events')
             .send({
                 game_id: gameId,
@@ -153,7 +175,7 @@ describe('POST /events', () => {
 
 
     test('returns 400 when team_id is invalid', async () => {
-        const response = await request(app)
+        const response = await agent
             .post('/events')
             .send({
                 game_id: gameId,
@@ -174,7 +196,7 @@ describe('POST /events', () => {
 
 
     test('returns 400 when game_clock is invalid', async () => {
-        const response = await request(app)
+        const response = await agent
             .post('/events')
             .send({
                 game_id: gameId,
@@ -195,7 +217,7 @@ describe('POST /events', () => {
 
 
     test('returns 400 when game_half is invalid', async () => {
-        const response = await request(app)
+        const response = await agent
             .post('/events')
             .send({
                 game_id: gameId,
@@ -243,7 +265,7 @@ describe('GET /events/game/:id', () => {
             }
         ]);
 
-        const response = await request(app).get(`/events/game/${gameId}`);
+        const response = await agent.get(`/events/game/${gameId}`);
 
         expect(response.status).toBe(200);
 
@@ -284,7 +306,7 @@ describe('GET /events/game/:id', () => {
             }
         ]);
 
-        const response = await request(app).get(`/events/game/${gameId}`);
+        const response = await agent.get(`/events/game/${gameId}`);
 
         expect(response.status).toBe(200);
         expect(response.body.events.map((event) => event.game_clock)).toEqual([60, 180, 300]);
@@ -292,7 +314,7 @@ describe('GET /events/game/:id', () => {
 
 
     test('returns an empty array when game has no events', async () => {
-        const response = await request(app).get(`/events/game/${gameId}`);
+        const response = await agent.get(`/events/game/${gameId}`);
 
         expect(response.status).toBe(200);
 
@@ -306,7 +328,7 @@ describe('GET /events/game/:id', () => {
 
 
     test('returns 404 when game does not exist', async () => {
-        const response = await request(app).get('/events/game/999999');
+        const response = await agent.get('/events/game/999999');
 
         expect(response.status).toBe(404);
 
@@ -335,7 +357,7 @@ describe('GET /events/:id', () => {
             game_half: 1
         });
 
-        const response = await request(app).get(`/events/${eventId}`);
+        const response = await agent.get(`/events/${eventId}`);
 
         expect(response.status).toBe(200);
 
@@ -357,7 +379,7 @@ describe('GET /events/:id', () => {
 
 
     test('returns 404 when event does not exist', async () => {
-        const response = await request(app).get('/events/999999');
+        const response = await agent.get('/events/999999');
 
         expect(response.status).toBe(404);
 
@@ -395,7 +417,7 @@ describe('PUT /events/:id', () => {
             game_half: 1
         };
 
-        const response = await request(app)
+        const response = await agent
             .put(`/events/${eventId}`)
             .send(updatedEvent);
 
@@ -427,7 +449,7 @@ describe('PUT /events/:id', () => {
             game_half: 1
         });
 
-        const response = await request(app)
+        const response = await agent
             .put(`/events/${eventId}`)
             .send({
                 game_id: gameId,
@@ -448,7 +470,7 @@ describe('PUT /events/:id', () => {
 
 
     test('returns 404 when updating an event that does not exist', async () => {
-        const response = await request(app)
+        const response = await agent
             .put('/events/999999')
             .send({
                 game_id: gameId,
@@ -486,7 +508,7 @@ describe('DELETE /events/:id', () => {
             game_half: 1
         });
 
-        const response = await request(app).delete(`/events/${eventId}`);
+        const response = await agent.delete(`/events/${eventId}`);
 
         expect(response.status).toBe(200);
 
@@ -504,7 +526,7 @@ describe('DELETE /events/:id', () => {
 
 
     test('returns 404 when deleting an event that does not exist', async () => {
-        const response = await request(app)
+        const response = await agent
             .delete('/events/999999');
 
         expect(response.status).toBe(404);
