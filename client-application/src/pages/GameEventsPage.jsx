@@ -873,6 +873,8 @@ const renderAZoneTable = () => {
     formatTime={formatTime}
   />
 )}
+        </div>
+      </div>
     </Container>
   );
 
