@@ -195,3 +195,97 @@ footer {
 .away-cell {
   background-color: #b0d1fc;
 }
+
+.login-box h1 {
+    margin: 0 0 1.8rem 0;
+    text-align: center;
+}
+
+.login-page {
+  display: flex;
+  align-self: center;
+  padding: 2rem;
+
+  max-width: 500px;
+  width: 80vw;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 500px;
+
+    padding: 2rem;
+
+    background: #9b7070;
+    border-radius: 20px;
+
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.login-content {
+  align-content: center;
+  padding: 18px;
+}
+
+.login-content button {
+  width: 400px;
+  align-content: middle;
+  justify-content: middle;
+  border-radius: 8px;
+  width: 100%;
+  padding: 8px;
+}
+
+.login-field  {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 8px 0px;
+}
+
+.login-field label {
+  font-size: large;
+  font-weight: bold;
+}
+
+.login-field input {
+  width: 400px;
+  align-content: middle;
+  justify-content: middle;
+  border-radius: 8px;
+  width: 100%;
+  padding: 8px;
+}
+
+.login-error {
+  width: 100%;
+  box-sizing: border-box;
+
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+
+  text-align: left;
+
+  border: 1px solid #7a1f1f;
+  border-radius: 8px;
+
+  background: #f3d0d0;
+  color: #7a1f1f;
+}
+
+.login-success {
+  width: 100%;
+  box-sizing: border-box;
+
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+
+  text-align: left;
+
+  border: 1px solid #287a3e;
+  border-radius: 8px;
+
+  background: #d4edda;
+  color: #1f6332;
+}
+
