@@ -721,72 +721,7 @@ const renderAZoneTable = () => {
               </tbody>
             </table>
           </div>
-
-          {/* Game Analysis */}
-          <h3
-            style={{
-              marginTop: "40px",
-              marginBottom: "20px",
-              textAlign: "center",
-              color: "white",
-            }}
-          >
-            Game Analysis
-          </h3>
-
-          {/* View Buttons */}
-          <div className="analysis-view-buttons">
-            <button
-              onClick={() =>
-                setAnalysisView("table")
-              }
-              style={{
-                backgroundColor:
-                  analysisView === "table"
-                    ? "#ff969dff"
-                    : "white",
-              }}
-            >
-              Table View
-            </button>
-
-            <button
-              onClick={() =>
-                setAnalysisView("graph")
-              }
-              style={{
-                backgroundColor:
-                  analysisView === "graph"
-                    ? "#ff969dff"
-                    : "white",
-              }}
-            >
-              Graph View
-            </button>
-          </div>
-
-          {renderZoneTimeTable({
-            title: "Minutes per zone",
-          })}
-
-          {renderZoneTimeTable({
-            title: "Cumulative minutes per zone",
-            cumulative: true,
-          })}
-
-          {renderAZoneTable()}
-
-          {renderEventZoneTable({
-            title: "Rucks per zone",
-            eventCode: "R",
-          })}
-
-          {renderEventZoneTable({
-            title: "Cumulative rucks per zone",
-            eventCode: "R",
-            cumulative: true,
-          })}
-
+          
       {/* GAME ANALYSIS */}
 <h3
   style={{marginTop: "40px", marginBottom: "20px", textAlign: "center",}}
