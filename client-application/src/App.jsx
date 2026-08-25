@@ -1,5 +1,5 @@
 
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet, useLocation } from "react-router-dom";
 import { Container } from "react-bootstrap";
 import "./App.css";
 
@@ -18,15 +18,18 @@ import LogoutPage from "./pages/Logout";
 
 // Shared page layout used across all routes
 function AppLayout() {
+    const location = useLocation();
+    const hideNav = location.pathname === "/login";
+
     return (
         <div className="app-layout">
-            <Header />
+            {!hideNav && <Header />}
 
-            <Container className="page-content">
+            <Container className={`${!hideNav ? "page-content" : "login-content"}`}>
                 <Outlet />
             </Container>
 
-            <Footer />
+            {!hideNav && <Footer />}
         </div>
     );
 }
