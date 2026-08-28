@@ -21,19 +21,6 @@ const codeToAction = Object.fromEntries(
   Object.entries(actionToCode).map(([k, v]) => [v, k])
 );
 
-const actionKeys = {
-  r: "Ruck",
-  k: "Kick",
-  p: "Pass",
-  c: "Catch",
-  t: "Turnover",
-  a: "Advantage",
-  e: "Penalty",
-  l: "Lineout",
-  s: "Scrum",
-  m: "Maul",
-};
-
 function EventCapture() {
   const { id } = useParams();
   const gameId = parseInt(id, 10) || 1;
@@ -65,6 +52,57 @@ function EventCapture() {
 
     fetchGameInfo();
   }, [gameId]);
+
+  // ---------------- KEYBINDS ----------------
+  // Initial default keybinds, gets overwritten by fetch if user has saved keybinds
+  const [keybinds, setKeybinds] = useState({
+    Pass: "P",
+    Kick: "K",
+    Catch: "C",
+    Ruck: "R",
+    Scrum: "S",
+    Penalty: "E",
+    Advantage: "A",
+    Turnover: "T",
+    Lineout: "L",
+    Maul: "M",
+    Pause: " ",
+    Add_Time: "=",
+    Remove_Time: "-",
+    Move_Zone_Left: "ArrowLeft",
+    Move_Zone_Right: "ArrowRight",
+    Swap_Team: "Tab",
+    Swap_Direction: "ArrowUp",
+  });
+
+  useEffect(() => {
+    const fetchKeybinds = async () => {
+      try {
+        const res = await fetch("/user/keybinds", {
+          credentials: "include",
+        });
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          throw new Error(result.message);
+        }
+        setKeybinds(result.keybinds);
+      } catch (err) {
+        console.error("Keybind fetch error:", err);
+      }
+    };
+
+    fetchKeybinds();
+  }, []);
+  
+  
+  // Mapping keybinds to actions to match old system
+  const actionKeys = Object.fromEntries(
+    Object.entries(keybinds) //remove the || {} when fetch is fixed
+      .filter(([action]) => actionToCode[action])
+      .map(([action, key]) => [key.toLowerCase(), action])
+  );
+
 
   // ---------------- HELPERS ----------------
   const toSeconds = (timeStr) => {
@@ -285,7 +323,7 @@ function EventCapture() {
     const handleKeyDown = (e) => {
       const currentIndex = zones.findIndex((z) => z.label === selectedZone);
 
-      if (e.key === "ArrowRight") {
+      if (e.key === keybinds.Move_Zone_Right) {
         const nextIndex = currentIndex + 1;
 
         if (nextIndex < zones.length) {
@@ -294,7 +332,7 @@ function EventCapture() {
         }
       }
 
-      if (e.key === "ArrowLeft") {
+      if (e.key === keybinds.Move_Zone_Left) {
         const prevIndex = currentIndex - 1;
 
         if (prevIndex >= 0) {
@@ -303,7 +341,7 @@ function EventCapture() {
         }
       }
 
-      if (e.key === "Tab") {
+      if (e.key === keybinds.Swap_Team) {
         e.preventDefault();
 
         const newTeam = selectedTeam === "Reds" ? "Away" : "Reds";
@@ -347,7 +385,7 @@ function EventCapture() {
         <Row className="event-capture-row">
           <Col md={4}>
             <div className="game-clock-panel">
-              <GameClock setCurrentTime={setCurrentTime} />
+              <GameClock setCurrentTime={setCurrentTime} keybinds={keybinds} />
             </div>
 
             <div className="event-history-panel">
@@ -431,7 +469,7 @@ function EventCapture() {
                   role="button"
                   tabIndex={0}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
+                    if (event.key === keybinds.Swap_Direction) {
                       event.preventDefault();
                       handleManualFlip();
                     }
