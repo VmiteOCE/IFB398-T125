@@ -86,7 +86,11 @@ function EventCapture() {
         if (!res.ok || result.error) {
           throw new Error(result.message);
         }
-        setKeybinds(result.keybinds);
+
+        setKeybinds((prev) => ({
+          ...prev,
+          ...(result.keybinds || {}),
+        }));
       } catch (err) {
         console.error("Keybind fetch error:", err);
       }
@@ -98,10 +102,11 @@ function EventCapture() {
   
   // Mapping keybinds to actions to match old system
   const actionKeys = Object.fromEntries(
-    Object.entries(keybinds) //remove the || {} when fetch is fixed
-      .filter(([action]) => actionToCode[action])
-      .map(([action, key]) => [key.toLowerCase(), action])
+    Object.entries(keybinds || {})
+      .filter(([action, key]) => actionToCode[action] && key)
+      .map(([action, key]) => [String(key).toLowerCase(), action])
   );
+
 
 
   // ---------------- HELPERS ----------------
