@@ -9,13 +9,17 @@ function Settings() {
   const [activeSection, setActiveSection] = useState("Profile");
   const [saveMessage, setSaveMessage] = useState("");
 
+  
+
   // ---------------- PROFILE ----------------
   const [profile, setProfile] = useState({
     profilePicture: "",
-    email: "john@example.com",
-    username: "john doe",
-    role: "Owner",
+    email: "Loading...",
+    username: "Loading...",
+    role: "Loading...",
   });
+
+  
 
   // ---------------- ACCESSIBILITY ----------------
   const [accessibility, setAccessibility] = useState({
@@ -75,9 +79,9 @@ function Settings() {
 
   // ---------------- MATCH SETTINGS ----------------
   const [matchSettings, setMatchSettings] = useState({
-    pageLayout: "Standard",
-    defaultTeamSide: "Reds",
+    defaultHomeSide: true,
     eventHistorySize: 8,
+    outlineColour: "Green",
   });
 
   // ---------------- SECURITY ----------------
@@ -145,20 +149,27 @@ function Settings() {
 
   const handleSave = async () => {
     const payload = {
-      profile,
-      accessibility,
-      matchSettings,
-      accessLevels,
+      "Event_History_Length": matchSettings.eventHistorySize,
+      "Outline_Colour": matchSettings.outlineColour,
+      "Enable_Keybinds": true,
+      "Large_Buttons": false,
+      "Dark_Mode": false,
+      "Default_Home_Team": matchSettings.defaultHomeSide,
     };
 
     try {
-      // Connect this request to the settings route when the backend is ready.
-      // const res = await fetch("/settings", {
-      //   method: "PUT",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(payload),
-      // });
-      // if (!res.ok) throw new Error("Unable to save settings");
+      const res = await fetch("/user/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        throw new Error("Unable to save settings");
+      }
 
       console.log("Settings payload:", payload);
       showSaved();
@@ -178,7 +189,7 @@ function Settings() {
       ["large_buttons", accessibility.largeButtons],
       ["keybinds", accessibility.keybinds],
       ["page_layout", matchSettings.pageLayout],
-      ["default_team_side", matchSettings.defaultTeamSide],
+      ["default_home_side", matchSettings.defaultHomeSide],
       ["event_history_size", matchSettings.eventHistorySize],
     ];
 
@@ -199,17 +210,37 @@ function Settings() {
     showSaved("CSV export downloaded");
   };
 
-  const initials = profile.username
-    .split(" ")
-    .filter(Boolean)
-    .map((name) => name[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   const controlButtonStyle = accessibility.largeButtons
     ? { minHeight: 52, paddingLeft: 24, paddingRight: 24 }
     : {};
+
+  // Fetch all settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/user/settings");
+
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          throw new Error(result.message);
+        }
+
+        if (result.settings) {
+          setMatchSettings({
+            defaultHomeSide: result.settings.Default_Home_Team,
+            eventHistorySize: result.settings.Event_History_Length,
+            outlineColour: result.settings.Outline_Colour || "Green",
+          });
+        } 
+      } catch (err) {
+        console.error("Settings fetch error:", err);
+      }
+    };
+    
+    fetchSettings();
+  }, []);
 
   // ---------------- PROFILE UI ----------------
   const renderProfile = () => (
@@ -229,7 +260,7 @@ function Settings() {
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
-              initials || "U"
+              "Profile"
             )}
           </div>
 
@@ -256,17 +287,6 @@ function Settings() {
               value={profile.username}
               onChange={(event) =>
                 setProfile({ ...profile, username: event.target.value })
-              }
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              type="email"
-              value={profile.email}
-              onChange={(event) =>
-                setProfile({ ...profile, email: event.target.value })
               }
             />
           </Form.Group>
@@ -388,35 +408,22 @@ function Settings() {
         <p className="text-muted mb-0">Set the defaults used by the capture page.</p>
       </div>
 
-      <Form.Group className="mb-4">
-        <Form.Label>Game Events / Analytics Page Layout</Form.Label>
-        <Form.Select
-          value={matchSettings.pageLayout}
-          onChange={(event) =>
-            setMatchSettings({ ...matchSettings, pageLayout: event.target.value })
-          }
-        >
-          <option>Standard</option>
-          <option>Compact</option>
-          <option>Analytics Focus</option>
-        </Form.Select>
-      </Form.Group>
 
       <Row>
         <Col md={6}>
           <Form.Group className="mb-4">
-            <Form.Label>Default Team Side</Form.Label>
+            <Form.Label>Default Home Team</Form.Label>
             <Form.Select
-              value={matchSettings.defaultTeamSide}
+              value={matchSettings.defaultHomeSide}
               onChange={(event) =>
                 setMatchSettings({
                   ...matchSettings,
-                  defaultTeamSide: event.target.value,
+                  defaultHomeSide: event.target.value === "true",
                 })
               }
             >
-              <option>Reds</option>
-              <option>Away</option>
+              <option value={true}>True</option>
+              <option value={false}>False</option>
             </Form.Select>
           </Form.Group>
         </Col>
@@ -439,19 +446,78 @@ function Settings() {
             </Form.Select>
           </Form.Group>
         </Col>
+        <Col md={6}>
+          <Form.Group className="mb-4">
+            <Form.Label>Outline Colour</Form.Label>
+            <Form.Select
+              value={matchSettings.outlineColour}
+              onChange={(event) =>
+                setMatchSettings({
+                  ...matchSettings,
+                  outlineColour: event.target.value,
+                })
+              }
+            >
+              <option value="Green">Green</option>
+              <option value="Red">Red</option>
+              <option value="Blue">Blue</option>
+              <option value="Yellow">Yellow</option>
+              <option value="White">White</option>
+            </Form.Select>
+          </Form.Group>
+        </Col>
       </Row>
 
       <div className="settings-preview-panel">
-        <div className="text-center mb-2">Capture Page Preview</div>
-        <div className="d-flex settings-preview">
-          {["A", "B", "M", "C", "D"].map((zone) => (
-            <div
-              key={zone}
-              className={`settings-zone settings-zone-${zone.toLowerCase()} d-flex align-items-center justify-content-center`}
-            >
-              {zone}
+        <div className="text-center mb-3">
+          <strong>Capture Page Preview</strong>
+          <div className="text-muted small">
+            Preview of the selected zone outline
+          </div>
+        </div>
+
+        <div className="settings-capture-preview">
+          <p className="settings-preview-selected-text">
+            Zone Selected: M (Midfield)
+          </p>
+
+          <div className="settings-preview-zone-row">
+            {["A", "B", "M", "C", "D"].map((zone) => (
+              <div
+                key={zone}
+                className={`settings-preview-zone ${
+                  zone === "M" ? "settings-preview-zone-selected" : ""
+                }`}
+                style={
+                  zone === "M"
+                    ? {
+                        borderColor: matchSettings.outlineColour,
+                      }
+                    : {}
+                }
+              >
+                {zone}
+              </div>
+            ))}
+          </div>
+
+          <div className="settings-preview-direction">
+            ◀━━━━━━
+          </div>
+
+          <div className="settings-preview-team-selector">
+            <div className="settings-preview-team settings-preview-team-red">
+              Reds
             </div>
-          ))}
+
+            <div className="settings-preview-flip">
+              🔄
+            </div>
+
+            <div className="settings-preview-team">
+              Away
+            </div>
+          </div>
         </div>
       </div>
     </div>
