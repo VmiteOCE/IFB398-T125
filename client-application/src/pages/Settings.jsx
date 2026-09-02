@@ -14,9 +14,8 @@ function Settings() {
   // ---------------- PROFILE ----------------
   const [profile, setProfile] = useState({
     profilePicture: "",
-    email: "Loading...",
-    username: "Loading...",
-    role: "Loading...",
+    username: sessionStorage.getItem("username") || "Unknown",
+    role: sessionStorage.getItem("role") || "Unknown",
   });
 
   
