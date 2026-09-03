@@ -208,8 +208,11 @@ router.post('/login', async (req, res) => {
 
     res.status(200).json({
       error: false,
-      message: "Login successful"
+      message: "Login successful",
+      username: user.username,
+      role: user.role
     });
+
 
   } catch (err) {
     console.error(err);
@@ -506,6 +509,8 @@ router.get('/admin-test', verifyToken, requireRole('admin'), (req, res) => {
     message: `Welcome ${req.user.username}. You have admin-level privileges.`
   });
 });
+
+
 
 // ============================== POST https://localhost:3000/user/logout ==============================
 router.post('/logout', (req, res) => {

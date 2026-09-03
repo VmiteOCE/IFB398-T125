@@ -213,6 +213,19 @@
 }
 
 /* Buttons */
+.settings-reset-button {
+  background-color: #6c757d;
+  border: 2px solid #6c757d;
+  color: white;
+  font-weight: 600;
+}
+
+.settings-reset-button:hover {
+  background-color: #495057;
+  border-color: #495057;
+  color: white;
+}
+
 .settings-danger-button {
   background: #b30000 !important;
   border: 2px solid #b30000 !important;
@@ -380,6 +393,97 @@
   z-index: 1050;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
+
+.settings-capture-preview {
+  padding: 1rem;
+  text-align: center;
+  background-color: #212529;
+  color: white;
+  border-radius: 8px;
+}
+
+.settings-preview-selected-text {
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.settings-preview-zone-row {
+  display: flex;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.settings-preview-zone {
+  flex: 1;
+  background: white;
+  color: black;
+  padding: 20px 5px;
+  border: 2px solid black;
+
+  font-size: 18px;
+  font-weight: 500;
+
+  min-width: 0;
+}
+
+.settings-preview-zone-selected {
+  color: white;
+  background: #ff0000;
+
+  /*
+   * Keep the same visual thickness as the
+   * actual Event Capture selected zone.
+   */
+  border-width: 4px;
+}
+
+.settings-preview-direction {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+
+.settings-preview-team-selector {
+  display: flex;
+  margin-top: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ddd;
+  height: 45px;
+}
+
+.settings-preview-team {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eee;
+  color: black;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.settings-preview-team-red {
+  background: red;
+  color: white;
+}
+
+.settings-preview-flip {
+  width: 50px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: #bbb;
+  color: #212529;
+
+  font-size: 17px;
+}
+
 
 /* Responsive layout */
 @media (max-width: 767px) {

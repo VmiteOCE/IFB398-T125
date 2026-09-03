@@ -9,24 +9,35 @@ function Settings() {
   const [activeSection, setActiveSection] = useState("Profile");
   const [saveMessage, setSaveMessage] = useState("");
 
+  
+
   // ---------------- PROFILE ----------------
   const [profile, setProfile] = useState({
     profilePicture: "",
-    email: "john@example.com",
-    username: "john doe",
-    role: "Owner",
+    username: sessionStorage.getItem("username") || "Unknown",
+    role: sessionStorage.getItem("role") || "Unknown",
   });
+
+  
 
   // ---------------- ACCESSIBILITY ----------------
   const [accessibility, setAccessibility] = useState({
-    fontSize: 100,
-    highContrast: false,
+    darkMode: false,
     largeButtons: false,
-    keybinds: true,
+    enableKeybinds: true,
   });
+
 
   const [showKeybindModal, setShowKeybindModal] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+  });
+
 
   // Initial default keybinds, gets overwritten by fetch if user has saved keybinds
   const [keybinds, setKeybinds] = useState({
@@ -75,12 +86,51 @@ function Settings() {
 
   // ---------------- MATCH SETTINGS ----------------
   const [matchSettings, setMatchSettings] = useState({
-    pageLayout: "Standard",
-    defaultTeamSide: "Reds",
+    defaultHomeSide: true,
     eventHistorySize: 8,
+    outlineColour: "Green",
   });
 
   // ---------------- SECURITY ----------------
+  const updatePassword = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
+      showSaved("Please enter both passwords");
+      return;
+    }
+
+    try {
+      const res = await fetch("/user/password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          current_password: passwordForm.currentPassword,
+          new_password: passwordForm.newPassword,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        throw new Error(result.message || "Unable to update password");
+      }
+
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+      });
+
+      setShowPasswordModal(false);
+
+      showSaved("Password updated successfully");
+    } catch (err) {
+      console.error("Password update error:", err);
+      showSaved(err.message || "Unable to update password");
+    }
+  };
+
+  
   const [accessLevels, setAccessLevels] = useState({
     Analyst: "Edit matches",
     Coach: "View and edit",
@@ -145,20 +195,28 @@ function Settings() {
 
   const handleSave = async () => {
     const payload = {
-      profile,
-      accessibility,
-      matchSettings,
-      accessLevels,
+      Event_History_Length: matchSettings.eventHistorySize,
+      Outline_Colour: matchSettings.outlineColour,
+      Enable_Keybinds: accessibility.enableKeybinds,
+      Large_Buttons: accessibility.largeButtons,
+      Dark_Mode: accessibility.darkMode,
+      Default_Home_Team: matchSettings.defaultHomeSide,
     };
 
+
     try {
-      // Connect this request to the settings route when the backend is ready.
-      // const res = await fetch("/settings", {
-      //   method: "PUT",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(payload),
-      // });
-      // if (!res.ok) throw new Error("Unable to save settings");
+      const res = await fetch("/user/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        throw new Error("Unable to save settings");
+      }
 
       console.log("Settings payload:", payload);
       showSaved();
@@ -167,49 +225,78 @@ function Settings() {
     }
   };
 
-  const exportCsv = () => {
-    const rows = [
-      ["setting", "value"],
-      ["username", profile.username],
-      ["email", profile.email],
-      ["role", profile.role],
-      ["font_size", accessibility.fontSize],
-      ["high_contrast", accessibility.highContrast],
-      ["large_buttons", accessibility.largeButtons],
-      ["keybinds", accessibility.keybinds],
-      ["page_layout", matchSettings.pageLayout],
-      ["default_team_side", matchSettings.defaultTeamSide],
-      ["event_history_size", matchSettings.eventHistorySize],
-    ];
+  const restoreDefaultSettings = async () => {
+    try {
+      const res = await fetch("/user/settings", {
+        method: "DELETE",
+      });
 
-    const csv = rows
-      .map((row) =>
-        row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(",")
-      )
-      .join("\n");
+      const result = await res.json();
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "reds-settings.csv";
-    link.click();
-    URL.revokeObjectURL(url);
+      if (!res.ok || result.error) {
+        throw new Error(result.message || "Unable to reset settings");
+      }
 
-    showSaved("CSV export downloaded");
+      // Reset the settings displayed in the UI
+      setAccessibility({
+        darkMode: false,
+        largeButtons: false,
+        enableKeybinds: true,
+      });
+
+      setMatchSettings({
+        defaultHomeSide: true,
+        eventHistorySize: 8,
+        outlineColour: "Green",
+      });
+
+      showSaved("Settings restored to defaults");
+    } catch (err) {
+      console.error("Settings reset error:", err);
+    }
   };
 
-  const initials = profile.username
-    .split(" ")
-    .filter(Boolean)
-    .map((name) => name[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+
+  
+
 
   const controlButtonStyle = accessibility.largeButtons
     ? { minHeight: 52, paddingLeft: 24, paddingRight: 24 }
     : {};
+
+  // Fetch all settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/user/settings");
+
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          throw new Error(result.message);
+        }
+
+        if (result.settings) {
+          setMatchSettings({
+            defaultHomeSide: result.settings.Default_Home_Team,
+            eventHistorySize: result.settings.Event_History_Length,
+            outlineColour: result.settings.Outline_Colour || "Green",
+          });
+
+          setAccessibility({
+            darkMode: result.settings.Dark_Mode ?? false,
+            largeButtons: result.settings.Large_Buttons ?? false,
+            enableKeybinds: result.settings.Enable_Keybinds ?? true,
+          });
+        }
+
+      } catch (err) {
+        console.error("Settings fetch error:", err);
+      }
+    };
+    
+    fetchSettings();
+  }, []);
 
   // ---------------- PROFILE UI ----------------
   const renderProfile = () => (
@@ -229,7 +316,7 @@ function Settings() {
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
-              initials || "U"
+              "Profile"
             )}
           </div>
 
@@ -260,17 +347,6 @@ function Settings() {
             />
           </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              type="email"
-              value={profile.email}
-              onChange={(event) =>
-                setProfile({ ...profile, email: event.target.value })
-              }
-            />
-          </Form.Group>
-
           <Form.Group>
             <Form.Label>Role / Access Level</Form.Label>
             <Form.Control value={profile.role} disabled />
@@ -286,53 +362,28 @@ function Settings() {
       <div className="text-center mb-4">
         <h4>Accessibility</h4>
         <p className="text-muted mb-0">
-          Adjust text and controls across the app.
+          Adjust the appearance and controls across the app.
         </p>
-      </div>
-
-      <div className="p-3 border-bottom">
-        <Row className="align-items-center">
-          <Col md={7}>
-            <strong>Font Size</strong>
-            <div className="text-muted small">
-              Change the size of text in the interface.
-            </div>
-          </Col>
-
-          <Col md={5} className="mt-3 mt-md-0">
-            <div className="d-flex align-items-center gap-3">
-              <Form.Range
-                min={90}
-                max={125}
-                step={5}
-                value={accessibility.fontSize}
-                onChange={(event) =>
-                  setAccessibility({
-                    ...accessibility,
-                    fontSize: parseInt(event.target.value, 10),
-                  })
-                }
-              />
-              <strong className="settings-font-size-value">
-                {accessibility.fontSize}%
-              </strong>
-            </div>
-          </Col>
-        </Row>
       </div>
 
       {[
         {
-          key: "highContrast",
-          title: "High Contrast Mode",
+          key: "darkMode",
+          title: "Dark Mode",
           description:
-            "Increase the contrast between interface elements.",
+            "Use a darker colour scheme throughout the app.",
         },
         {
           key: "largeButtons",
           title: "Large Buttons",
           description:
             "Increase button sizes for easier selection.",
+        },
+        {
+          key: "enableKeybinds",
+          title: "Enable Keybinds",
+          description:
+            "Allow keyboard shortcuts to be used throughout the app.",
         },
       ].map((setting) => (
         <div className="p-3 border-bottom" key={setting.key}>
@@ -362,9 +413,9 @@ function Settings() {
       <div className="p-3">
         <div className="d-flex justify-content-between align-items-center gap-3">
           <div>
-            <strong>Keybinds</strong>
+            <strong>Keybind Configuration</strong>
             <div className="text-muted small">
-              Configure keyboard shortcuts used throughout the app.
+              Configure the keyboard shortcuts used throughout the app.
             </div>
           </div>
 
@@ -380,6 +431,7 @@ function Settings() {
     </div>
   );
 
+
   // ---------------- MATCH SETTINGS UI ----------------
   const renderMatchSettings = () => (
     <div className="settings-section-panel">
@@ -388,35 +440,22 @@ function Settings() {
         <p className="text-muted mb-0">Set the defaults used by the capture page.</p>
       </div>
 
-      <Form.Group className="mb-4">
-        <Form.Label>Game Events / Analytics Page Layout</Form.Label>
-        <Form.Select
-          value={matchSettings.pageLayout}
-          onChange={(event) =>
-            setMatchSettings({ ...matchSettings, pageLayout: event.target.value })
-          }
-        >
-          <option>Standard</option>
-          <option>Compact</option>
-          <option>Analytics Focus</option>
-        </Form.Select>
-      </Form.Group>
 
       <Row>
         <Col md={6}>
           <Form.Group className="mb-4">
-            <Form.Label>Default Team Side</Form.Label>
+            <Form.Label>Default Home Team</Form.Label>
             <Form.Select
-              value={matchSettings.defaultTeamSide}
+              value={matchSettings.defaultHomeSide}
               onChange={(event) =>
                 setMatchSettings({
                   ...matchSettings,
-                  defaultTeamSide: event.target.value,
+                  defaultHomeSide: event.target.value === "true",
                 })
               }
             >
-              <option>Reds</option>
-              <option>Away</option>
+              <option value={true}>True</option>
+              <option value={false}>False</option>
             </Form.Select>
           </Form.Group>
         </Col>
@@ -439,19 +478,78 @@ function Settings() {
             </Form.Select>
           </Form.Group>
         </Col>
+        <Col md={6}>
+          <Form.Group className="mb-4">
+            <Form.Label>Outline Colour</Form.Label>
+            <Form.Select
+              value={matchSettings.outlineColour}
+              onChange={(event) =>
+                setMatchSettings({
+                  ...matchSettings,
+                  outlineColour: event.target.value,
+                })
+              }
+            >
+              <option value="Green">Green</option>
+              <option value="Red">Red</option>
+              <option value="Blue">Blue</option>
+              <option value="Yellow">Yellow</option>
+              <option value="White">White</option>
+            </Form.Select>
+          </Form.Group>
+        </Col>
       </Row>
 
       <div className="settings-preview-panel">
-        <div className="text-center mb-2">Capture Page Preview</div>
-        <div className="d-flex settings-preview">
-          {["A", "B", "M", "C", "D"].map((zone) => (
-            <div
-              key={zone}
-              className={`settings-zone settings-zone-${zone.toLowerCase()} d-flex align-items-center justify-content-center`}
-            >
-              {zone}
+        <div className="text-center mb-3">
+          <strong>Capture Page Preview</strong>
+          <div className="text-muted small">
+            Preview of the selected zone outline
+          </div>
+        </div>
+
+        <div className="settings-capture-preview">
+          <p className="settings-preview-selected-text">
+            Zone Selected: M (Midfield)
+          </p>
+
+          <div className="settings-preview-zone-row">
+            {["A", "B", "M", "C", "D"].map((zone) => (
+              <div
+                key={zone}
+                className={`settings-preview-zone ${
+                  zone === "M" ? "settings-preview-zone-selected" : ""
+                }`}
+                style={
+                  zone === "M"
+                    ? {
+                        borderColor: matchSettings.outlineColour,
+                      }
+                    : {}
+                }
+              >
+                {zone}
+              </div>
+            ))}
+          </div>
+
+          <div className="settings-preview-direction">
+            ◀━━━━━━
+          </div>
+
+          <div className="settings-preview-team-selector">
+            <div className="settings-preview-team settings-preview-team-red">
+              Reds
             </div>
-          ))}
+
+            <div className="settings-preview-flip">
+              🔄
+            </div>
+
+            <div className="settings-preview-team">
+              Away
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -462,7 +560,9 @@ function Settings() {
     <div className="settings-section-panel">
       <div className="text-center mb-4">
         <h4>Security</h4>
-        <p className="text-muted mb-0">Manage password and user access levels.</p>
+        <p className="text-muted mb-0">
+          Manage password and user access levels.
+        </p>
       </div>
 
       <div className="d-flex justify-content-between align-items-center gap-3 p-3 border-bottom">
@@ -472,28 +572,58 @@ function Settings() {
             Update the password used to access the app.
           </div>
         </div>
-        <Button className="settings-outline-button" style={controlButtonStyle}>
+
+        <Button
+          className="settings-outline-button"
+          style={controlButtonStyle}
+          onClick={() => setShowPasswordModal(true)}
+        >
           Change Password
+        </Button>
+      </div>
+
+      <div className="d-flex justify-content-between align-items-center gap-3 p-3 border-bottom">
+        <div>
+          <strong>Logout</strong>
+          <div className="text-muted small">
+            Sign out of your Reds account.
+          </div>
+        </div>
+
+        <Button
+          className="settings-danger-button"
+          style={controlButtonStyle}
+          onClick={() => {
+            window.location.href = "/logout";
+          }}
+        >
+          Logout
         </Button>
       </div>
 
       {profile.role === "Owner" && (
         <div className="mt-4">
           <h5>Modify Access Levels</h5>
-          <p className="text-muted small">This section is available to the Owner only.</p>
+          <p className="text-muted small">
+            This section is available to the Owner only.
+          </p>
 
           {Object.keys(accessLevels).map((role) => (
-            <Row className="align-items-center py-2 border-bottom" key={role}>
+            <Row
+              className="align-items-center py-2 border-bottom"
+              key={role}
+            >
               <Col sm={5}>
                 <strong>{role}</strong>
               </Col>
+
               <Col sm={7}>
                 <Form.Select
                   value={accessLevels[role]}
                   onChange={(event) =>
                     setAccessLevels({
                       ...accessLevels,
-                      [role]: event.target.value
+                      [role]: event.target.value,
                     })
                   }
                 >
@@ -509,6 +639,7 @@ function Settings() {
       )}
     </div>
   );
+
 
   // ---------------- DATA UI ----------------
   const renderDataExport = () => (
@@ -532,8 +663,7 @@ function Settings() {
         </div>
         <Button
           className="settings-danger-button"
-          onClick={exportCsv}
-          style={controlButtonStyle}
+          disabled
         >
           Export CSV
         </Button>
@@ -592,15 +722,11 @@ function Settings() {
     <Container
       fluid
       className={`settings-page ${
-        accessibility.highContrast ? "settings-page-high-contrast" : ""
+        accessibility.darkMode ? "settings-page-dark-mode" : ""
       }`}
     >
       <div
-        className="dashboard-content settings-content-wrapper"
-        style={{
-          fontSize: `${accessibility.fontSize}%`,
-        }}
-      >
+        className="dashboard-content settings-content-wrapper">
         <div className="settings-title-box">
           <button
             className="settings-back-button"
@@ -646,7 +772,7 @@ function Settings() {
             <div className="settings-main-panel">{renderActiveSection()}</div>
 
             {!["Data & Export", "Help"].includes(activeSection) && (
-              <div className="settings-save-panel">
+              <div className="settings-save-panel d-flex justify-content-between align-items-center gap-3">
                 <Button
                   className="settings-danger-button"
                   onClick={handleSave}
@@ -654,8 +780,17 @@ function Settings() {
                 >
                   Save Changes
                 </Button>
+
+                <Button
+                  className="settings-reset-button"
+                  onClick={restoreDefaultSettings}
+                  style={controlButtonStyle}
+                >
+                  Restore Defaults
+                </Button>
               </div>
             )}
+
           </Col>
         </Row>
 
@@ -723,6 +858,76 @@ function Settings() {
           </Button>
         </Modal.Footer>
       </Modal>
+      <Modal
+        show={showPasswordModal}
+        onHide={() => {
+          setShowPasswordModal(false);
+          setPasswordForm({
+            currentPassword: "",
+            newPassword: "",
+          });
+        }}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Change Password</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Current Password</Form.Label>
+            <Form.Control
+              type="password"
+              value={passwordForm.currentPassword}
+              onChange={(event) =>
+                setPasswordForm({
+                  ...passwordForm,
+                  currentPassword: event.target.value,
+                })
+              }
+              placeholder="Enter current password"
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.Label>New Password</Form.Label>
+            <Form.Control
+              type="password"
+              value={passwordForm.newPassword}
+              onChange={(event) =>
+                setPasswordForm({
+                  ...passwordForm,
+                  newPassword: event.target.value,
+                })
+              }
+              placeholder="Enter new password"
+            />
+          </Form.Group>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {      //reset the password form and close modal when cancel is clicked
+              setShowPasswordModal(false);
+              setPasswordForm({
+                currentPassword: "",
+                newPassword: "",
+              });
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            className="settings-danger-button"
+            onClick={updatePassword}
+          >
+            Update Password
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </Container>
   );
 }

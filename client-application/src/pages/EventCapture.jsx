@@ -17,6 +17,14 @@ const actionToCode = {
   Maul: "M",
 };
 
+const outlineColours = {
+  Green: "#4caf50",
+  Red: "#ff0000",
+  Blue: "#0000ff",
+  Yellow: "#ffff00",
+  White: "#ffffff",
+};
+
 const codeToAction = Object.fromEntries(
   Object.entries(actionToCode).map(([k, v]) => [v, k])
 );
@@ -107,7 +115,45 @@ function EventCapture() {
       .map(([action, key]) => [String(key).toLowerCase(), action])
   );
 
+  //----------------- SETTINGS ----------------
+  const [settings, setSettings] = useState({
+    Default_Home_Team: true,
+    Event_History_Length: 8,
+    Enable_Keybinds: true,
+    Large_Buttons: false,
+    Dark_Mode: false,
+    Outline_Colour: "Green",
+  });
 
+  const selectedOutlineColour =
+  outlineColours[settings.Outline_Colour] || outlineColours.Green;
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/user/settings");
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          throw new Error(result.message);
+        }
+
+        if (result.settings) {
+          setSettings(result.settings);
+
+          setSelectedTeam(
+            result.settings.Default_Home_Team ? "Reds" : "Away"
+          );
+        }
+      } catch (err) {
+        console.error("Settings fetch error:", err);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  
 
   // ---------------- HELPERS ----------------
   const toSeconds = (timeStr) => {
@@ -325,6 +371,7 @@ function EventCapture() {
   });
 
   useEffect(() => {
+    if (!settings.Enable_Keybinds) return; // Skip if keybinds are disabled
     const handleKeyDown = (e) => {
       const currentIndex = zones.findIndex((z) => z.label === selectedZone);
 
@@ -394,9 +441,9 @@ function EventCapture() {
             </div>
 
             <div className="event-history-panel">
-              <h5>Event History (Last 8)</h5>
+              <h5>Event History (Last {settings.Event_History_Length})</h5>
 
-              {events.slice(0, 8).map((event, index) => (
+              {events.slice(0, settings.Event_History_Length).map((event, index) => (
                 <div
                   key={event.id}
                   className={`event-history-item ${
@@ -427,25 +474,36 @@ function EventCapture() {
               </p>
 
               <div className="zone-row">
-                {zones.map((zone) => (
-                  <div
-                    key={zone.label}
-                    onClick={() => setSelectedZone(zone.label)}
-                    className={`zone-box ${
-                      selectedZone === zone.label ? "zone-box-selected" : ""
-                    } ${
-                      selectedZone === zone.label && selectedTeam === "Reds"
-                        ? "zone-box-red"
-                        : ""
-                    } ${
-                      selectedZone === zone.label && selectedTeam === "Away"
-                        ? "zone-box-blue"
-                        : ""
-                    }`}
-                  >
-                    {zone.label}
-                  </div>
-                ))}
+                {zones.map((zone) => {
+                  const isSelected = selectedZone === zone.label;
+
+                  return (
+                    <div
+                      key={zone.label}
+                      onClick={() => setSelectedZone(zone.label)}
+                      className={`zone-box ${
+                        isSelected ? "zone-box-selected" : ""
+                      } ${
+                        isSelected && selectedTeam === "Reds"
+                          ? "zone-box-red"
+                          : ""
+                      } ${
+                        isSelected && selectedTeam === "Away"
+                          ? "zone-box-blue"
+                          : ""
+                      }`}
+                      style={
+                        isSelected
+                          ? {
+                              borderColor: settings.Outline_Colour,
+                            }
+                          : {}
+                      }
+                    >
+                      {zone.label}
+                    </div>
+                  );
+                })}
               </div>
 
             <div style={{
