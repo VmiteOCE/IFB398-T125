@@ -196,25 +196,36 @@ footer {
   background-color: #b0d1fc;
 }
 
+
+.login-content {
+  flex: 1;
+  justify-items:center;
+  align-content: center;
+  padding: 24px;
+}
+
 .login-box h1 {
     margin: 0 0 1.8rem 0;
     text-align: center;
 }
 
 .login-page {
-  display: flex;
-  align-self: center;
-  padding: 2rem;
+  flex: 1;
+  width: 100%;
 
-  max-width: 500px;
-  width: 80vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 0.5rem;
+  box-sizing: border-box;
 }
 
 .login-box {
     width: 100%;
     max-width: 500px;
 
-    padding: 2rem;
+    padding: 1rem;
 
     background: #9b7070;
     border-radius: 20px;
@@ -222,9 +233,20 @@ footer {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
-.login-content {
+.login-form {
   align-content: center;
   padding: 18px;
+}
+
+.login-banner {
+  width: 100%;
+  max-height: 175px;
+  object-fit:cover;
+
+  padding: 8px;
+  border-radius: 20px;
+  align-content: center;
+  justify-content: center;
 }
 
 .login-content button {
@@ -257,6 +279,12 @@ footer {
   padding: 8px;
 }
 
+.login-message {
+    min-height: 52px;
+    margin-top: 0.5rem;
+}
+
+.login-success,
 .login-error {
   width: 100%;
   box-sizing: border-box;
@@ -265,26 +293,17 @@ footer {
   padding: 0.75rem 1rem;
 
   text-align: left;
-
-  border: 1px solid #7a1f1f;
   border-radius: 8px;
+}
 
+.login-error {
+  border: 1px solid #7a1f1f;
   background: #f3d0d0;
   color: #7a1f1f;
 }
 
 .login-success {
-  width: 100%;
-  box-sizing: border-box;
-
-  margin-top: 0.5rem;
-  padding: 0.75rem 1rem;
-
-  text-align: left;
-
   border: 1px solid #287a3e;
-  border-radius: 8px;
-
   background: #d4edda;
   color: #1f6332;
 }

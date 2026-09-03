@@ -1,8 +1,11 @@
-import { Container, Row, Col, Button, Form } from "react-bootstrap";
-import { useState } from "react";
+import { Container, Row, Col, Button, Form, Modal } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/Settings.css";
 
 function Settings() {
+  const navigate = useNavigate();
+
   const [activeSection, setActiveSection] = useState("Profile");
   const [saveMessage, setSaveMessage] = useState("");
 
@@ -21,6 +24,54 @@ function Settings() {
     largeButtons: false,
     keybinds: true,
   });
+
+  const [showKeybindModal, setShowKeybindModal] = useState(false);
+  const [editingKey, setEditingKey] = useState(null);
+
+  // Initial default keybinds, gets overwritten by fetch if user has saved keybinds
+  const [keybinds, setKeybinds] = useState({
+    Pass: "P",
+    Kick: "K",
+    Catch: "C",
+    Ruck: "R",
+    Scrum: "S",
+    Penalty: "E",
+    Advantage: "A",
+    Turnover: "T",
+    Lineout: "L",
+    Maul: "M",
+    Pause: " ",
+    Add_Time: "=",
+    Remove_Time: "-",
+    Move_Zone_Left: "ArrowLeft",
+    Move_Zone_Right: "ArrowRight",
+    Swap_Team: "Tab",
+    Swap_Direction: "ArrowUp",
+  });
+
+  useEffect(() => {
+    const fetchKeybinds = async () => {
+      try {
+        const res = await fetch("/user/keybinds");
+
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          throw new Error(result.message);
+        }
+
+        if (result.keybinds) {
+          setKeybinds(result.keybinds);
+        }
+
+      } catch (err) {
+        console.error("Keybind fetch error:", err);
+      }
+    };
+
+    fetchKeybinds();
+  }, []);
+
 
   // ---------------- MATCH SETTINGS ----------------
   const [matchSettings, setMatchSettings] = useState({
@@ -66,6 +117,30 @@ function Settings() {
       }));
     };
     reader.readAsDataURL(file);
+  };
+
+  const saveKeybinds = async () => {
+    try {
+      const res = await fetch("/user/keybinds", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(keybinds),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        throw new Error(result.message);
+      }
+
+      showSaved("Keybinds saved");
+      setShowKeybindModal(false);
+
+    } catch (err) {
+      console.error("Keybind save error:", err);
+    }
   };
 
   const handleSave = async () => {
@@ -210,7 +285,9 @@ function Settings() {
     <div className="settings-section-panel">
       <div className="text-center mb-4">
         <h4>Accessibility</h4>
-        <p className="text-muted mb-0">Adjust text and controls across the app.</p>
+        <p className="text-muted mb-0">
+          Adjust text and controls across the app.
+        </p>
       </div>
 
       <div className="p-3 border-bottom">
@@ -221,6 +298,7 @@ function Settings() {
               Change the size of text in the interface.
             </div>
           </Col>
+
           <Col md={5} className="mt-3 mt-md-0">
             <div className="d-flex align-items-center gap-3">
               <Form.Range
@@ -247,25 +325,25 @@ function Settings() {
         {
           key: "highContrast",
           title: "High Contrast Mode",
-          description: "Increase the contrast between interface elements.",
+          description:
+            "Increase the contrast between interface elements.",
         },
         {
           key: "largeButtons",
           title: "Large Buttons",
-          description: "Increase button sizes for easier selection.",
-        },
-        {
-          key: "keybinds",
-          title: "Keybinds",
-          description: "Enable keyboard shortcuts on the capture page.",
+          description:
+            "Increase button sizes for easier selection.",
         },
       ].map((setting) => (
         <div className="p-3 border-bottom" key={setting.key}>
           <div className="d-flex justify-content-between align-items-center gap-3">
             <div>
               <strong>{setting.title}</strong>
-              <div className="text-muted small">{setting.description}</div>
+              <div className="text-muted small">
+                {setting.description}
+              </div>
             </div>
+
             <Form.Check
               type="switch"
               id={setting.key}
@@ -280,6 +358,25 @@ function Settings() {
           </div>
         </div>
       ))}
+
+      <div className="p-3">
+        <div className="d-flex justify-content-between align-items-center gap-3">
+          <div>
+            <strong>Keybinds</strong>
+            <div className="text-muted small">
+              Configure keyboard shortcuts used throughout the app.
+            </div>
+          </div>
+
+          <Button
+            className="settings-outline-button"
+            style={controlButtonStyle}
+            onClick={() => setShowKeybindModal(true)}
+          >
+            Edit Keybinds
+          </Button>
+        </div>
+      </div>
     </div>
   );
 
@@ -505,6 +602,14 @@ function Settings() {
         }}
       >
         <div className="settings-title-box">
+          <button
+            className="settings-back-button"
+            onClick={() => navigate("/dashboard")}
+            aria-label="Go Back"
+          >
+            ←
+          </button>
+
           <h3>Settings</h3>
           <h5>Manage your Reds app preferences</h5>
         </div>
@@ -563,6 +668,61 @@ function Settings() {
           </div>
         )}
       </div>
+      <Modal
+        show={showKeybindModal}
+        onHide={() => setShowKeybindModal(false)}
+        centered
+        size="lg"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Keybinds</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          {Object.entries(keybinds).map(([action, key]) => (
+            <Row key={action} className="mb-3 align-items-center">
+              <Col md={6}>
+                <strong>{action.replaceAll("_", " ")}</strong>
+              </Col>
+
+              <Col md={6}>
+                <Form.Control
+                  readOnly
+                  value={editingKey === action ? "Enter keybind..." : key}
+                  onFocus={() => setEditingKey(action)}
+                  onBlur={() => setEditingKey(null)}
+                  onKeyDown={(event) => {
+                    event.preventDefault();
+
+                    setKeybinds({
+                      ...keybinds,
+                      [action]: event.key,
+                    });
+
+                    setEditingKey(null);
+                  }}
+                />
+              </Col>
+            </Row>
+          ))}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowKeybindModal(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            className="settings-danger-button"
+            onClick={saveKeybinds}
+          >
+            Save Keybinds
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }

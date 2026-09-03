@@ -85,13 +85,14 @@ export default function LoginPage() {
     return (
         <div className="login-page">
             <div className="login-box">
+                <img className="login-banner" src="/reds-banner.png"></img>
                 <h1>Login</h1>
 
                 <Form onSubmit={handleSubmit}>
-                    <div className="login-content">
+                    <div className="login-form">
 
                         <div className="login-field">
-                            <label htmlFor="username">Email</label>
+                            <label htmlFor="username">Username</label>
                             <input
                                 id="username"
                                 type="username"
@@ -114,21 +115,25 @@ export default function LoginPage() {
                             />
                         </div>
 
+                        <br/>
+
                         <button type="submit" disabled={loading}>
                             {loading ? "Logging in..." : "Login"}
                         </button>
 
-                        {error && (
-                            <div className="login-error">
-                                {error}
-                            </div>
-                        )}
+                        <div className="login-message">
+                            {error && (
+                                <div className="login-error">
+                                    {error}
+                                </div>
+                            )}
 
-                        {success && (
-                            <div className="login-success">
-                                {success}
-                            </div>
-                        )}
+                            {success && (
+                                <div className="login-success">
+                                    {success}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </Form>
             </div>

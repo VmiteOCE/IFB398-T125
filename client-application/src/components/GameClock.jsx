@@ -13,7 +13,7 @@ import { useState, useRef, useEffect } from "react";
   }
 
 
-export default function GameClock({ setCurrentTime }) {
+export default function GameClock({ setCurrentTime, keybinds }) {
   const [startTime, setStartTime] = useState(null);
   const [now, setNow] = useState(null);
   const intervalRef = useRef(null);
@@ -27,6 +27,8 @@ export default function GameClock({ setCurrentTime }) {
 
   /// Manual Time entry 
   const [manualTime, setManualTime] = useState("");
+
+  
 
   function toggleClock() {
     if (isRunning) {
@@ -103,7 +105,7 @@ export default function GameClock({ setCurrentTime }) {
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code === "Space") {
+      if (e.key === keybinds.Pause) {
         e.preventDefault();
         if (!e.repeat) {
           toggleRef.current(); // uses latest function
@@ -111,13 +113,13 @@ export default function GameClock({ setCurrentTime }) {
       }
 
       /// subtract 1 second
-      if (e.key === "-") {
+      if (e.key === keybinds.Remove_Time) {
         e.preventDefault();
         decreaseTime();
     }
 
       // Add 1 second
-      if (e.key === "=") {
+      if (e.key === keybinds.Add_Time) {
         e.preventDefault();
         setOffset((prev) => prev + 1);
       }
@@ -128,7 +130,7 @@ export default function GameClock({ setCurrentTime }) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [keybinds]);
 
   // Update parent
   useEffect(() => {

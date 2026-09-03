@@ -1,7 +1,8 @@
 
 import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
 import ZoneTimeGraphs from "../components/GameGraphs";
 
   // Format Event Time
@@ -45,6 +46,8 @@ import ZoneTimeGraphs from "../components/GameGraphs";
 const GameEventsPage = () => {
   const { id } = useParams();
   const gameId = parseInt(id, 10) || 1;
+
+  const navigate = useNavigate();
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -511,125 +514,214 @@ const renderAZoneTable = () => {
       style={{
         backgroundColor: "#5a1f28",
         minHeight: "100vh",
-        color: "white",
-        padding: "20px",
+        padding: "12px",
       }}
     >
-      <div className="text-center mb-3">
-        <h3>{gameTitle}</h3>
-        <h5 style={{ opacity: 0.8 }}>
-          {gameInfo?.game_name || `Game ID: ${gameId}`}
-        </h5>
-
-        <button
-          onClick={fetchGameEvents}
+      <div
+        style={{
+          width: "100%",
+          backgroundColor: "#8C5F5F",
+          borderRadius: "16px",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
           style={{
-            marginTop: "10px",
-            padding: "8px 12px",
-            cursor: "pointer",
-            borderRadius: "5px",
-            border: "none",
+            backgroundColor: "#321A1A",
+            color: "white",
+            padding: "20px",
+            position: "relative",
+            textAlign: "center",
           }}
         >
-          Refresh Data
-        </button>
-      </div>
+          <button
+            onClick={() => navigate("/dashboard")}
+            aria-label="Go Back"
+            style={{
+              position: "absolute",
+              left: "20px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              color: "white",
+              fontSize: "32px",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            ←
+          </button>
 
-      <div
-        style={{
-          background: "#f8f9fa",
-          color: "black",
-          padding: "15px",
-          borderRadius: "8px",
-        }}
-      >
-        <h5>Game Events</h5>
+          <h2 style={{ margin: 0 }}>
+            {gameTitle}
+          </h2>
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div
-          style={{maxHeight: "300px", overflowY: "auto",}}>
-          <table style={{ borderCollapse: "collapse", width: "100%" }}>
-            <thead>
-              <tr>
-                <th style={styles.header}>Event ID</th>
-                <th style={styles.header}>Team</th>
-                <th style={styles.header}>Event</th>
-                <th style={styles.header}>Zone</th>
-                <th style={styles.header}>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.length === 0 ? (
-                <tr>
-                  <td colSpan="5" style={styles.cell}>
-                    No data available
-                  </td>
-                </tr>
-              ) : (
-                data.map((event) => (
-                  <tr
-                    key={event.event_id}
-                    style={{
-                      background:
-                        event.team_id === 1
-                          ? "#b30000"
-                          : "#0033cc",
-                      color: "white",
-                    }}
-                  >
-                    <td style={styles.cell}>{event.event_id}</td>
-                    <td style={styles.cell}>{event.team_name}</td>
-                    <td style={styles.cell}>{event.event_code}</td>
-                    <td style={styles.cell}>{event.zone_id}</td>
-                    <td style={styles.cell}>{event.formatted_time}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <h5 style={{ marginTop: "8px", opacity: 0.8 }}>
+            {gameInfo?.game_name || `Game ID: ${gameId}`}
+          </h5>
         </div>
-        )}
-      </div>
 
-      <div
-        style={{
-          marginTop: "20px",
-          background: "#f8f9fa",
-          color: "black",
-          padding: "15px",
-          borderRadius: "8px",
-        }}
-      >
-        <h5>Zone Distribution (%)</h5>
+        {/* Content */}
+        <div style={{ padding: "20px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "20px",
+            }}
+          >
+            <button
+              onClick={fetchGameEvents}
+              style={{
+                padding: "8px 12px",
+                cursor: "pointer",
+                borderRadius: "5px",
+                border: "none",
+              }}
+            >
+              Refresh Data
+            </button>
+          </div>
 
-        <table style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr>
-              <th style={styles.header}>Zone</th>
-              <th style={styles.header}>Reds (%)</th>
-              <th style={styles.header}>
-                {gameInfo?.vs_team || "Away"} (%)
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {zoneStats.map(({ zone, redPercent, awayPercent }) => (
-              <tr key={zone}>
-                <td style={styles.cell}>{zone}</td>
-                <td style={styles.cell}>
-                  {redPercent.toFixed(1)}%
-                </td>
-                <td style={styles.cell}>
-                  {awayPercent.toFixed(1)}%
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          {/* Game Events */}
+          <div
+            style={{
+              background: "#f8f9fa",
+              color: "black",
+              padding: "15px",
+              borderRadius: "8px",
+            }}
+          >
+            <h5>Game Events</h5>
 
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <div
+                style={{
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                }}
+              >
+                <table
+                  style={{
+                    borderCollapse: "collapse",
+                    width: "100%",
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th style={styles.header}>Event ID</th>
+                      <th style={styles.header}>Team</th>
+                      <th style={styles.header}>Event</th>
+                      <th style={styles.header}>Zone</th>
+                      <th style={styles.header}>Time</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {data.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" style={styles.cell}>
+                          No data available
+                        </td>
+                      </tr>
+                    ) : (
+                      data.map((event) => (
+                        <tr
+                          key={event.event_id}
+                          style={{
+                            background:
+                              event.team_id === 1
+                                ? "#b30000"
+                                : "#0033cc",
+                            color: "white",
+                          }}
+                        >
+                          <td style={styles.cell}>
+                            {event.event_id}
+                          </td>
+
+                          <td style={styles.cell}>
+                            {event.team_name}
+                          </td>
+
+                          <td style={styles.cell}>
+                            {event.event_code}
+                          </td>
+
+                          <td style={styles.cell}>
+                            {event.zone_id}
+                          </td>
+
+                          <td style={styles.cell}>
+                            {event.formatted_time}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Zone Distribution */}
+          <div
+            style={{
+              marginTop: "20px",
+              background: "#f8f9fa",
+              color: "black",
+              padding: "15px",
+              borderRadius: "8px",
+            }}
+          >
+            <h5>Zone Distribution (%)</h5>
+
+            <table
+              style={{
+                borderCollapse: "collapse",
+                width: "100%",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th style={styles.header}>Zone</th>
+                  <th style={styles.header}>Reds (%)</th>
+                  <th style={styles.header}>
+                    {gameInfo?.vs_team || "Away"} (%)
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {zoneStats.map(
+                  ({
+                    zone,
+                    redPercent,
+                    awayPercent,
+                  }) => (
+                    <tr key={zone}>
+                      <td style={styles.cell}>
+                        {zone}
+                      </td>
+
+                      <td style={styles.cell}>
+                        {redPercent.toFixed(1)}%
+                      </td>
+
+                      <td style={styles.cell}>
+                        {awayPercent.toFixed(1)}%
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+          
       {/* GAME ANALYSIS */}
 <h3
   style={{marginTop: "40px", marginBottom: "20px", textAlign: "center",}}
@@ -716,8 +808,11 @@ const renderAZoneTable = () => {
     formatTime={formatTime}
   />
 )}
+        </div>
+      </div>
     </Container>
   );
+
 };
 
 const styles = {
