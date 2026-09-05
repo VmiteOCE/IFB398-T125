@@ -16,6 +16,8 @@ const VALID_EVENT_CODES = [
   "V", // Conversion
   "Y", // Try
   "M", // Maul
+  "/", // Ball in play
+  ".", // Ball out of play
 ];
 
 const VALID_ZONES = ["A", "B", "M", "C", "D"];

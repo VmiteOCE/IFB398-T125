@@ -13,7 +13,7 @@ import { useState, useRef, useEffect } from "react";
   }
 
 
-export default function GameClock({ setCurrentTime, keybinds }) {
+export default function GameClock({ setCurrentTime, keybinds, selectedHalf, setHalf, }) {
   const [startTime, setStartTime] = useState(null);
   const [now, setNow] = useState(null);
   const intervalRef = useRef(null);
@@ -102,6 +102,20 @@ export default function GameClock({ setCurrentTime, keybinds }) {
   setManualTime(""); // clear after setting time
 }
 
+// Switch between halfs 
+function selectHalf(half) {
+  setHalf(half);
+  const currentTime = Date.now();
+  setStartTime(currentTime);
+  setNow(currentTime);
+//H1 starts at 0:00
+  if (half === 1) {
+    setOffset(0);}
+//H2 starts at 40:00
+  if (half === 2) {
+    setOffset(40 * 60);}
+}
+
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -181,6 +195,20 @@ export default function GameClock({ setCurrentTime, keybinds }) {
         <button onClick={setManualClockTime}>
              Set Game Time
              </button>
+        </div>
+        
+        <div style={{ marginTop: "10px" }}>
+            <button
+            onClick={() => selectHalf(1)}
+            style={{backgroundColor: selectedHalf === 1 ? "#6F263D" : "white", color: selectedHalf === 1 ? "white" : "black", marginRight: "5px",}}>
+                H1 
+            </button>
+            
+            <button
+            onClick={() => selectHalf(2)}
+            style={{backgroundColor: selectedHalf === 2 ? "#6F263D" : "white",color: selectedHalf === 2 ? "white" : "black"}}>
+                H2
+            </button>
         </div>
     </div>
   );

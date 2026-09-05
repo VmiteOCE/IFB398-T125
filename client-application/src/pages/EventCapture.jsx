@@ -15,6 +15,8 @@ const actionToCode = {
   Turnover: "T",
   Lineout: "L",
   Maul: "M",
+  Ball_In_Play: "/",
+  Ball_Out_Of_Play: ".",
 };
 
 const outlineColours = {
@@ -35,6 +37,7 @@ function EventCapture() {
   const navigate = useNavigate();
   const [selectedZone, setSelectedZone] = useState("M");
   const [selectedTeam, setSelectedTeam] = useState("Reds");
+  const [selectedHalf, setHalf] = useState(1);
   const [manualFlip, setManualFlip] = useState(false);
 
   const [events, setEvents] = useState([]);
@@ -81,6 +84,8 @@ function EventCapture() {
     Move_Zone_Right: "ArrowRight",
     Swap_Team: "Tab",
     Swap_Direction: "ArrowUp",
+    Ball_In_Play: "/",
+    Ball_Out_Of_Play: ".",
   });
 
   useEffect(() => {
@@ -226,6 +231,7 @@ function EventCapture() {
             zone: e.zone_id,
             team: e.team_id === 1 ? "R" : "A",
             time: formatSeconds(e.game_clock),
+            half: e.game_half,
           }));
 
         setEvents(mapped);
@@ -245,7 +251,7 @@ function EventCapture() {
       zone_id: selectedZone,
       team_id: selectedTeam === "Reds" ? 1 : 2,
       game_clock: toSeconds(currentTime),
-      game_half: 1,
+      game_half: selectedHalf,
     };
 
     try {
@@ -279,7 +285,7 @@ function EventCapture() {
         zone_id: selectedZone,
         team_id: selectedTeam === "Reds" ? 1 : 2,
         game_clock: toSeconds(currentTime),
-        game_half: 1,
+        game_half: selectedHalf,
       };
 
       try {
@@ -437,7 +443,7 @@ function EventCapture() {
         <Row className="event-capture-row">
           <Col md={4}>
             <div className="game-clock-panel">
-              <GameClock setCurrentTime={setCurrentTime} keybinds={keybinds} />
+              <GameClock setCurrentTime={setCurrentTime} keybinds={keybinds} selectedHalf={selectedHalf} setHalf ={setHalf}  />
             </div>
 
             <div className="event-history-panel">

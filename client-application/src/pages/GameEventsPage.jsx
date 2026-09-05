@@ -39,6 +39,7 @@ import ZoneTimeGraphs from "../components/GameGraphs";
       game_clock: e.game_clock,
       // formatted time for raw data
       formatted_time: formatTime(e.game_clock),
+      game_half: e.game_half,
     }));
   }
 
@@ -153,25 +154,40 @@ const GameEventsPage = () => {
     };
   });
 
-  // raw time into the intervals
+  // raw time into the intervals and halfs
   const intervals = [
-  { label: "0-10", start: 0, end: 600 },
-  { label: "10-20", start: 600, end: 1200 },
-  { label: "20-30", start: 1200, end: 1800 },
-  { label: "30-40", start: 1800, end: 2400 },
-  { label: "40-50", start: 2400, end: 3000 },
-  { label: "50-60", start: 3000, end: 3600 },
-  { label: "60-70", start: 3600, end: 4200 },
-  { label: "70-80", start: 4200, end: 4800 },
+  { label: "0-10", start: 0, end: 600, half:1 },
+  { label: "10-20", start: 600, end: 1200, half:1 },
+  { label: "20-30", start: 1200, end: 1800, half:1 },
+  { label: "30-40", start: 1800, end: 2400, half:1 },
+  { label: "40-50", start: 2400, end: 3000,  half:2 },
+  { label: "50-60", start: 3000, end: 3600, half:2 },
+  { label: "60-70", start: 3600, end: 4200, half:2},
+  { label: "70-80", start: 4200, end: 4800, half:2 },
 ];
 
 // Count the number of Events
-const countEvents = (eventCode, teamId, zone, start, end) => {
+const countEvents = (eventCode, teamId, zone, start, end, half) => {
   return data.filter((event) => {
+
+        if (
+      event.event_code !== eventCode ||
+      event.team_id !== teamId ||
+      event.zone_id !== zone ||
+      event.game_half !== half
+    ) {
+      return false;
+    }
+
+    if (half === 1 && end === 2400) {
+      return event.game_clock >= start;
+    }
+
+    if (half === 2 && end === 4800) {
+      return event.game_clock >= start;
+    }
+
     return (
-      event.event_code === eventCode &&
-      event.team_id === teamId &&
-      event.zone_id === zone &&
       event.game_clock >= start &&
       event.game_clock < end
     );
@@ -180,8 +196,10 @@ const countEvents = (eventCode, teamId, zone, start, end) => {
 
 
 // Calculate time spent in each zone
-const getZoneTime = (teamId, zone, start, end) => {
-  const sortedEvents = [...data].sort(
+const getZoneTime = (teamId, zone, start, end, half) => {
+  const sortedEvents = [...data]
+  .filter((event) => event.game_half === half)
+  .sort(  
     (a, b) =>
       a.game_clock - b.game_clock ||
       a.event_id - b.event_id
@@ -194,6 +212,7 @@ const getZoneTime = (teamId, zone, start, end) => {
     const nextEvent = sortedEvents[i + 1];
 
     if (
+      currentEvent.event_code !== "." &&
       currentEvent.team_id === teamId &&
       currentEvent.zone_id === zone
     ) {
@@ -202,10 +221,11 @@ const getZoneTime = (teamId, zone, start, end) => {
         start
       );
 
-      const sectionEnd = Math.min(
-        nextEvent.game_clock,
-        end
-      );
+      const sectionEnd =
+        (half === 1 && end === 2400) ||
+        (half === 2 && end === 4800)
+        ? nextEvent.game_clock
+        : Math.min(nextEvent.game_clock, end);
 
       if (sectionEnd > sectionStart) {
         totalSeconds += sectionEnd - sectionStart;
@@ -286,7 +306,10 @@ const getZoneTime = (teamId, zone, start, end) => {
                     key={`reds-${interval.label}-${zone}`} className="reds-cell"
                     style={styles.cell}
                   >
-                    {countEvents(eventCode, 1, zone, start, interval.end)}
+                    {cumulative && interval.half === 2
+                    ? countEvents(eventCode, 1, zone, 0, 2400, 1) +
+                      countEvents(eventCode, 1, zone, 2400, interval.end, 2)
+                    : countEvents(eventCode, 1, zone, start, interval.end, interval.half)}
                   </td>
                 ))}
 
@@ -296,7 +319,10 @@ const getZoneTime = (teamId, zone, start, end) => {
                     key={`away-${interval.label}-${zone}`} className="away-cell"
                     style={styles.cell}
                   >
-                    {countEvents(eventCode, 2, zone, start, interval.end)}
+                    {cumulative && interval.half === 2
+                    ? countEvents(eventCode, 2, zone, 0, 2400, 1) +
+                      countEvents(eventCode, 2, zone, 2400, interval.end, 2)
+                    : countEvents(eventCode, 2, zone, start, interval.end, interval.half)}
                   </td>
                 ))}
               </tr>
@@ -316,7 +342,8 @@ const getZoneTime = (teamId, zone, start, end) => {
                   style={styles.cell}
                 >
                   <strong>
-                    {countEvents(eventCode, 1, zone, 0, 4800)}
+                    {countEvents(eventCode, 1, zone, 0, 2400, 1) +
+                    countEvents(eventCode, 1, zone, 2400, 4800, 2)}
                   </strong>
                 </td>
               ))}
@@ -328,7 +355,8 @@ const getZoneTime = (teamId, zone, start, end) => {
                   style={styles.cell}
                 >
                   <strong>
-                    {countEvents(eventCode, 2, zone, 0, 4800)}
+                    {countEvents(eventCode, 2, zone, 0, 2400, 1) +
+                    countEvents(eventCode, 2, zone, 2400, 4800, 2)}
                   </strong>
                 </td>
               ))}
@@ -408,7 +436,11 @@ const renderZoneTimeTable  = ({
                   <td
                     className="reds-cell" key={`reds-time-${label}-${zone}`} style={styles.cell}
                   >
-                    {formatTime(getZoneTime(1, zone, start, interval.end)
+                    {formatTime(
+                      cumulative && interval.half === 2
+                      ? getZoneTime(1, zone, 0, 2400, 1) +
+                      getZoneTime(1, zone, 2400, interval.end, 2)
+                      : getZoneTime(1, zone, start, interval.end, interval.half)
                     )}
                   </td>
                 ))}
@@ -419,8 +451,12 @@ const renderZoneTimeTable  = ({
                     className="away-cell" key={`away-time-${label}-${zone}`}
                     style={styles.cell}
                   >
-                    {formatTime(getZoneTime(2, zone, start, interval.end)
-                    )}
+                    {formatTime(
+                      cumulative && interval.half === 2
+                      ? getZoneTime(2, zone, 0, 2400, 1) +
+                        getZoneTime(2, zone, 2400, interval.end, 2)
+                        : getZoneTime(2, zone, start, interval.end, interval.half)
+                      )}
                   </td>
                 ))}
               </tr>
@@ -440,7 +476,7 @@ const renderZoneTimeTable  = ({
                 style={styles.cell}
               >
                 <strong>
-                  {formatTime(getZoneTime(1, zone, 0, 4800))}
+                  {formatTime(getZoneTime(1, zone, 0, 2400, 1) + getZoneTime(1, zone, 2400, 4800, 2))}
                 </strong>
               </td>
             ))}
@@ -452,7 +488,7 @@ const renderZoneTimeTable  = ({
                 style={styles.cell}
               >
                 <strong>
-                  {formatTime(getZoneTime(2, zone, 0, 4800))}
+                  {formatTime(getZoneTime(2, zone, 0, 2400, 1) + getZoneTime(2, zone, 2400, 4800, 2))}
                 </strong>
               </td>
             ))}
@@ -492,13 +528,19 @@ const renderAZoneTable = () => {
           {intervals.map((interval) => (
             <tr key={interval.label}>
               <td style={styles.cell}> {interval.label}</td>
-                <td className="reds-cell" style={styles.cell}> {formatTime(getZoneTime(1, "A", interval.start, interval.end))}
+                <td className="reds-cell" style={styles.cell}> {formatTime(getZoneTime(1, "A", interval.start, interval.end, interval.half))}
               </td>
-                <td className="reds-cell" style={styles.cell}> {formatTime(getZoneTime(1, "A", 0, interval.end))}
+                <td className="reds-cell" style={styles.cell}> {formatTime(  interval.half === 2
+                ? getZoneTime(1, "A", 0, 2400, 1) +
+                getZoneTime(1, "A", 2400, interval.end, 2)
+                : getZoneTime(1, "A", 0, interval.end, 1))}
               </td>
-                <td className="away-cell" style={styles.cell}> {formatTime(getZoneTime(2, "A", interval.start, interval.end))}
+                <td className="away-cell" style={styles.cell}> {formatTime(getZoneTime(2, "A", interval.start, interval.end, interval.half))}
               </td>
-                <td className="away-cell" style={styles.cell}> {formatTime(getZoneTime(2, "A", 0, interval.end))}
+                <td className="away-cell" style={styles.cell}> {formatTime(interval.half === 2
+                ? getZoneTime(2, "A", 0, 2400, 1) +
+                getZoneTime(2, "A", 2400, interval.end, 2)
+                : getZoneTime(2, "A", 0, interval.end, 1))}
               </td>
             </tr>
           ))}

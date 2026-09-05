@@ -14,7 +14,8 @@ export default function ZoneTimeGraphs({getZoneTime,intervals,zones,awayName,for
             teamId,
             zone,
             interval.start,
-            interval.end
+            interval.end,
+            interval.half
           ) / 60;
       });
 
