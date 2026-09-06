@@ -2,21 +2,65 @@ import bcrypt from 'bcrypt';
 
 export async function seed(knex) {
   // Wipe tables in reverse order to respect foreign key constraints
+  await knex('role_permissions').del();
   await knex('users').del();
   await knex('events').del();
   await knex('games').del();
+
+
+  await knex('role_permissions').insert([
+    { role: 'admin', match_access: 'edit' },
+    { role: 'analyst', match_access: 'edit' },
+    { role: 'coach', match_access: 'edit' },
+    { role: 'viewer', match_access: 'view' }
+  ]);
 
   // Number of times to salt password
   const NUM_SALTS = 10;
 
   // Hash plaintext password
-  const hashedPassword = await bcrypt.hash('admin', NUM_SALTS);
-
+  const viewerPassword = await bcrypt.hash('user', NUM_SALTS);
   // Add default user with hashed password
   await knex('users').insert([{
+      username: 'viewer',
+      password: viewerPassword,
+      role: 'viewer',
+      keybinds: null,
+      settings: null
+    }]);
+
+  const coachPassword = await bcrypt.hash('coach', NUM_SALTS);
+  await knex('users').insert([{
+    username: 'coach',
+    password: coachPassword,
+    role: 'coach',
+    keybinds: null,
+    settings: null
+  }]);
+
+  const analystPassword = await bcrypt.hash('analyst', NUM_SALTS);
+  await knex('users').insert([{
+    username: 'analyst',
+    password: analystPassword,
+    role: 'analyst',
+    keybinds: null,
+    settings: null
+  }]);
+
+  const adminPassword = await bcrypt.hash('admin', NUM_SALTS);
+  await knex('users').insert([{
     username: 'admin',
-    password: hashedPassword,
+    password: adminPassword,
     role: 'admin',
+    keybinds: null,
+    settings: null
+  }]);
+
+  const ownerPassword = await bcrypt.hash('owner', NUM_SALTS);
+  await knex('users').insert([{
+    username: 'owner',
+    password: ownerPassword,
+    role: 'owner',
     keybinds: null,
     settings: null
   }]);

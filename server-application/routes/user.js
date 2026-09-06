@@ -510,7 +510,79 @@ router.get('/admin-test', verifyToken, requireRole('admin'), (req, res) => {
   });
 });
 
+// ============================== GET https://localhost:3000/user/access-levels ==============================
+// Returns current usergroup access levels
+router.get('/access-levels', verifyToken, requireRole('owner'), async (req, res) => {
+    try {
+      const rows = await req.db('role_permissions').select('role', 'match_access');
+      const accessLevels = {};
 
+      for (const row of rows)
+        accessLevels[row.role] = row.match_access;
+
+      res.status(200).json({
+        error: false,
+        accessLevels
+      });
+
+    } catch (err) {
+      console.error(err);
+
+      res.status(500).json({
+        error: true,
+        message: 'Unable to load access levels'
+      });
+    }
+  }
+);
+
+router.put("/access-levels", verifyToken, requireRole("owner"), async (req, res) => {
+    const { accessLevels } = req.body;
+    const allowedRoles = ["analyst", "coach", "viewer"];
+    const allowedAccess = ["none", "view", "edit"];
+
+    if (!accessLevels || typeof accessLevels !== "object") {
+      return res.status(400).json({
+        error: true,
+        message: "Access levels are required"
+      });
+    }
+
+    try {
+      for (const [role, access] of Object.entries(accessLevels)) {
+        if (!allowedRoles.includes(role)) {
+          return res.status(400).json({
+            error: true,
+            message: `Invalid role: ${role}`
+          });
+        }
+
+        if (!allowedAccess.includes(access)) {
+          return res.status(400).json({
+            error: true,
+            message: `Invalid access level: ${access}`
+          });
+        }
+
+        await req.db("role_permissions")
+          .where({ role })
+          .update({ match_access: access });
+      }
+
+      return res.status(200).json({
+        error: false,
+        message: "Access levels updated successfully"
+      });
+    } catch (err) {
+      console.error("Access level update error:", err);
+
+      return res.status(500).json({
+        error: true,
+        message: "Unable to update access levels"
+      });
+    }
+  }
+);
 
 // ============================== POST https://localhost:3000/user/logout ==============================
 router.post('/logout', (req, res) => {

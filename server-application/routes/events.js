@@ -1,5 +1,5 @@
 import express from 'express';
-import { verifyToken, requireRole } from '../middleware/auth.js';
+import { verifyToken, requireMatchAccess } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -35,7 +35,7 @@ function validateEventInput({game_id, event_code, zone_id, team_id, game_clock, 
 
 // ============================== POST https://localhost:3000/events ==============================
 // Log a game event
-router.post('/', verifyToken, requireRole('admin', 'editor'), async (req, res) => {
+router.post('/', verifyToken, requireMatchAccess("edit"), async (req, res) => {
   try {
     const { game_id, event_code, zone_id, team_id, game_clock, game_half } = req.body;
 
@@ -69,7 +69,7 @@ router.post('/', verifyToken, requireRole('admin', 'editor'), async (req, res) =
 
 // ============================== GET https://localhost:3000/events/game/{id} ==============================
 // Return all events from a specific game_id
-router.get('/game/:id', verifyToken, async (req, res) => {
+router.get('/game/:id', verifyToken, requireMatchAccess("view"), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
@@ -99,7 +99,7 @@ router.get('/game/:id', verifyToken, async (req, res) => {
 
 // ============================== GET https://localhost:3000/events/{id} ==============================
 // Return a single event with the provided event_id
-router.get('/:id', verifyToken, async (req, res) => {
+router.get('/:id', verifyToken, requireMatchAccess("view"), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
@@ -124,7 +124,7 @@ router.get('/:id', verifyToken, async (req, res) => {
 
 // ============================== PUT https://localhost:3000/events/{id} ==============================
 // Update the stored data for a given event_id
-router.put('/:id', verifyToken, requireRole('admin', 'editor'), async (req, res) => {
+router.put('/:id', verifyToken, requireMatchAccess("edit"), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
@@ -165,7 +165,7 @@ router.put('/:id', verifyToken, requireRole('admin', 'editor'), async (req, res)
 
 // ============================== DELETE https://localhost:3000/events/{id} ==============================
 // Delete the event with a given event_id
-router.delete('/:id', verifyToken, requireRole('admin', 'editor'), async (req, res) => {
+router.delete('/:id', verifyToken, requireMatchAccess("edit"), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
