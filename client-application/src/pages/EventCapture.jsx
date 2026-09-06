@@ -130,7 +130,8 @@ function EventCapture() {
     Outline_Colour: "Green",
   });
 
-  const selectedOutlineColour =
+  //const selectedOutlineColour = 
+  
   outlineColours[settings.Outline_Colour] || outlineColours.Green;
 
   useEffect(() => {
