@@ -23,6 +23,11 @@
       "description": "Local Development Server"
     }
   ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "tags": [
     {
       "name": "games",
@@ -63,15 +68,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -104,15 +101,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       }
     },
     "/games/{game_id}": {
@@ -159,15 +148,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       },
       "put": {
         "tags": [
@@ -215,15 +196,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       },
       "delete": {
         "tags": [
@@ -268,15 +241,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       }
     },
     "/events": {
@@ -304,15 +269,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       }
     },
     "/events/game/{game_id}": {
@@ -359,15 +316,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       }
     },
     "/events/{event_id}": {
@@ -414,15 +363,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       },
       "put": {
         "tags": [
@@ -470,15 +411,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       },
       "delete": {
         "tags": [
@@ -523,15 +456,7 @@
           "500": {
             "description": "Database error"
           }
-        },
-        "security": [
-          {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
-          }
-        ]
+        }
       }
     },
     "/user": {
@@ -539,135 +464,327 @@
         "tags": [
           "user"
         ],
-        "summary": "Create user.",
-        "description": "This can only be done by the logged in user.",
+        "summary": "Create a new user.",
+        "description": "This can only be done by a logged in admin user.",
         "operationId": "createUser",
         "requestBody": {
-          "description": "Created user object",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            },
-            "application/xml": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            }
-          }
+          "$ref": "#/components/requestBodies/UserCreateRequestBody"
         },
         "responses": {
-          "200": {
-            "description": "successful operation",
+          "201": {
+            "description": "Success response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserCreateResponse"
                 }
               }
             }
           },
-          "default": {
-            "description": "Unexpected error"
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get a list of all users.",
+        "description": "This can only be done by a logged in admin user.",
+        "operationId": "getUsers",
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUsersResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Update password or role of an existing user.",
+        "description": "This can only be done by a logged in admin user. Intended for use on a user management page.",
+        "operationId": "updateUser",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UserUpdateRequestBody"
+        },
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserUpdateResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete an existing user.",
+        "description": "This can only be done by a logged in admin user.",
+        "operationId": "deleteUser",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UserDeleteRequestBody"
+        },
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDeleteResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
           }
         }
       }
     },
     "/user/login": {
-      "get": {
+      "post": {
         "tags": [
           "user"
         ],
         "summary": "Logs user into the system.",
-        "description": "Log into the system.",
+        "description": "Log an existing user into the system.",
         "operationId": "loginUser",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "query",
-            "description": "The user name for login",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "password",
-            "in": "query",
-            "description": "The password for login in clear text",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UserLoginRequestBody"
+        },
         "responses": {
-          "200": {
-            "description": "successful operation",
-            "headers": {
-              "X-Rate-Limit": {
-                "description": "calls per hour allowed by the user",
-                "schema": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "X-Expires-After": {
-                "description": "date in UTC when token expires",
-                "schema": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              }
-            },
+          "201": {
+            "description": "Success response",
             "content": {
-              "application/xml": {
-                "schema": {
-                  "type": "string"
-                }
-              },
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/UserLoginResponse"
                 }
               }
             }
           },
-          "400": {
-            "description": "Invalid username/password supplied"
+          "500": {
+            "description": "Login error"
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/password": {
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Update password for the logged in user.",
+        "description": "Only available to logged in users.",
+        "operationId": "updatePassword",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UpdatePasswordRequestBody"
+        },
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePasswordResponse"
+                }
+              }
+            }
           },
-          "default": {
-            "description": "Unexpected error"
+          "500": {
+            "description": "Database error"
           }
         }
       }
     },
-    "/user/logout": {
+    "/user/keybinds": {
       "get": {
         "tags": [
           "user"
         ],
-        "summary": "Logs out current logged in user session.",
-        "description": "Log user out of the system.",
-        "operationId": "logoutUser",
-        "parameters": [],
+        "summary": "Retrieves keybindings for the logged in user.",
+        "description": "Returns a JSON object containing a full keymap if the user has modified any keybindings. If no keybinds have been altered, keybinds returns as null.",
+        "operationId": "getKeybinds",
         "responses": {
           "200": {
-            "description": "successful operation"
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetKeybindsResponse"
+                },
+                "examples": {
+                  "keybindsFound": {
+                    "$ref": "#/components/schemas/Keybinds"
+                  },
+                  "noKeybinds": {
+                    "value": {
+                      "error": false,
+                      "keybinds": null
+                    }
+                  }
+                }
+              }
+            }
           },
-          "default": {
-            "description": "Unexpected error"
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Updates keybindings for the logged in user.",
+        "description": "Takes a full keymap and saves the cusom keybinds for the logged in user.",
+        "operationId": "updateKeybinds",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UpdateKeybindsRequestBody"
+        },
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateKeybindsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Resets keybindings for the logged in user to default.",
+        "description": "Resets any existing keybinds, reverting the user to default settings.",
+        "operationId": "resetKeybinds",
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetKeybindsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      }
+    },
+    "/user/settings": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Retrieves settings for the logged in user.",
+        "description": "Returns a JSON object containing a full settings map if the user has modified any settings. If no settings have been altered, settings returns as null.",
+        "operationId": "getSettings",
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSettingsResponse"
+                },
+                "examples": {
+                  "settingsFound": {
+                    "$ref": "#/components/schemas/Settings"
+                  },
+                  "noSettings": {
+                    "value": {
+                      "error": false,
+                      "keybinds": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Updates settings for the logged in user.",
+        "description": "Takes a full settings map and saves the cusom settings for the logged in user.",
+        "operationId": "updateSettings",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UpdateSettingsRequestBody"
+        },
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSettingsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Resets settings for the logged in user to default.",
+        "description": "Resets any existing settings, reverting the user to default settings.",
+        "operationId": "resetSettings",
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetSettingsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database error"
           }
         }
       }
@@ -694,6 +811,7 @@
           },
           "start_time": {
             "type": "string",
+            "format": "date-time",
             "description": "ISO string representation of game start time",
             "example": "2026-06-01T14:30:00Z"
           },
@@ -823,6 +941,11 @@
       },
       "GameCreateResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "game_id"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -840,6 +963,11 @@
       },
       "GameUpdateResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "game_id"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -857,6 +985,11 @@
       },
       "GameDeleteResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "game_id"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -874,6 +1007,11 @@
       },
       "EventCreateResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "event_id"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -883,7 +1021,7 @@
             "type": "string",
             "example": "Event logged successfully"
           },
-          "game_id": {
+          "event_id": {
             "type": "integer",
             "example": 1
           }
@@ -891,6 +1029,11 @@
       },
       "EventUpdateResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "event_id"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -900,7 +1043,7 @@
             "type": "string",
             "example": "Event updated successfully"
           },
-          "game_id": {
+          "event_id": {
             "type": "integer",
             "example": 1
           }
@@ -908,6 +1051,11 @@
       },
       "EventDeleteResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "event_id"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -917,7 +1065,7 @@
             "type": "string",
             "example": "Event deleted successfully"
           },
-          "game_id": {
+          "event_id": {
             "type": "integer",
             "example": 1
           }
@@ -925,6 +1073,11 @@
       },
       "GetAllGamesResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "games"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -960,6 +1113,11 @@
       },
       "GetSingleGameResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "game"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -976,6 +1134,10 @@
       },
       "MissingGameErrorResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -989,6 +1151,10 @@
       },
       "NoGamesErrorResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -1002,6 +1168,11 @@
       },
       "GetEventResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "event"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -1018,6 +1189,10 @@
       },
       "MissingEventErrorResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -1031,6 +1206,10 @@
       },
       "NoEventsErrorResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -1044,6 +1223,11 @@
       },
       "GetGameEventsResponse": {
         "type": "object",
+        "required": [
+          "error",
+          "message",
+          "events"
+        ],
         "properties": {
           "error": {
             "type": "boolean",
@@ -1098,6 +1282,596 @@
             ]
           }
         }
+      },
+      "UserRole": {
+        "type": "object",
+        "required": [
+          "username",
+          "role"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username of the account",
+            "example": "admin"
+          },
+          "role": {
+            "type": "string",
+            "description": "User access role",
+            "enum": [
+              "admin",
+              "editor",
+              "viewer"
+            ],
+            "example": "admin"
+          }
+        }
+      },
+      "UserLogin": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username to authenticate",
+            "example": "admin"
+          },
+          "password": {
+            "type": "string",
+            "description": "Password to authenticate",
+            "example": "admin"
+          }
+        }
+      },
+      "UserFull": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserLogin"
+          },
+          {
+            "$ref": "#/components/schemas/UserRole"
+          }
+        ],
+        "example": {
+          "username": "test",
+          "password": "test",
+          "role": "viewer"
+        }
+      },
+      "JWTPayload": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          {
+            "type": "object",
+            "required": [
+              "iat",
+              "exp"
+            ],
+            "properties": {
+              "iat": {
+                "type": "integer",
+                "description": "Issued at timestamp",
+                "example": 1787390825
+              },
+              "exp": {
+                "type": "integer",
+                "description": "Expiration timestamp",
+                "example": 1787477225
+              }
+            }
+          }
+        ]
+      },
+      "UserLoginResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message",
+          "token_type",
+          "token",
+          "token_payload"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Login successful"
+          },
+          "token_type": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzg3MzkwODI1LCJleHAiOjE3ODc0NzcyMjV9.BKKd_DX2a2DknyHBQq8lZxCcHwD5o3TfDLst0zHY6hg"
+          },
+          "token_payload": {
+            "$ref": "#/components/schemas/JWTPayload"
+          }
+        }
+      },
+      "UserCreateResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "User 'test' created successfully with role 'viewer'."
+          }
+        }
+      },
+      "GetUsersResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "users"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          }
+        },
+        "example": {
+          "error": false,
+          "users": [
+            {
+              "username": "admin",
+              "role": "admin"
+            },
+            {
+              "username": "test",
+              "role": "viewer"
+            }
+          ]
+        }
+      },
+      "UserUpdate": {
+        "type": "object",
+        "required": [
+          "username"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "test"
+          }
+        },
+        "oneOf": [
+          {
+            "title": "Update Password Only",
+            "type": "object",
+            "required": [
+              "password"
+            ],
+            "properties": {
+              "password": {
+                "type": "string",
+                "example": "newpassword"
+              }
+            }
+          },
+          {
+            "title": "Update Role Only",
+            "type": "object",
+            "required": [
+              "role"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": [
+                  "admin",
+                  "editor",
+                  "viewer"
+                ],
+                "example": "editor"
+              }
+            }
+          },
+          {
+            "title": "Update Password & Role",
+            "type": "object",
+            "required": [
+              "password",
+              "role"
+            ],
+            "properties": {
+              "password": {
+                "type": "string",
+                "example": "newpassword"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "admin",
+                  "editor",
+                  "viewer"
+                ],
+                "example": "editor"
+              }
+            }
+          }
+        ]
+      },
+      "UserUpdateResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "User 'test' updated successfully."
+          }
+        }
+      },
+      "UserDelete": {
+        "type": "object",
+        "required": [
+          "username"
+        ],
+        "properties": {
+          "username": {
+            "$ref": "#/components/schemas/UserRole/properties/username"
+          }
+        },
+        "example": {
+          "username": "test"
+        }
+      },
+      "UserDeleteResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "User 'test' deleted successfully."
+          }
+        }
+      },
+      "UpdatePassword": {
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "example": "test"
+          },
+          "new_password": {
+            "type": "string",
+            "example": "newpassword"
+          }
+        }
+      },
+      "UpdatePasswordResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Password updated successfully."
+          }
+        }
+      },
+      "Keybinds": {
+        "type": "object",
+        "description": "Mapping of game events and controls to QWERTY keyboard keys",
+        "required": [
+          "Pass",
+          "Kick",
+          "Catch",
+          "Ruck",
+          "Scrum",
+          "Penalty",
+          "Advantage",
+          "Turnover",
+          "Lineout",
+          "Maul",
+          "Pause",
+          "Add_Time",
+          "Remove_Time",
+          "Move_Zone_Left",
+          "Move_Zone_Right",
+          "Swap_Team",
+          "Swap_Direction"
+        ],
+        "properties": {
+          "Pass": {
+            "type": "string",
+            "example": "P"
+          },
+          "Kick": {
+            "type": "string",
+            "example": "K"
+          },
+          "Catch": {
+            "type": "string",
+            "example": "C"
+          },
+          "Ruck": {
+            "type": "string",
+            "example": "R"
+          },
+          "Scrum": {
+            "type": "string",
+            "example": "S"
+          },
+          "Penalty": {
+            "type": "string",
+            "example": "E"
+          },
+          "Advantage": {
+            "type": "string",
+            "example": "A"
+          },
+          "Turnover": {
+            "type": "string",
+            "example": "T"
+          },
+          "Lineout": {
+            "type": "string",
+            "example": "L"
+          },
+          "Maul": {
+            "type": "string",
+            "example": "M"
+          },
+          "Pause": {
+            "type": "string",
+            "example": "Space"
+          },
+          "Add_Time": {
+            "type": "string",
+            "example": "="
+          },
+          "Remove_Time": {
+            "type": "string",
+            "example": "-"
+          },
+          "Move_Zone_Left": {
+            "type": "string",
+            "example": "Left Arrow"
+          },
+          "Move_Zone_Right": {
+            "type": "string",
+            "example": "Right Arrow"
+          },
+          "Swap_Team": {
+            "type": "string",
+            "example": "Tab"
+          },
+          "Swap_Direction": {
+            "type": "string",
+            "example": "Up Arrow"
+          }
+        },
+        "example": {
+          "Pass": "P",
+          "Kick": "K",
+          "Catch": "C",
+          "Ruck": "R",
+          "Scrum": "S",
+          "Penalty": "E",
+          "Advantage": "A",
+          "Turnover": "T",
+          "Lineout": "L",
+          "Maul": "M",
+          "Pause": "Space",
+          "Add_Time": "=",
+          "Remove_Time": "-",
+          "Move_Zone_Left": "Left Arrow",
+          "Move_Zone_Right": "Right Arrow",
+          "Swap_Team": "Tab",
+          "Swap_Direction": "Up Arrow"
+        }
+      },
+      "GetKeybindsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "keybinds"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "keybinds": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Keybinds"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateKeybindsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message",
+          "keybinds"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Keybinds updated successfully."
+          },
+          "keybinds": {
+            "$ref": "#/components/schemas/Keybinds"
+          }
+        }
+      },
+      "ResetKeybindsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Keybinds successfully reset to default."
+          }
+        }
+      },
+      "Settings": {
+        "type": "object",
+        "description": "Modified user settings",
+        "required": [
+          "Event_History_Length",
+          "Outline_Colour",
+          "Enable_Keybinds",
+          "Large_Buttons",
+          "Dark_Mode",
+          "Default_Home_Team"
+        ],
+        "properties": {
+          "Event_History_Length": {
+            "type": "integer",
+            "example": 8
+          },
+          "Outline_Colour": {
+            "type": "string",
+            "example": "Green"
+          },
+          "Enable_Keybinds": {
+            "type": "boolean",
+            "example": true
+          },
+          "Large_Buttons": {
+            "type": "boolean",
+            "example": false
+          },
+          "Dark_Mode": {
+            "type": "boolean",
+            "example": false
+          },
+          "Default_Home_Team": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "example": {
+          "Event_History_Length": 8,
+          "Outline_Colour": "Green",
+          "Enable_Keybinds": true,
+          "Large_Buttons": false,
+          "Dark_Mode": false,
+          "Default_Home_Team": true
+        }
+      },
+      "GetSettingsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "settings"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "settings": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Settings"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateSettingsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message",
+          "settings"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Settings updated successfully."
+          },
+          "settings": {
+            "$ref": "#/components/schemas/Settings"
+          }
+        }
+      },
+      "ResetSettingsResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Settings successfully reset to default."
+          }
+        }
       }
     },
     "requestBodies": {
@@ -1132,25 +1906,177 @@
             }
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "petstore_auth": {
-        "type": "oauth2",
-        "flows": {
-          "implicit": {
-            "authorizationUrl": "https://petstore3.swagger.io/oauth/authorize",
-            "scopes": {
-              "write:pets": "modify pets in your account",
-              "read:pets": "read your pets"
+      },
+      "UserLoginRequestBody": {
+        "description": "Payload required to authenticate a user",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UserLogin"
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UserLogin"
             }
           }
         }
       },
-      "api_key": {
-        "type": "apiKey",
-        "name": "api_key",
-        "in": "header"
+      "UserCreateRequestBody": {
+        "description": "Payload required to create a new user",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UserFull"
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UserFull"
+            }
+          }
+        }
+      },
+      "UserUpdateRequestBody": {
+        "description": "Payload required to update a user's password or role. Must supply username and at least password or role.",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UserUpdate"
+            },
+            "examples": {
+              "updateRoleOnly": {
+                "summary": "Option 1: Update Role Only",
+                "description": "Updates only the user's role",
+                "value": {
+                  "username": "test",
+                  "role": "editor"
+                }
+              },
+              "updatePasswordOnly": {
+                "summary": "Option 2: Update Password Only",
+                "description": "Updates only the user's password",
+                "value": {
+                  "username": "test",
+                  "password": "newpassword"
+                }
+              },
+              "updateBoth": {
+                "summary": "Option 3: Update Password and Role",
+                "description": "Updates both the password and role simultaneously",
+                "value": {
+                  "username": "test",
+                  "password": "newpassword",
+                  "role": "editor"
+                }
+              }
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UserUpdate"
+            },
+            "examples": {
+              "updatePasswordOnly": {
+                "summary": "Option 1: Update Password Only",
+                "value": {
+                  "username": "test",
+                  "password": "newSecurePassword123"
+                }
+              },
+              "updateRoleOnly": {
+                "summary": "Option 2: Update Role Only",
+                "value": {
+                  "username": "test",
+                  "role": "editor"
+                }
+              },
+              "updateBoth": {
+                "summary": "Option 3: Update Password and Role",
+                "value": {
+                  "username": "test",
+                  "password": "newSecurePassword123",
+                  "role": "editor"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserDeleteRequestBody": {
+        "description": "Payload required to delete a user account",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UserDelete"
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UserDelete"
+            }
+          }
+        }
+      },
+      "UpdatePasswordRequestBody": {
+        "description": "Payload required to update the password of a logged in user",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UpdatePassword"
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/UpdatePassword"
+            }
+          }
+        }
+      },
+      "UpdateKeybindsRequestBody": {
+        "description": "Payload required to update user keybindings",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Keybinds"
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/Keybinds"
+            }
+          }
+        }
+      },
+      "UpdateSettingsRequestBody": {
+        "description": "Payload required to update user settings",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Settings"
+            }
+          },
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "$ref": "#/components/schemas/Settings"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your JWT token directly (e.g. eyJhbGciOiJKV1Qi...)"
       }
     }
   }

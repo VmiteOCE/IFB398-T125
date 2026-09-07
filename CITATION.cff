@@ -1,0 +1,24 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: IFB398-T125 Web Application
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Mitchell
+    family-names: de Waard
+  - given-names: Kyle
+    family-names: Irwin
+  - given-names: Arabella
+    family-names: Rivera
+  - given-names: Matt
+    family-names: Smith
+  - given-names: Luke
+    family-names: Thomas
+repository-code: 'https://github.com/VmiteOCE/IFB398-T125'
+abstract: IFB398 Capstone Project
+commit: 1a92668390a6775401b197e314ce46e6ba09550f
+date-released: '2026-05-24'

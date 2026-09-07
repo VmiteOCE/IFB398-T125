@@ -1,11 +1,13 @@
 import { beforeAll, beforeEach, afterAll, describe, expect, test } from 'vitest';
 import request from 'supertest';
 import knex from 'knex';
+import bcrypt from "bcrypt";
 
 import { createApp } from '../app.js';
 
 let db;
 let app;
+let agent;
 
 // =========================================================
 // Test Setup
@@ -13,6 +15,7 @@ let app;
 
 beforeAll(async () => {
     process.env.NODE_ENV = 'test';
+    process.env.JWT_SECRET = 'test-secret-key';
 
     // Create a completely separate in-memory SQLite database
     db = knex({
@@ -37,10 +40,23 @@ beforeEach(async () => {
     // Reset users before every test
     await db('users').del();
 
-    await db('users').insert({
-        username: 'testuser',
-        password: 'testpassword'
+    const hashedPassword = await bcrypt.hash("testpassword", 10);
+
+    await db("users").insert({
+        username: "testuser",
+        password: hashedPassword,
+        role: "admin"
     });
+
+    // Authenticate
+    agent = request.agent(app);
+
+    await agent
+        .post("/user/login")
+        .send({
+            username: "testuser",
+            password: "testpassword"
+        });
 });
 
 afterAll(async () => {
@@ -67,16 +83,12 @@ describe('POST /user/login', () => {
 
         expect(response.body).toMatchObject({
             error: false,
-            message: 'Login successful!'
-        });
-
-        expect(response.body.user).toMatchObject({
-            username: 'testuser'
+            message: 'Login successful'
         });
     });
 
 
-    test('returns the correct user after successful login', async () => {
+    test('sets authentication cookie after successful login', async () => {
         const response = await request(app)
             .post('/user/login')
             .send({
@@ -85,9 +97,12 @@ describe('POST /user/login', () => {
             });
 
         expect(response.status).toBe(200);
-        expect(response.body.user).toBeDefined();
-        expect(response.body.user.username).toBe('testuser');
-        expect(response.body.user.password).toBe('testpassword');
+
+        const cookies = response.headers['set-cookie'];
+
+        expect(cookies).toBeDefined();
+        expect(cookies[0]).toContain('token=');
+        expect(cookies[0]).toContain('HttpOnly');
     });
 
 
