@@ -2,6 +2,7 @@ import { Container, Row, Col, Button, Form, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Settings.css";
+import DataExport from "../components/DataExport";
 
 function Settings() {
   const navigate = useNavigate();
@@ -147,6 +148,8 @@ function Settings() {
     { label: "Data & Export", icon: "D" },
     { label: "Help", icon: "?" },
   ];
+
+
 
   // ---------------- HELPERS ----------------
   const showSaved = (message = "Settings saved") => {
@@ -334,6 +337,7 @@ function Settings() {
     
     fetchSettings();
   }, []);
+
 
   // ---------------- PROFILE UI ----------------
   const renderProfile = () => (
@@ -680,32 +684,10 @@ function Settings() {
 
   // ---------------- DATA UI ----------------
   const renderDataExport = () => (
-    <div className="settings-section-panel">
-      <div className="text-center mb-4">
-        <h4>Data & Export</h4>
-        <p className="text-muted mb-0">Download app data in CSV format.</p>
-      </div>
-
-      <div className="settings-data-card border p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-        <div className="d-flex align-items-center gap-3">
-          <div className="settings-data-icon d-flex align-items-center justify-content-center text-white fw-bold">
-            CSV
-          </div>
-          <div>
-            <strong>Export Data as CSV</strong>
-            <div className="text-muted small">
-              Download the available match and event data.
-            </div>
-          </div>
-        </div>
-        <Button
-          className="settings-danger-button"
-          disabled
-        >
-          Export CSV
-        </Button>
-      </div>
-    </div>
+    <DataExport
+      showSaved={showSaved}
+      controlButtonStyle={controlButtonStyle}
+    />
   );
 
   // ---------------- HELP UI ----------------
