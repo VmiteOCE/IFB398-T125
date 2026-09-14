@@ -8,6 +8,45 @@
   padding: 0;
 }
 
+.keybind-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.keybind-modal-footer-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Keybind modal sections */
+.keybind-section-card {
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+.keybind-section-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.keybind-section-card .form-control {
+  background-color: white;
+  cursor: pointer;
+}
+
+.keybind-section-card .form-control:focus {
+  border-color: #212529;
+  box-shadow: 0 0 0 0.15rem rgba(33, 37, 41, 0.15);
+}
+
 .settings-page-high-contrast {
   background: #000;
 }
