@@ -88,6 +88,17 @@ function EventCapture() {
     Ball_Out_Of_Play: ".",
   });
 
+  const displayKeybind = (key) => {
+    if (key === " ") return "Space";
+
+    if (key === "ArrowLeft") return "←";
+    if (key === "ArrowRight") return "→";
+    if (key === "ArrowUp") return "↑";
+    if (key === "ArrowDown") return "↓";
+
+    return key.length === 1 ? key.toUpperCase() : key;
+  };
+
   useEffect(() => {
     const fetchKeybinds = async () => {
       try {
@@ -425,7 +436,12 @@ function EventCapture() {
 
   // ---------------- UI ----------------
   return (
-    <Container fluid className="event-capture-page">
+    <Container
+      fluid
+      className={`event-capture-page ${
+        settings.Dark_Mode ? "event-capture-dark" : ""
+      }`}
+    >
       <div className="dashboard-content event-capture-content">
         <div className="event-capture-header">
           <button
@@ -566,16 +582,29 @@ function EventCapture() {
               <h5 className="event-actions-title">Event Actions</h5>
 
               <Row className="event-actions-row">
-                {Object.keys(actionToCode).map((action, i) => (
-                  <Col xs={6} md={3} key={i} className="event-action-col">
-                    <Button
-                      className="event-action-button"
-                      onClick={() => handleAction(action)}
-                    >
-                      {action}
-                    </Button>
-                  </Col>
-                ))}
+                {Object.keys(actionToCode).map((action, i) => {
+                  const showKeybind =
+                    action !== "Ball_In_Play" &&
+                    action !== "Ball_Out_Of_Play";
+
+                  return (
+                    <Col xs={6} md={3} key={i} className="event-action-col">
+                      <Button
+                        className={`event-action-button ${
+                          settings.Large_Buttons ? "event-action-button-large" : ""
+                        }`}
+                        onClick={() => handleAction(action)}
+                      >
+                        {action}
+                        {showKeybind && keybinds[action] && (
+                          <span className="action-keybind">
+                            [{displayKeybind(keybinds[action])}]
+                          </span>
+                        )}
+                      </Button>
+                    </Col>
+                  );
+                })}
               </Row>
             </div>
           </Col>

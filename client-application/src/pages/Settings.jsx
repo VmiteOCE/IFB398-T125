@@ -2,6 +2,7 @@ import { Container, Row, Col, Button, Form, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Settings.css";
+import DataExport from "../components/DataExport";
 
 function Settings() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ function Settings() {
 
 
   // Initial default keybinds, gets overwritten by fetch if user has saved keybinds
-  const [keybinds, setKeybinds] = useState({
+  const DEFAULT_KEYBINDS = {
     Pass: "P",
     Kick: "K",
     Catch: "C",
@@ -58,7 +59,9 @@ function Settings() {
     Move_Zone_Right: "ArrowRight",
     Swap_Team: "Tab",
     Swap_Direction: "ArrowUp",
-  });
+  };
+
+  const [keybinds, setKeybinds] = useState(DEFAULT_KEYBINDS);
 
   useEffect(() => {
     const fetchKeybinds = async () => {
@@ -146,6 +149,8 @@ function Settings() {
     { label: "Help", icon: "?" },
   ];
 
+
+
   // ---------------- HELPERS ----------------
   const showSaved = (message = "Settings saved") => {
     setSaveMessage(message);
@@ -169,6 +174,18 @@ function Settings() {
     reader.readAsDataURL(file);
   };
 
+  //fixes the space key from showing as " " in the keybinds modal, instead it will show as "Space" and also adds arrow symbols for the arrow keys
+  const displayKeybind = (key) => {
+    if (key === " ") return "Space";
+
+    if (key === "ArrowLeft") return "←";
+    if (key === "ArrowRight") return "→";
+    if (key === "ArrowUp") return "↑";
+    if (key === "ArrowDown") return "↓";
+
+    return key.length === 1 ? key.toUpperCase() : key;
+  };
+
   const saveKeybinds = async () => {
     try {
       const res = await fetch("/user/keybinds", {
@@ -190,6 +207,31 @@ function Settings() {
 
     } catch (err) {
       console.error("Keybind save error:", err);
+    }
+  };
+
+  const resetKeybinds = async () => {
+    try {
+      const res = await fetch("/user/keybinds", {
+        method: "DELETE",
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        throw new Error(
+          result.message || "Unable to reset keybinds"
+        );
+      }
+
+      // Reset the keybinds displayed in the UI
+      setKeybinds(DEFAULT_KEYBINDS);
+
+      // Keep the modal open so the user can see the defaults
+      showSaved("Keybinds restored to defaults");
+    } catch (err) {
+      console.error("Keybind reset error:", err);
+      showSaved(err.message || "Unable to reset keybinds");
     }
   };
 
@@ -297,6 +339,7 @@ function Settings() {
     
     fetchSettings();
   }, []);
+
 
   // ---------------- PROFILE UI ----------------
   const renderProfile = () => (
@@ -444,7 +487,7 @@ function Settings() {
       <Row>
         <Col md={6}>
           <Form.Group className="mb-4">
-            <Form.Label>Default Home Team</Form.Label>
+            <Form.Label>Default to Reds Team</Form.Label>
             <Form.Select
               value={matchSettings.defaultHomeSide}
               onChange={(event) =>
@@ -643,32 +686,10 @@ function Settings() {
 
   // ---------------- DATA UI ----------------
   const renderDataExport = () => (
-    <div className="settings-section-panel">
-      <div className="text-center mb-4">
-        <h4>Data & Export</h4>
-        <p className="text-muted mb-0">Download app data in CSV format.</p>
-      </div>
-
-      <div className="settings-data-card border p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-        <div className="d-flex align-items-center gap-3">
-          <div className="settings-data-icon d-flex align-items-center justify-content-center text-white fw-bold">
-            CSV
-          </div>
-          <div>
-            <strong>Export Data as CSV</strong>
-            <div className="text-muted small">
-              Download the available match and event data.
-            </div>
-          </div>
-        </div>
-        <Button
-          className="settings-danger-button"
-          disabled
-        >
-          Export CSV
-        </Button>
-      </div>
-    </div>
+    <DataExport
+      showSaved={showSaved}
+      controlButtonStyle={controlButtonStyle}
+    />
   );
 
   // ---------------- HELP UI ----------------
@@ -774,19 +795,19 @@ function Settings() {
             {!["Data & Export", "Help"].includes(activeSection) && (
               <div className="settings-save-panel d-flex justify-content-between align-items-center gap-3">
                 <Button
-                  className="settings-danger-button"
-                  onClick={handleSave}
-                  style={controlButtonStyle}
-                >
-                  Save Changes
-                </Button>
-
-                <Button
                   className="settings-reset-button"
                   onClick={restoreDefaultSettings}
                   style={controlButtonStyle}
                 >
                   Restore Defaults
+                </Button>
+
+                <Button
+                  className="settings-danger-button"
+                  onClick={handleSave}
+                  style={controlButtonStyle}
+                >
+                  Save Changes
                 </Button>
               </div>
             )}
@@ -814,35 +835,161 @@ function Settings() {
         </Modal.Header>
 
         <Modal.Body>
-          {Object.entries(keybinds).map(([action, key]) => (
-            <Row key={action} className="mb-3 align-items-center">
-              <Col md={6}>
-                <strong>{action.replaceAll("_", " ")}</strong>
-              </Col>
+          <Row className="g-4">
 
-              <Col md={6}>
-                <Form.Control
-                  readOnly
-                  value={editingKey === action ? "Enter keybind..." : key}
-                  onFocus={() => setEditingKey(action)}
-                  onBlur={() => setEditingKey(null)}
-                  onKeyDown={(event) => {
-                    event.preventDefault();
+            {/* ACTION */}
+            <Col md={6}>
+              <div className="keybind-section-card">
+                <h5 className="keybind-section-title">
+                  Action
+                </h5>
 
-                    setKeybinds({
-                      ...keybinds,
-                      [action]: event.key,
-                    });
+                {[
+                  "Pass",
+                  "Kick",
+                  "Catch",
+                  "Ruck",
+                  "Scrum",
+                  "Penalty",
+                  "Advantage",
+                  "Turnover",
+                  "Lineout",
+                  "Maul",
+                ].map((action) => (
+                  <Row
+                    key={action}
+                    className="mb-3 align-items-center"
+                  >
+                    <Col xs={5}>
+                      <strong>{action.replaceAll("_", " ")}</strong>
+                    </Col>
 
-                    setEditingKey(null);
-                  }}
-                />
-              </Col>
-            </Row>
-          ))}
+                    <Col xs={7}>
+                      <Form.Control
+                        readOnly
+                        value={
+                          editingKey === action
+                            ? "Enter keybind..."
+                            : displayKeybind(keybinds[action])
+                        }
+                        onFocus={() => setEditingKey(action)}
+                        onBlur={() => setEditingKey(null)}
+                        onKeyDown={(event) => {
+                          event.preventDefault();
+
+                          setKeybinds({
+                            ...keybinds,
+                            [action]: event.key,
+                          });
+
+                          setEditingKey(null);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                ))}
+              </div>
+            </Col>
+
+            {/* RIGHT COLUMN */}
+            <Col md={6}>
+
+              {/* CLOCK */}
+              <div className="keybind-section-card mb-4">
+                <h5 className="keybind-section-title">
+                  Clock
+                </h5>
+
+                {[
+                  "Pause",
+                  "Add_Time",
+                  "Remove_Time",
+                ].map((action) => (
+                  <Row
+                    key={action}
+                    className="mb-3 align-items-center"
+                  >
+                    <Col xs={5}>
+                      <strong>{action.replaceAll("_", " ")}</strong>
+                    </Col>
+
+                    <Col xs={7}>
+                      <Form.Control
+                        readOnly
+                        value={
+                          editingKey === action
+                            ? "Enter keybind..."
+                            : displayKeybind(keybinds[action])
+                        }
+                        onFocus={() => setEditingKey(action)}
+                        onBlur={() => setEditingKey(null)}
+                        onKeyDown={(event) => {
+                          event.preventDefault();
+
+                          setKeybinds({
+                            ...keybinds,
+                            [action]: event.key,
+                          });
+
+                          setEditingKey(null);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                ))}
+              </div>
+
+              {/* NAVIGATION */}
+              <div className="keybind-section-card">
+                <h5 className="keybind-section-title">
+                  Navigation
+                </h5>
+
+                {[
+                  "Move_Zone_Left",
+                  "Move_Zone_Right",
+                  "Swap_Team",
+                  "Swap_Direction",
+                ].map((action) => (
+                  <Row
+                    key={action}
+                    className="mb-3 align-items-center"
+                  >
+                    <Col xs={5}>
+                      <strong>{action.replaceAll("_", " ")}</strong>
+                    </Col>
+
+                    <Col xs={7}>
+                      <Form.Control
+                        readOnly
+                        value={
+                          editingKey === action
+                            ? "Enter keybind..."
+                            : displayKeybind(keybinds[action])
+                        }
+                        onFocus={() => setEditingKey(action)}
+                        onBlur={() => setEditingKey(null)}
+                        onKeyDown={(event) => {
+                          event.preventDefault();
+
+                          setKeybinds({
+                            ...keybinds,
+                            [action]: event.key,
+                          });
+
+                          setEditingKey(null);
+                        }}
+                      />
+                    </Col>
+                  </Row>
+                ))}
+              </div>
+
+            </Col>
+          </Row>
         </Modal.Body>
 
-        <Modal.Footer>
+        <Modal.Footer className="keybind-modal-footer">
           <Button
             variant="secondary"
             onClick={() => setShowKeybindModal(false)}
@@ -850,12 +997,21 @@ function Settings() {
             Cancel
           </Button>
 
-          <Button
-            className="settings-danger-button"
-            onClick={saveKeybinds}
-          >
-            Save Keybinds
-          </Button>
+          <div className="keybind-modal-footer-right">
+            <Button
+              className="settings-reset-button"
+              onClick={resetKeybinds}
+            >
+              Reset to Defaults
+            </Button>
+
+            <Button
+              className="settings-danger-button"
+              onClick={saveKeybinds}
+            >
+              Save Keybinds
+            </Button>
+          </div>
         </Modal.Footer>
       </Modal>
       <Modal
