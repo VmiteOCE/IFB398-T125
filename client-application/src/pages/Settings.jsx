@@ -487,7 +487,7 @@ function Settings() {
       <Row>
         <Col md={6}>
           <Form.Group className="mb-4">
-            <Form.Label>Default Home Team</Form.Label>
+            <Form.Label>Default to Reds Team</Form.Label>
             <Form.Select
               value={matchSettings.defaultHomeSide}
               onChange={(event) =>
@@ -794,8 +794,6 @@ function Settings() {
 
             {!["Data & Export", "Help"].includes(activeSection) && (
               <div className="settings-save-panel d-flex justify-content-between align-items-center gap-3">
-                
-
                 <Button
                   className="settings-reset-button"
                   onClick={restoreDefaultSettings}

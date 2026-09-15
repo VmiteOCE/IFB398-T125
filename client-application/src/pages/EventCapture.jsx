@@ -436,7 +436,12 @@ function EventCapture() {
 
   // ---------------- UI ----------------
   return (
-    <Container fluid className="event-capture-page">
+    <Container
+      fluid
+      className={`event-capture-page ${
+        settings.Dark_Mode ? "event-capture-dark" : ""
+      }`}
+    >
       <div className="dashboard-content event-capture-content">
         <div className="event-capture-header">
           <button
@@ -585,7 +590,9 @@ function EventCapture() {
                   return (
                     <Col xs={6} md={3} key={i} className="event-action-col">
                       <Button
-                        className="event-action-button"
+                        className={`event-action-button ${
+                          settings.Large_Buttons ? "event-action-button-large" : ""
+                        }`}
                         onClick={() => handleAction(action)}
                       >
                         {action}
