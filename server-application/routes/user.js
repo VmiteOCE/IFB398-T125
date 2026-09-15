@@ -538,7 +538,7 @@ router.get('/access-levels', verifyToken, requireRole('owner'), async (req, res)
 
 router.put("/access-levels", verifyToken, requireRole("owner"), async (req, res) => {
     const { accessLevels } = req.body;
-    const allowedRoles = ["analyst", "coach", "viewer"];
+    const allowedRoles = ["admin", "analyst", "coach", "viewer"];
     const allowedAccess = ["none", "view", "edit"];
 
     if (!accessLevels || typeof accessLevels !== "object") {

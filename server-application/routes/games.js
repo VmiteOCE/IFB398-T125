@@ -53,7 +53,7 @@ function validateGameQuery({status, start, end, sortBy, sortOrder, page, limit})
 
 // ============================== POST https://localhost:3000/games ==============================
 // Create a new game
-router.post('/', verifyToken, requireRole('admin'), requireMatchAccess("edit"), async (req, res) => {
+router.post('/', verifyToken, requireMatchAccess("edit"), async (req, res) => {
   try {
     const { game_name, vs_team, start_time, game_status } = req.body;
 
@@ -107,13 +107,7 @@ router.get('/', verifyToken, requireMatchAccess("view"), async (req, res) => {
       });
     }
 
-    const allowedSortFields = [
-      'game_id',
-      'game_name',
-      'vs_team',
-      'start_time',
-      'game_status'
-    ];
+    const allowedSortFields = [ 'game_id', 'game_name', 'vs_team', 'start_time', 'game_status'];
 
     const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'start_time';
     const safeSortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
@@ -149,8 +143,10 @@ router.get('/', verifyToken, requireMatchAccess("view"), async (req, res) => {
     // Count filtered games before pagination
     const countResult = await query
       .clone()
-      .count({ total: 'game_id' })
+      .count({ total: '*' })
       .first();
+
+    const total = Number(countResult?.total ?? 0);
 
     // Get filtered games
     const games = await query
@@ -160,8 +156,6 @@ router.get('/', verifyToken, requireMatchAccess("view"), async (req, res) => {
       .limit(parsedLimit)
       .offset(offset);
 
-    const total = Number(countResult?.total ?? 0);
-    const totalPages = Math.ceil(total / parsedLimit);
 
     // Empty results are valid, so return 200 with an empty array
     res.status(200).json({
@@ -172,15 +166,7 @@ router.get('/', verifyToken, requireMatchAccess("view"), async (req, res) => {
         page: parsedPage,
         limit: parsedLimit,
         total: total,
-        totalPages: totalPages,
-        nextPage:
-          parsedPage < totalPages
-            ? parsedPage + 1
-            : null,
-        previousPage:
-          parsedPage > 1
-            ? parsedPage - 1
-            : null
+        totalPages: Math.ceil(total / parsedLimit)
       }
     });
 

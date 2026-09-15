@@ -60,7 +60,7 @@ export default function LoginPage() {
                 setError(data.message || "Login failed.");
                 return;
             }
-            
+
             // Store the logged-in user's details for use throughout the app
             sessionStorage.setItem("username", data.username);
             sessionStorage.setItem("role", data.role);

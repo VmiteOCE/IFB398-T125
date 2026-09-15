@@ -45,6 +45,52 @@ footer {
   padding: 24px;
 }
 
+.dashboard-layout {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-layout .page-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-layout .dashboard-content {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  background-color: #8C5F5F;
+  border-radius: 16px;
+
+  overflow: hidden;
+}
+
+.dashboard-layout .dashboard-toolbar {
+  flex-shrink: 0;
+}
+
+.dashboard-layout .dashboard-table-scroll {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.dashboard-layout .dashboard-table {
+  width: 100%;
+  min-height: 100%;
+  padding: 12px;
+}
+
 .dashboard-content {
   flex: 1;
   width: 100%;
@@ -53,10 +99,19 @@ footer {
   border-radius: 16px;
 }
 
+.dashboard-table-scroll {
+    width: 100%;
+    /* max-height: 60vh; */
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    border-radius: 12px;
+}
+
 .dashboard-table {
   flex: 1;
   padding: 12px;
-  overflow-y: auto;
+  /* overflow-y: auto; */
 }
 
 .dashboard-card {

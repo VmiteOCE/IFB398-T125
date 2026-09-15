@@ -1,4 +1,4 @@
-import { useEffect, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button, Col, Collapse, Form, Row } from "react-bootstrap";
 import GameForm from "../components/GameForm";
@@ -79,6 +79,15 @@ export default function Dashboard() {
     const [error, setError] = useState("");
     const [openGameId, setOpenGameId] = useState(null);
 
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 1
+    });
+
+    const loadMoreRef = useRef(null);
+
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
     const [filters, setFilters] = useState(() => filtersFromSearchParams(searchParams));
@@ -152,26 +161,84 @@ export default function Dashboard() {
 
         async function loadGames() {
             try {
+                setLoading(true);
                 const data = await requestGames(filters, controller.signal);
                 if (controller.signal.aborted) return;
 
-                setGames(Array.isArray(data?.games) ? data.games : []);
+                const newGames = Array.isArray(data?.games) ? data.games : [];
+
+                // New search/filter = replace list
+                if (Number(filters.page) === 1) {
+                    setGames(newGames);
+                } else {
+                    setGames((currentGames) => {
+                        const existingIds = new Set(currentGames.map((game) => game.game_id));
+                        const uniqueNewGames = newGames.filter((game) => !existingIds.has(game.game_id));
+
+                        return [ ...currentGames, ...uniqueNewGames];
+                    });
+
+                    setPagination(
+                        data.pagination ?? {
+                            page: Number(filters.page),
+                            limit: Number(filters.limit),
+                            total: 0,
+                            totalPages: 1
+                        }
+                    );
+                }
+
                 setError("")
-                setLoading(false)
             } catch (error) {
                 if (error.name === "AbortError") return;
-
                 console.error("Fetch games error:", error);
 
                 setGames([]);
                 setError(error.message || "Unknown error fetching games");
-                setLoading(false);
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         }
 
         loadGames();
         return () => {controller.abort()}
     }, [filters, setSearchParams]);
+
+
+    useEffect(() => {
+        const target = loadMoreRef.current;
+
+        if (!target || loading || error) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) return;
+
+                const currentPage = Number(filters.page);
+                if (currentPage >= pagination.totalPages) return;
+
+                setFilters((currentFilters) => ({
+                    ...currentFilters,
+                    page: String(
+                        Number(currentFilters.page) + 1
+                    )
+                }));
+            },
+            {
+                // Start loading slightly before
+                // the user reaches the bottom
+                rootMargin: "200px"
+            }
+        );
+
+        observer.observe(target);
+        return () => { observer.disconnect() };
+
+    }, [loading, error, filters.page, pagination.totalPages]);
 
     // Change Filter ----------------------------------------
     function handleFilterChange(event) {
@@ -315,41 +382,56 @@ export default function Dashboard() {
                 </Form>
             </div>
 
-            <div className="dashboard-table">
-                {loading && <p>Loading games...</p>}
+            <div className="dashboard-table-scroll">
+                <div className="dashboard-table">
+                    {/* {loading && <p>Loading games...</p>} */}
 
-                {!loading && error && (
-                    <p className="dashboard-message">{error}</p>
-                )}
+                    {!loading && error && (
+                        <p className="dashboard-message">{error}</p>
+                    )}
 
-                {!loading && !error && games.length === 0 && (
-                    <p className="dashboard-message">No games available.</p>
-                )}
+                    {!loading && !error && games.length === 0 && (
+                        <p className="dashboard-message">No games available.</p>
+                    )}
 
-                {games.map((game) => (
-                    <div className="dashboard-card" key={game.game_id}>
-                        <button className="dashboard-row" onClick={() => setOpenGameId(openGameId === game.game_id ? null : game.game_id)}>
-                            <span>{game.game_name}</span>
-                            <span>{game.vs_team}</span>
-                            <span>{formatGameDate(game.start_time)}</span>
-                            <span>{statusLabels[game.game_status] ?? game.game_status}</span>
-                        </button>
+                    {games.map((game) => (
+                        <div className="dashboard-card" key={game.game_id}>
+                            <button className="dashboard-row" onClick={() => setOpenGameId(openGameId === game.game_id ? null : game.game_id)}>
+                                <span>{game.game_name}</span>
+                                <span>{game.vs_team}</span>
+                                <span>{formatGameDate(game.start_time)}</span>
+                                <span>{statusLabels[game.game_status] ?? game.game_status}</span>
+                            </button>
 
-                        {openGameId === game.game_id && (
-                            <div className="dashboard-actions">
-                                <div className="dashboard-actions-left">
-                                    <button onClick={() => handleDeleteGame(game.game_id)}>Delete</button>
-                                    <GameForm gameId={game.game_id} onSaved={fetchGames}/>
+                            {openGameId === game.game_id && (
+                                <div className="dashboard-actions">
+                                    <div className="dashboard-actions-left">
+                                        <button onClick={() => handleDeleteGame(game.game_id)}>Delete</button>
+                                        <GameForm gameId={game.game_id} onSaved={fetchGames}/>
+                                    </div>
+
+                                    <div className="dashboard-actions-right">
+                                        <button onClick={() => navigate(`/event-capture/${game.game_id}`)}>Capture</button>
+                                        <button onClick={() => navigate(`/game-events/${game.game_id}`)}>Stats</button>
+                                    </div>
                                 </div>
+                            )}
+                        </div>
+                    ))}
+                    <div ref={loadMoreRef} />
 
-                                <div className="dashboard-actions-right">
-                                    <button onClick={() => navigate(`/event-capture/${game.game_id}`)}>Capture</button>
-                                    <button onClick={() => navigate(`/game-events/${game.game_id}`)}>Stats</button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                    {loading && (
+                        <p className="dashboard-message">
+                            Loading games...
+                        </p>
+                    )}
+
+                    {!loading && pagination.page >= pagination.totalPages && games.length > 0 && (
+                        <p className="dashboard-message">
+                            No more games.
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -14,15 +14,15 @@ import Login from "./pages/Login";
 import EventCapture from "./pages/EventCapture";
 import GameEventsPage from "./pages/GameEventsPage";
 import SettingsPage from "./pages/Settings";
-import LogoutPage from "./pages/Logout";
 
 // Shared page layout used across all routes
 function AppLayout() {
     const location = useLocation();
     const hideNav = location.pathname === "/login";
+    const isDashboard = location.pathname === "/dashboard";
 
     return (
-        <div className="app-layout">
+        <div className={`app-layout ${isDashboard ? "dashboard-layout" : ""}`}>
             {!hideNav && <Header />}
 
             <Container className={`${!hideNav ? "page-content" : "login-content"}`}>
@@ -42,7 +42,6 @@ const router = createBrowserRouter([
         children: [
             { index: true, Component: Home },
             { path: "login", Component: Login },
-
             {
                 element: <ProtectedRoute />,
                 children: [
@@ -51,8 +50,7 @@ const router = createBrowserRouter([
                     { path: "event-capture/:id", Component: EventCapture },
                     { path: "game-events", Component: GameEventsPage },
                     { path: "game-events/:id", Component: GameEventsPage },
-                    { path: "settings", Component: SettingsPage },
-                    { path: "logout", Component: LogoutPage }
+                    { path: "settings", Component: SettingsPage }
                 ]
             }
         ]

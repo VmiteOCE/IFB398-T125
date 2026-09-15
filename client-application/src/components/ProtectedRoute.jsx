@@ -27,7 +27,15 @@ export default function ProtectedRoute() {
         };
 
         verifyUser();
-    }, [location.pathname, location.search, location.hash]);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        if (authStatus !== "authenticated") return;
+
+        const currentUrl = location.pathname + location.search + location.hash;
+        sessionStorage.setItem("lastVisitedPage", currentUrl);
+
+    }, [authStatus, location.pathname, location.search, location.hash]);
 
     if (authStatus === "checking") {
         return <p>Checking authentication...</p>;

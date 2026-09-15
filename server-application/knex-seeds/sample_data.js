@@ -19,7 +19,7 @@ export async function seed(knex) {
   const NUM_SALTS = 10;
 
   // Hash plaintext password
-  const viewerPassword = await bcrypt.hash('user', NUM_SALTS);
+  const viewerPassword = await bcrypt.hash('viewer', NUM_SALTS);
   // Add default user with hashed password
   await knex('users').insert([{
       username: 'viewer',
