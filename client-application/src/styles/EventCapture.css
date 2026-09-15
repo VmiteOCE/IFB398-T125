@@ -49,6 +49,12 @@
   overflow: hidden;
 }
 
+.action-keybind {
+  margin-left: 10px;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
 .game-clock-panel {
   text-align: center;
   background-color: #f8f9fa;

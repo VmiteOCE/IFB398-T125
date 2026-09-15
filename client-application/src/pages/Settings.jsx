@@ -177,11 +177,13 @@ function Settings() {
   //fixes the space key from showing as " " in the keybinds modal, instead it will show as "Space" and also adds arrow symbols for the arrow keys
   const displayKeybind = (key) => {
     if (key === " ") return "Space";
-    if (key === "ArrowLeft") return "← Arrow Left";
-    if (key === "ArrowRight") return "→ Arrow Right";
-    if (key === "ArrowUp") return "↑ Arrow Up";
-    if (key === "ArrowDown") return "↓ Arrow Down";
-    return key;
+
+    if (key === "ArrowLeft") return "←";
+    if (key === "ArrowRight") return "→";
+    if (key === "ArrowUp") return "↑";
+    if (key === "ArrowDown") return "↓";
+
+    return key.length === 1 ? key.toUpperCase() : key;
   };
 
   const saveKeybinds = async () => {
@@ -792,13 +794,7 @@ function Settings() {
 
             {!["Data & Export", "Help"].includes(activeSection) && (
               <div className="settings-save-panel d-flex justify-content-between align-items-center gap-3">
-                <Button
-                  className="settings-danger-button"
-                  onClick={handleSave}
-                  style={controlButtonStyle}
-                >
-                  Save Changes
-                </Button>
+                
 
                 <Button
                   className="settings-reset-button"
@@ -806,6 +802,14 @@ function Settings() {
                   style={controlButtonStyle}
                 >
                   Restore Defaults
+                </Button>
+
+                <Button
+                  className="settings-danger-button"
+                  onClick={handleSave}
+                  style={controlButtonStyle}
+                >
+                  Save Changes
                 </Button>
               </div>
             )}
