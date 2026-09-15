@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import EventCapture from "./pages/EventCapture";
 import GameEventsPage from "./pages/GameEventsPage";
 import SettingsPage from "./pages/Settings";
+import Logout from "./pages/Logout";
 
 // Shared page layout used across all routes
 function AppLayout() {
@@ -42,6 +43,7 @@ const router = createBrowserRouter([
         children: [
             { index: true, Component: Home },
             { path: "login", Component: Login },
+            { path: "logout", Component: Logout },
             {
                 element: <ProtectedRoute />,
                 children: [
