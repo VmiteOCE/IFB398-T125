@@ -1,0 +1,131 @@
+.analysis-view-buttons  {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.analysis-view-buttons button {
+  border: none;
+  border-radius: 9px;
+  padding: 7px 24px;
+  font-size: 15px;
+}
+
+.analysis-table-card {
+  background: white;
+  color: black;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.analysis-table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.analysis-table th {
+  white-space: normal;
+  padding: 8px;
+}
+
+.analysis-table td {
+  white-space: nowrap;
+  padding: 8px;
+}
+
+/* Reds cell colour */
+.reds-cell {
+  background-color: #ff969dff;
+}
+
+/* Away cell colour */
+.away-cell {
+  background-color: #b0d1fc;
+}
+
+/* Base table */
+.analysis-table-teams,
+.analysis-table-a-zone {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+/* A Zone headings wraping */
+.analysis-table-a-zone th {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+
+/* Reduce table size for medium screens */
+@media (max-width: 991px) {
+  .analysis-table-teams {
+    font-size: 12px;
+  }
+
+  .analysis-table-teams th,
+  .analysis-table-teams td {
+    padding: 4px !important;
+  }
+
+  .analysis-table-a-zone {
+    font-size: 11px;
+  }
+
+  .analysis-table-a-zone th,
+  .analysis-table-a-zone td {
+    padding: 4px !important;
+  }
+}
+
+
+/*Reduce table size for small screen */
+@media (max-width: 767px) {
+  .analysis-table-teams {
+    font-size: 9px;
+  }
+
+  .analysis-table-teams th,
+  .analysis-table-teams td {
+    padding: 2px !important;
+  }
+
+  .analysis-table-a-zone {
+    font-size: 9px;
+  }
+
+  .analysis-table-a-zone th,
+  .analysis-table-a-zone td {
+    padding: 2px !important;
+  }
+}
+
+
+/* Reduce table size for very small screens */
+@media (max-width: 575px) {
+  .analysis-table-card {
+    padding: 6px;
+  }
+
+  .analysis-table-teams {
+    font-size: 7px;
+  }
+
+  .analysis-table-teams th,
+  .analysis-table-teams td {
+    padding: 1px !important;
+  }
+
+  .analysis-table-a-zone {
+    font-size: 7px;
+  }
+
+  .analysis-table-a-zone th,
+  .analysis-table-a-zone td {
+    padding: 1px !important;
+  }
+}

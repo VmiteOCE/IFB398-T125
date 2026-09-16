@@ -2,15 +2,16 @@
 import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
-
+import "../styles/GameEvents.css";
 import ZoneTimeGraphs from "../components/GameGraphs";
 
   // Format Event Time
   const formatTime = (seconds) => {
     if (seconds === null || seconds === undefined) return "-";
-
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    //Round decimals to full seconds (5.2 = 5)
+    const roundedSeconds = Math.round(seconds);
+    const mins = Math.floor(roundedSeconds / 60);
+    const secs = roundedSeconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
@@ -207,30 +208,70 @@ const getZoneTime = (teamId, zone, start, end, half) => {
 
   let totalSeconds = 0;
 
-  for (let i = 0; i < sortedEvents.length - 1; i++) {
-    const currentEvent = sortedEvents[i];
-    const nextEvent = sortedEvents[i + 1];
+ // 10 second windows - can change to higher if needed - sheets was 15 seconds
+  const windowSize = 10;
+  // Window loop stops at each interval 
+  let effectiveEnd = end;
 
-    if (
-      currentEvent.event_code !== "." &&
-      currentEvent.team_id === teamId &&
-      currentEvent.zone_id === zone
-    ) {
-      const sectionStart = Math.max(
-        currentEvent.game_clock,
-        start
+  // Allow extra time in the final interval of each half
+  if (
+    (half === 1 && end === 2400) ||
+    (half === 2 && end === 4800)
+  ) {
+    const eventsAfterStart = sortedEvents.filter(
+      (event) => event.game_clock >= start
+    );
+
+    // Only continue if there is at least 1 event
+    if (eventsAfterStart.length > 0) {
+      const latestEventTime = Math.max(
+        ...eventsAfterStart.map((event) => event.game_clock)
       );
 
-      const sectionEnd =
-        (half === 1 && end === 2400) ||
-        (half === 2 && end === 4800)
-        ? nextEvent.game_clock
-        : Math.min(nextEvent.game_clock, end);
-
-      if (sectionEnd > sectionStart) {
-        totalSeconds += sectionEnd - sectionStart;
+      if (latestEventTime >= end) {
+        effectiveEnd =
+          Math.floor(latestEventTime / windowSize) * windowSize +
+          windowSize;
       }
     }
+  }
+
+  /// Go through the interval in the 10 second windows
+  for (
+    let windowStart = start;
+    windowStart < effectiveEnd;
+    windowStart += windowSize
+  ) {
+    const windowEnd = Math.min(
+      windowStart + windowSize,
+      effectiveEnd
+    );
+
+    // Find all actions that in the window
+    const windowEvents = sortedEvents.filter(
+      (event) =>
+        event.game_clock >= windowStart &&
+        event.game_clock < windowEnd
+    );
+
+    /// if nothing happens in window allocate 0 time 
+    if (windowEvents.length === 0) {
+      continue;
+    }
+
+    // Each action gets an equal share of the window
+    const timePerAction =
+      (windowEnd - windowStart) / windowEvents.length;
+
+    // Find actions belonging to this team and zone, *note ball out of play receives no zone time
+    const matchingEvents = windowEvents.filter(
+      (event) =>
+        event.event_code !== "." &&
+        event.team_id === teamId &&
+        event.zone_id === zone
+    );
+
+    totalSeconds += matchingEvents.length * timePerAction;
   }
   return totalSeconds;
 };
@@ -242,7 +283,7 @@ const getZoneTime = (teamId, zone, start, end, half) => {
     return (
       <div className="analysis-table-card">
         <h5>{title}</h5>
-        <table className="analysis-table">
+        <table className="analysis-table analysis-table-teams">
 
           <thead>
             {/** The Team headings **/}
@@ -377,8 +418,8 @@ const renderZoneTimeTable  = ({
   return (
         <div className="analysis-table-card">
         <h5>{title}</h5>
-        <table className="analysis-table"
-        style={{tableLayout: "fixed", fontSize: "clamp(10px, 1.2vw, 16px)"}}>
+        <div className="table-responsive">
+        <table className="analysis-table analysis-table-teams">
 
         <thead>
         <tr>
@@ -496,6 +537,7 @@ const renderZoneTimeTable  = ({
         </tbody>
         </table>
     </div>
+    </div>
   );
 };
 
@@ -506,7 +548,8 @@ const renderAZoneTable = () => {
   return (
     <div className="analysis-table-card">
       <h5>A Zone Time</h5>
-      <table className="analysis-table">
+      <div className="table-responsive">
+      <table className="analysis-table analysis-table-a-zone">
         <thead>
           <tr>
           <th style={styles.header}>Interval</th>
@@ -546,6 +589,7 @@ const renderAZoneTable = () => {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 };
@@ -642,6 +686,7 @@ const renderAZoneTable = () => {
               <p>Loading...</p>
             ) : (
               <div
+              className="table-responsive"
                 style={{
                   maxHeight: "300px",
                   overflowY: "auto",
@@ -763,7 +808,7 @@ const renderAZoneTable = () => {
               </tbody>
             </table>
           </div>
-          
+
       {/* GAME ANALYSIS */}
 <h3
   style={{marginTop: "40px", marginBottom: "20px", textAlign: "center",}}

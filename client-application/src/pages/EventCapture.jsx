@@ -129,8 +129,6 @@ function EventCapture() {
     Dark_Mode: false,
     Outline_Colour: "Green",
   });
-
-  //const selectedOutlineColour = 
   
   outlineColours[settings.Outline_Colour] || outlineColours.Green;
 
