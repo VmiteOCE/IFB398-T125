@@ -1,4 +1,5 @@
 import {BarChart,Bar,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer} from "recharts";
+import { Row, Col } from "react-bootstrap";
 export default function ZoneTimeGraphs({getZoneTime,intervals,zones,awayName,formatTime}) 
 {
   // Turn zone time into data for Recharts
@@ -52,19 +53,15 @@ export default function ZoneTimeGraphs({getZoneTime,intervals,zones,awayName,for
 
   const renderGraph = (teamName, graphData) => {
     return (
-      <div
-        style={{flex: "1 1 420px", width: "100%", minWidth: "0"}}
-      >
-        <h4
-          style={{textAlign: "center", marginBottom: "10px"}}
-        >
+        <div className="analysis-graph">
+        <h4 className="analysis-graph-title">
           {teamName}
         </h4>
 
         <div
-          style={{width: "100%", height: "435px", border: "1px solid", padding: "20px 10px 10px 10px"}}
+          style={{width: "100%", border: "1px solid", padding: "5px"}}
         >
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" aspect={1}>
             <BarChart
               data={graphData}
               layout="vertical"
@@ -88,7 +85,8 @@ export default function ZoneTimeGraphs({getZoneTime,intervals,zones,awayName,for
               <YAxis
                 type="category"
                 dataKey="interval"
-                width={80}
+                width={70}
+                interval={0}
                 axisLine={false}
                 tickLine={false}
                 label ={{value: "Time Interval", angle:-90, position: "insideLeft"}}
@@ -127,18 +125,16 @@ export default function ZoneTimeGraphs({getZoneTime,intervals,zones,awayName,for
         Minutes per zone
       </h5>
 
-
-      <div
-        style={{display: "flex",alignItems: "center",gap: "30px",flexWrap: "wrap"}}
-      >
+      <Row className="g-4 align-items-center">
 
         {/* Reds graph */}
-        {renderGraph("Reds", redsData)}
+          <Col xs={12} lg={5}>
+          {renderGraph("Reds", redsData)}
+          </Col>
 
         {/* Legend */}
-        <div
-          style={{display: "flex",flexDirection: "column",gap: "3px",minWidth: "90px",flexShrink: "0"}}
-        >
+        <Col xs={12} lg={2}>
+        <div className="d-flex flex-row flex-lg-column flex-wrap justify-content-center gap-2">
           {zones.map((zone) => (
             <div
               key={zone}
@@ -155,12 +151,14 @@ export default function ZoneTimeGraphs({getZoneTime,intervals,zones,awayName,for
             </div>
           ))}
         </div>
-
+        </Col>
 
         {/* Away graph */}
-        {renderGraph(awayName, awayData)}
+          <Col xs={12} lg={5}>
+          {renderGraph(awayName, awayData)}
+          </Col>
+        </Row>
       </div>
-    </div>
   );
 }
 

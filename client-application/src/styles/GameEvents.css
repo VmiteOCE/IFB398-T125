@@ -73,7 +73,7 @@
   }
 
   .analysis-table-a-zone {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .analysis-table-a-zone th,
@@ -86,7 +86,7 @@
 /*Reduce table size for small screen */
 @media (max-width: 767px) {
   .analysis-table-teams {
-    font-size: 9px;
+    font-size: 7px;
   }
 
   .analysis-table-teams th,
@@ -95,7 +95,7 @@
   }
 
   .analysis-table-a-zone {
-    font-size: 9px;
+    font-size: 7px;
   }
 
   .analysis-table-a-zone th,
@@ -106,13 +106,13 @@
 
 
 /* Reduce table size for very small screens */
-@media (max-width: 575px) {
+@media (max-width: 479px) {
   .analysis-table-card {
     padding: 6px;
   }
 
   .analysis-table-teams {
-    font-size: 7px;
+    font-size: 5px;
   }
 
   .analysis-table-teams th,
@@ -121,11 +121,60 @@
   }
 
   .analysis-table-a-zone {
-    font-size: 7px;
+    font-size: 5px;
   }
 
   .analysis-table-a-zone th,
   .analysis-table-a-zone td {
     padding: 1px !important;
+  }
+}
+
+/* Graph text */
+.analysis-graph-title {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+
+/* Graph for Medium screens */
+@media (max-width: 991px) {
+  .analysis-graph .recharts-cartesian-axis-tick-value {
+    font-size: 12px;
+  }
+
+  .analysis-graph .recharts-label {
+    font-size: 12px;
+  }
+}
+
+/* Graphs for Small screens */
+@media (max-width: 767px) {
+  .analysis-graph .recharts-cartesian-axis-tick-value {
+    font-size: 9px;
+  }
+
+  .analysis-graph .recharts-label {
+    font-size: 9px;
+  }
+
+  .analysis-graph-title {
+    font-size: 16px;
+  }
+}
+
+
+/* Graphs for very small screens */
+@media (max-width: 479px) {
+  .analysis-graph .recharts-cartesian-axis-tick-value {
+    font-size: 7px;
+  }
+
+  .analysis-graph .recharts-label {
+    font-size: 7px;
+  }
+
+  .analysis-graph-title {
+    font-size: 14px;
   }
 }
