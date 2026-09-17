@@ -9,7 +9,6 @@ function Settings() {
   const [activeSection, setActiveSection] = useState("Profile");
   const [saveMessage, setSaveMessage] = useState("");
 
-  
 
   // ---------------- PROFILE ----------------
   const [profile, setProfile] = useState({
@@ -18,7 +17,6 @@ function Settings() {
     role: sessionStorage.getItem("role") || "Unknown",
   });
 
-  
 
   // ---------------- ACCESSIBILITY ----------------
   const [accessibility, setAccessibility] = useState({
@@ -130,12 +128,27 @@ function Settings() {
     }
   };
 
-  
-  const [accessLevels, setAccessLevels] = useState({
-    Analyst: "Edit matches",
-    Coach: "View and edit",
-    Viewer: "View only",
-  });
+  const [accessLevels, setAccessLevels] = useState({});
+
+  useEffect(() => {
+    const fetchAccessLevels = async () => {
+      try {
+        const res = await fetch("/user/access-levels");
+        const result = await res.json();
+
+        if (!res.ok || result.error)
+          throw new Error(result.message || "Unable to load access levels");
+
+        setAccessLevels(result.accessLevels);
+
+      } catch (err) {
+        console.error("Access level fetch error:", err);
+      }
+    };
+
+    if (profile.role.toLowerCase() === "owner")
+      fetchAccessLevels();
+  }, [profile.role]);
 
   const settingsSections = [
     { label: "Profile", icon: "P" },
@@ -218,6 +231,19 @@ function Settings() {
         throw new Error("Unable to save settings");
       }
 
+      if (profile.role.toLowerCase() === "owner" && activeSection === "Security") {
+        const accessRes = await fetch("/user/access-levels", {
+          method: "PUT",
+          headers: { "Content-Type" : "application/json" },
+          body: JSON.stringify({ accessLevels: accessLevels })
+        })
+
+        const accessResult = await accessRes.json();
+
+        if (!accessRes.ok || accessResult.error)
+          throw new Error(accessResult.message || "Unable to save access levels");
+      }
+
       console.log("Settings payload:", payload);
       showSaved();
     } catch (err) {
@@ -257,7 +283,6 @@ function Settings() {
   };
 
 
-  
 
 
   const controlButtonStyle = accessibility.largeButtons
@@ -294,7 +319,7 @@ function Settings() {
         console.error("Settings fetch error:", err);
       }
     };
-    
+
     fetchSettings();
   }, []);
 
@@ -601,7 +626,7 @@ function Settings() {
         </Button>
       </div>
 
-      {profile.role === "Owner" && (
+      {profile.role.toLowerCase() === "owner" && (
         <div className="mt-4">
           <h5>Modify Access Levels</h5>
           <p className="text-muted small">
@@ -614,7 +639,7 @@ function Settings() {
               key={role}
             >
               <Col sm={5}>
-                <strong>{role}</strong>
+                <strong>{role.charAt(0).toUpperCase() + role.slice(1)}</strong>
               </Col>
 
               <Col sm={7}>
@@ -627,10 +652,9 @@ function Settings() {
                     })
                   }
                 >
-                  <option>View only</option>
-                  <option>Edit matches</option>
-                  <option>View and edit</option>
-                  <option>No access</option>
+                  <option value="edit">View and edit</option>
+                  <option value="view">View only</option>
+                  <option value="none">No access</option>
                 </Form.Select>
               </Col>
             </Row>

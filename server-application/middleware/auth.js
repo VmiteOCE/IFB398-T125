@@ -60,12 +60,50 @@ export const verifyToken = (req, res, next) => {
 // Check if user has required role to access API endpoint
 export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
+    if ((!req.user || !allowedRoles.includes(req.user.role)) && req.user.role !== "owner") {
       return res.status(403).json({
         error: true,
         message: "Forbidden: You do not have permission to access this resource"
       });
     }
     next();
+  };
+};
+
+export const requireMatchAccess = (requiredAccess) => {
+  return async (req, res, next) => {
+    try {
+      // Owner always has full match access
+      if (req.user?.role === "owner") {
+        return next();
+      }
+
+      const permission = await req.db("role_permissions")
+        .where({ role: req.user.role })
+        .first();
+
+      if (!permission || permission.match_access === "none") {
+        return res.status(403).json({
+          error: true,
+          message: "Forbidden: You do not have access to matches"
+        });
+      }
+
+      if (requiredAccess === "edit" && permission.match_access !== "edit") {
+        return res.status(403).json({
+          error: true,
+          message: "Forbidden: You do not have permission to edit matches"
+        });
+      }
+
+      next();
+    } catch (err) {
+      console.error("Match access check error:", err);
+
+      return res.status(500).json({
+        error: true,
+        message: "Unable to check match permissions"
+      });
+    }
   };
 };

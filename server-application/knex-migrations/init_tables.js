@@ -22,12 +22,17 @@ export function up(knex) {
       table.string('role').notNullable().defaultTo('viewer');
       table.text('keybinds').nullable().defaultTo(null);
       table.text('settings').nullable().defaultTo(null);
+    })
+    .createTable('role_permissions', (table) => {
+      table.string('role').primary();
+      table.string('match_access').notNullable().defaultTo('view');
     });
 }
 
 export function down(knex) {
   // Drop tables in reverse order to respect foreign key constraints
   return knex.schema
+    .dropTableIfExists('role_permissions')
     .dropTableIfExists('users')
     .dropTableIfExists('events')
     .dropTableIfExists('games')

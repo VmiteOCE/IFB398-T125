@@ -9,7 +9,7 @@ export async function checkAuth() {
     }
 }
 
-export async function logout() {
+export async function logoutUser() {
     const response = await fetch("/user/logout", {
         method: "POST"
     });

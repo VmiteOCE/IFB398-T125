@@ -13,21 +13,39 @@ export default function ProtectedRoute() {
             const authenticated = await checkAuth();
 
             if (!authenticated) {
-                const originalUrl = location.pathname + location.search + location.hash;
+                const originalUrl = location.pathname + window.location.search + window.location.hash;
+
                 sessionStorage.setItem("redirectAfterLogin", originalUrl);
                 setAuthStatus("unauthenticated");
                 return;
             }
 
-            const currentUrl = location.pathname + location.search + location.hash;
-
-            sessionStorage.setItem("lastVisitedPage", currentUrl);
-
             setAuthStatus("authenticated");
         };
 
         verifyUser();
-    }, [location.pathname, location.search, location.hash]);
+    }, [location.pathname]);
+
+
+    useEffect(() => {
+        if (authStatus !== "authenticated") return;
+
+        const currentUrl = location.pathname + location.search + location.hash;
+        sessionStorage.setItem("lastVisitedPage", currentUrl);
+    }, [
+        authStatus,
+        location.pathname,
+        location.search,
+        location.hash
+    ]);
+
+    useEffect(() => {
+        if (authStatus !== "authenticated") return;
+
+        const currentUrl = location.pathname + location.search + location.hash;
+        sessionStorage.setItem("lastVisitedPage", currentUrl);
+
+    }, [authStatus, location.pathname, location.search, location.hash]);
 
     if (authStatus === "checking") {
         return <p>Checking authentication...</p>;

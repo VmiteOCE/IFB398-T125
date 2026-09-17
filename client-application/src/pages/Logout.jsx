@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../utils/auth";
+import { logoutUser } from "../utils/auth";
 
-export default function LogoutPage() {
+export default function LogutPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -19,7 +19,7 @@ export default function LogoutPage() {
             }
 
             try {
-                await logout();
+                await logoutUser();
             } catch (error) {
                 console.error("Logout failed:", error);
             }

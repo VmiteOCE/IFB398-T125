@@ -1,5 +1,5 @@
 import express from 'express';
-import { verifyToken, requireRole } from '../middleware/auth.js';
+import { verifyToken, requireRole, requireMatchAccess } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -53,7 +53,7 @@ function validateGameQuery({status, start, end, sortBy, sortOrder, page, limit})
 
 // ============================== POST https://localhost:3000/games ==============================
 // Create a new game
-router.post('/', verifyToken, requireRole('admin', 'editor'), async (req, res) => {
+router.post('/', verifyToken, requireMatchAccess("edit"), async (req, res) => {
   try {
     const { game_name, vs_team, start_time, game_status } = req.body;
 
@@ -85,7 +85,7 @@ router.post('/', verifyToken, requireRole('admin', 'editor'), async (req, res) =
 
 // ============================== GET https://localhost:3000/games ==============================
 // Get a filtered, sorted and paginated list of games
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', verifyToken, requireMatchAccess("view"), async (req, res) => {
   try {
     const {
       search = '',
@@ -107,13 +107,7 @@ router.get('/', verifyToken, async (req, res) => {
       });
     }
 
-    const allowedSortFields = [
-      'game_id',
-      'game_name',
-      'vs_team',
-      'start_time',
-      'game_status'
-    ];
+    const allowedSortFields = [ 'game_id', 'game_name', 'vs_team', 'start_time', 'game_status'];
 
     const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'start_time';
     const safeSortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
@@ -149,8 +143,10 @@ router.get('/', verifyToken, async (req, res) => {
     // Count filtered games before pagination
     const countResult = await query
       .clone()
-      .count({ total: 'game_id' })
+      .count({ total: '*' })
       .first();
+
+    const total = Number(countResult?.total ?? 0);
 
     // Get filtered games
     const games = await query
@@ -160,8 +156,6 @@ router.get('/', verifyToken, async (req, res) => {
       .limit(parsedLimit)
       .offset(offset);
 
-    const total = Number(countResult?.total ?? 0);
-    const totalPages = Math.ceil(total / parsedLimit);
 
     // Empty results are valid, so return 200 with an empty array
     res.status(200).json({
@@ -172,15 +166,7 @@ router.get('/', verifyToken, async (req, res) => {
         page: parsedPage,
         limit: parsedLimit,
         total: total,
-        totalPages: totalPages,
-        nextPage:
-          parsedPage < totalPages
-            ? parsedPage + 1
-            : null,
-        previousPage:
-          parsedPage > 1
-            ? parsedPage - 1
-            : null
+        totalPages: Math.ceil(total / parsedLimit)
       }
     });
 
@@ -196,7 +182,7 @@ router.get('/', verifyToken, async (req, res) => {
 
 // ============================== GET https://localhost:3000/games/{id} ==============================
 // Get details for a specific game_id
-router.get('/:id', verifyToken, async (req, res) => {
+router.get('/:id', verifyToken, requireMatchAccess("view"), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
@@ -221,7 +207,7 @@ router.get('/:id', verifyToken, async (req, res) => {
 
 // ============================== PUT https://localhost:3000/games/{id} ==============================
 // Update the stored data for a given game_id
-router.put('/:id', verifyToken, requireRole('admin', 'editor'), async (req, res) => {
+router.put('/:id', verifyToken, requireMatchAccess("edit"), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
@@ -260,7 +246,7 @@ router.put('/:id', verifyToken, requireRole('admin', 'editor'), async (req, res)
 
 // ============================== DELETE https://localhost:3000/games/{id} ==============================
 // Delete the game with a given game_id
-router.delete('/:id', verifyToken, requireRole('admin', 'editor'), async (req, res) => {
+router.delete('/:id', verifyToken, requireMatchAccess("edit"), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10); // Parse to integer base-10
 
