@@ -26,7 +26,7 @@ router.post('/', verifyToken, requireRole('admin'), async (req, res) => {
     }
 
     // Check for valid user role
-    const allowedRoles = ['editor', 'viewer'];
+    const allowedRoles = ["admin", "analyst", "coach", "viewer"];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ error: true, message: `Invalid role. Allowed roles: ${allowedRoles.join(', ')}` });
     }
@@ -93,7 +93,7 @@ router.patch('/', verifyToken, requireRole('admin'), async (req, res) => {
     const updateData = {};
 
     if (role) {
-      const allowedRoles = ['editor', 'viewer'];
+      const allowedRoles = ["admin", "analyst", "coach", "viewer"];
       if (!allowedRoles.includes(role)) {
         return res.status(400).json({
           error: true,
