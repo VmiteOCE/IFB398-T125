@@ -66,7 +66,9 @@ async function requestGames(filters, signal) {
         .catch(() => null);
 
     if (!response.ok || data?.error) {
-        throw new Error( data?.message || `Failed to fetch games. Status: ${response.status}`);
+        const error = new Error( data?.message || `Failed to fetch games. Status: ${response.status}`);
+        error.status = response.status;
+        throw error;
     }
 
     return data;
@@ -74,6 +76,7 @@ async function requestGames(filters, signal) {
 
 
 export default function Dashboard() {
+    const [accessDenied, setAccessDenied] = useState(false);
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -110,10 +113,14 @@ export default function Dashboard() {
             const data = await requestGames(filtersToUse);
             setGames(Array.isArray(data?.games) ? data.games : []);
         } catch (error) {
+            if (error.name === "AbortError") return;
             console.error("Fetch games error:", error);
 
-            setGames([]);
+            if (error.status === 403) {
+                setAccessDenied(true);
+            }
 
+            setGames([]);
             setError(error.message || "Unknown error fetching games");
         } finally {
             setLoading(false);
@@ -162,6 +169,8 @@ export default function Dashboard() {
         async function loadGames() {
             try {
                 setLoading(true);
+                setError("");
+                setAccessDenied(false);
                 const data = await requestGames(filters, controller.signal);
                 if (controller.signal.aborted) return;
 
@@ -192,6 +201,10 @@ export default function Dashboard() {
             } catch (error) {
                 if (error.name === "AbortError") return;
                 console.error("Fetch games error:", error);
+
+                if (error.status === 403) {
+                    setAccessDenied(true);
+                }
 
                 setGames([]);
                 setError(error.message || "Unknown error fetching games");
@@ -263,7 +276,8 @@ export default function Dashboard() {
             console.log("Delete response:", data);
 
             if (!response.ok) {
-                throw new Error(data?.message || `Failed to delete game. Status: ${response.status}`);
+                const error = new Error(data?.message || `Failed to delete game. Status: ${response.status}`);
+                throw error;
             }
 
             setGames((currentGames) => currentGames.filter((game) => game.id !== gameId));
@@ -386,14 +400,6 @@ export default function Dashboard() {
                 <div className="dashboard-table">
                     {/* {loading && <p>Loading games...</p>} */}
 
-                    {!loading && error && (
-                        <p className="dashboard-message">{error}</p>
-                    )}
-
-                    {!loading && !error && games.length === 0 && (
-                        <p className="dashboard-message">No games available.</p>
-                    )}
-
                     {games.map((game) => (
                         <div className="dashboard-card" key={game.game_id}>
                             <button className="dashboard-row" onClick={() => setOpenGameId(openGameId === game.game_id ? null : game.game_id)}>
@@ -426,10 +432,20 @@ export default function Dashboard() {
                         </p>
                     )}
 
-                    {!loading && pagination.page >= pagination.totalPages && games.length > 0 && (
-                        <p className="dashboard-message">
-                            No more games.
-                        </p>
+                    {!loading && games.length === 0 && (
+                        <div className="dashboard-empty-box">
+                            {!accessDenied ? (
+                                <>
+                                    <h3>No games found</h3>
+                                    <p>Try adjusting your search or filters.</p>
+                                </>
+                            ) : (
+                                <>
+                                    <h3>Access denied</h3>
+                                    <p>You do not have permission to view games.</p>
+                                </>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>

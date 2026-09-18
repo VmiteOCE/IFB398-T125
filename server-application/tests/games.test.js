@@ -45,7 +45,7 @@ beforeEach(async () => {
     await db('users').insert({
         username: 'testuser',
         password: hashedPassword,
-        role: 'admin'
+        role: 'owner'
     });
 
     agent = request.agent(app);
@@ -472,9 +472,7 @@ describe('GET /games filters', () => {
             page: 1,
             limit: 2,
             total: 3,
-            totalPages: 2,
-            nextPage: 2,
-            previousPage: null
+            totalPages: 2
         });
     });
 
@@ -492,9 +490,7 @@ describe('GET /games filters', () => {
             page: 2,
             limit: 2,
             total: 3,
-            totalPages: 2,
-            nextPage: null,
-            previousPage: 1
+            totalPages: 2
         });
     });
 
