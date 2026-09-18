@@ -1,5 +1,5 @@
 
-import { createBrowserRouter, RouterProvider, Outlet, useLocation } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet, useLocation, Navigate } from "react-router-dom";
 import { Container } from "react-bootstrap";
 import "./App.css";
 
@@ -8,7 +8,6 @@ import Footer from "./components/Footer";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
-import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard"
 import Login from "./pages/Login";
 import EventCapture from "./pages/EventCapture";
@@ -41,7 +40,7 @@ const router = createBrowserRouter([
         path: "/",
         Component: AppLayout,
         children: [
-            { index: true, Component: Home },
+            { index: true, element: <Navigate to="/login" replace /> },
             { path: "login", Component: Login },
             { path: "logout", Component: Logout },
             {
