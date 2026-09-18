@@ -2,6 +2,7 @@ import { Container, Row, Col, Button, Form, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Settings.css";
+import UserForm from "../components/UserForm";
 
 function Settings() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ function Settings() {
   const [editingKey, setEditingKey] = useState(null);
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -659,6 +661,14 @@ function Settings() {
               </Col>
             </Row>
           ))}
+
+          <Button
+            className="settings-outline-button mt-3"
+            style={controlButtonStyle}
+            onClick={() => setShowUserModal(true)}
+          >
+              Manage Users
+          </Button>
         </div>
       )}
     </div>
@@ -951,6 +961,16 @@ function Settings() {
           </Button>
         </Modal.Footer>
       </Modal>
+      <Modal
+        show={showUserModal}
+        onHide={() => setShowUserModal(false)}
+        centered
+        size="lg"
+      ></Modal>
+      <UserForm
+        show={showUserModal}
+        onHide={() => setShowUserModal(false)}
+    />
 
     </Container>
   );
