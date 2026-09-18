@@ -19,13 +19,6 @@ const actionToCode = {
   Ball_Out_Of_Play: ".",
 };
 
-const outlineColours = {
-  Green: "#4caf50",
-  Red: "#ff0000",
-  Blue: "#0000ff",
-  Yellow: "#ffff00",
-  White: "#ffffff",
-};
 
 const codeToAction = Object.fromEntries(
   Object.entries(actionToCode).map(([k, v]) => [v, k])
@@ -140,7 +133,6 @@ function EventCapture() {
     Outline_Colour: "Green",
   });
   
-  outlineColours[settings.Outline_Colour] || outlineColours.Green;
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -512,7 +504,7 @@ function EventCapture() {
                       style={
                         isSelected
                           ? {
-                              borderColor: selectedOutlineColour,
+                              borderColor: settings.Outline_Colour,
                             }
                           : {}
                       }
