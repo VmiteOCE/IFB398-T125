@@ -8,9 +8,49 @@
   padding: 0;
 }
 
+.keybind-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.keybind-modal-footer-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Keybind modal sections */
+.keybind-section-card {
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+.keybind-section-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.keybind-section-card .form-control {
+  background-color: white;
+  cursor: pointer;
+}
+
+.keybind-section-card .form-control:focus {
+  border-color: #212529;
+  box-shadow: 0 0 0 0.15rem rgba(33, 37, 41, 0.15);
+}
+
 .settings-page-high-contrast {
   background: #000;
 }
+
 
 /* Matches .event-capture-content */
 .settings-content-wrapper {
@@ -484,6 +524,112 @@
   font-size: 17px;
 }
 
+/* Data & Export */
+.settings-export-table {
+  margin-bottom: 0;
+  border: 2px solid #444;
+  border-radius: 6px;
+  overflow: hidden;
+  color: white;
+  background: #111;
+}
+
+.settings-export-table thead th {
+  font-weight: 700;
+  color: white;
+  background: #2a2a2a;
+  border-bottom: 2px solid #555;
+  border-top: none;
+  padding: 12px;
+}
+
+.settings-export-table tbody td {
+  color: white;
+  background: #111;
+  border-color: #444;
+  padding: 12px;
+  vertical-align: middle;
+}
+
+.settings-export-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.settings-export-table tbody tr:hover td {
+  background: #2a2a2a;
+}
+
+/* Selected game */
+.settings-export-row-selected td {
+  background: #4a1515 !important;
+  border-top: 2px solid #b30000 !important;
+  border-bottom: 2px solid #b30000 !important;
+}
+
+.settings-export-row-selected td:first-child {
+  border-left: 3px solid #b30000;
+}
+
+.settings-export-row-selected td:last-child {
+  border-right: 3px solid #b30000;
+}
+
+/* bubble buttons */
+.settings-export-table .form-check-input {
+  background-color: #111;
+  border: 2px solid #555;
+  cursor: pointer;
+}
+
+.settings-export-table .form-check-input:checked {
+  background-color: #b30000;
+  border-color: #b30000;
+}
+
+.settings-export-table .form-check-input:focus {
+  border-color: #555;
+  box-shadow: none;
+}
+
+/* Selected game information */
+.settings-export-selected {
+  padding: 12px 16px;
+  border: 2px solid #4caf50;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: white;
+}
+
+.settings-export-selected strong {
+  color: #4caf50;
+}
+
+/* Export button */
+.settings-export-button {
+  background: #b30000 !important;
+  border: 2px solid #b30000 !important;
+  color: white !important;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 8px 20px;
+}
+
+.settings-export-button:hover:not(:disabled) {
+  background: #d00000 !important;
+  border-color: #d00000 !important;
+}
+
+.settings-export-button:disabled {
+  background: #444 !important;
+  border-color: #555 !important;
+  color: #aaa !important;
+  opacity: 1;
+}
+
+/* Loading spinner */
+.settings-export-table + .spinner-border {
+  color: #4caf50;
+}
 
 /* Responsive layout */
 @media (max-width: 767px) {
