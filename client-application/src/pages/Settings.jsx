@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Settings.css";
 import UserForm from "../components/UserForm";
+import DataExport from "../components/DataExport";
 
 function Settings() {
   const navigate = useNavigate();
