@@ -55,7 +55,7 @@ beforeEach(async () => {
         .post("/user/login")
         .send({
             username: "testuser",
-            password: "testpassword"
+            password: "testpassword",
         });
 });
 

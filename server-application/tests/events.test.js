@@ -46,7 +46,7 @@ beforeEach(async () => {
     await db('users').insert({
         username: 'testuser',
         password: hashedPassword,
-        role: 'admin'
+        role: 'owner'
     });
 
     [gameId] = await db('games').insert({

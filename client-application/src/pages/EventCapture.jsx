@@ -122,8 +122,7 @@ function EventCapture() {
 
     fetchKeybinds();
   }, []);
-  
-  
+
   // Mapping keybinds to actions to match old system
   const actionKeys = Object.fromEntries(
     Object.entries(keybinds || {})
@@ -167,8 +166,6 @@ function EventCapture() {
 
     fetchSettings();
   }, []);
-
-  
 
   // ---------------- HELPERS ----------------
   const toSeconds = (timeStr) => {
@@ -430,8 +427,7 @@ function EventCapture() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedZone, zones, selectedTeam, currentTime, editingIndex, events]);
-
+  }, [selectedZone, zones, selectedTeam, currentTime, editingIndex, events,  settings.Enable_Keybinds, keybinds.Move_Zone_Right, keybinds.Move_Zone_Left, keybinds.Swap_Team, actionKeys]);
   // ---------------- UI ----------------
   return (
     <Container
@@ -516,7 +512,7 @@ function EventCapture() {
                       style={
                         isSelected
                           ? {
-                              borderColor: settings.Outline_Colour,
+                              borderColor: selectedOutlineColour,
                             }
                           : {}
                       }
