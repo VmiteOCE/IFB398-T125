@@ -10,6 +10,11 @@ export default {
         target: 'https://localhost:3000',
         changeOrigin: true,
         secure: false,
+      },
+      '/user': {
+        target: 'https://localhost:3000',
+        changeOrigin: true,
+        secure: false,
       }
     }
   }

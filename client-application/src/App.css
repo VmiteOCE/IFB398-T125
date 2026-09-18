@@ -182,3 +182,32 @@
     border-right-color: var(--border);
   }
 }
+
+/* SETTINGS COG NAVBAR STYLING */
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.settings-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.settings-cog-icon {
+  width: 50px;
+  height: 50px;
+  display: block;
+  cursor: pointer;
+  background: transparent;
+}
+
+.settings-cog-icon:hover {
+  opacity: 0.8;
+}
