@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Settings.css";
 import UserForm from "../components/UserForm";
 import DataExport from "../components/DataExport";
+import { apiFetch } from "../utils/api";
 
 function Settings() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ function Settings() {
   useEffect(() => {
     const fetchKeybinds = async () => {
       try {
-        const res = await fetch("/user/keybinds");
+        const res = await apiFetch("/user/keybinds");
 
         const result = await res.json();
 
@@ -102,7 +103,7 @@ function Settings() {
     }
 
     try {
-      const res = await fetch("/user/password", {
+      const res = await apiFetch("/user/password", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +139,7 @@ function Settings() {
   useEffect(() => {
     const fetchAccessLevels = async () => {
       try {
-        const res = await fetch("/user/access-levels");
+        const res = await apiFetch("/user/access-levels");
         const result = await res.json();
 
         if (!res.ok || result.error)
@@ -203,7 +204,7 @@ function Settings() {
 
   const saveKeybinds = async () => {
     try {
-      const res = await fetch("/user/keybinds", {
+      const res = await apiFetch("/user/keybinds", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -227,7 +228,7 @@ function Settings() {
 
   const resetKeybinds = async () => {
     try {
-      const res = await fetch("/user/keybinds", {
+      const res = await apiFetch("/user/keybinds", {
         method: "DELETE",
       });
 
@@ -262,7 +263,7 @@ function Settings() {
 
 
     try {
-      const res = await fetch("/user/settings", {
+      const res = await apiFetch("/user/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -276,7 +277,7 @@ function Settings() {
       }
 
       if (profile.role.toLowerCase() === "owner" && activeSection === "Security") {
-        const accessRes = await fetch("/user/access-levels", {
+        const accessRes = await apiFetch("/user/access-levels", {
           method: "PUT",
           headers: { "Content-Type" : "application/json" },
           body: JSON.stringify({ accessLevels: accessLevels })
@@ -297,7 +298,7 @@ function Settings() {
 
   const restoreDefaultSettings = async () => {
     try {
-      const res = await fetch("/user/settings", {
+      const res = await apiFetch("/user/settings", {
         method: "DELETE",
       });
 
@@ -337,7 +338,7 @@ function Settings() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch("/user/settings");
+        const res = await apiFetch("/user/settings");
 
         const result = await res.json();
 

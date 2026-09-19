@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import GameClock from "../components/GameClock";
 import "../styles/EventCapture.css";
+import { apiFetch } from "../utils/api";
 
 const actionToCode = {
   Pass: "P",
@@ -43,7 +44,7 @@ function EventCapture() {
   useEffect(() => {
     const fetchGameInfo = async () => {
       try {
-        const res = await fetch(`/games/${gameId}`);
+        const res = await apiFetch(`/games/${gameId}`);
         const result = await res.json();
 
         if (!res.ok || result.error) throw new Error(result.message);
@@ -95,7 +96,7 @@ function EventCapture() {
   useEffect(() => {
     const fetchKeybinds = async () => {
       try {
-        const res = await fetch("/user/keybinds", {
+        const res = await apiFetch("/user/keybinds", {
           credentials: "include",
         });
         const result = await res.json();
@@ -137,7 +138,7 @@ function EventCapture() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch("/user/settings");
+        const res = await apiFetch("/user/settings");
         const result = await res.json();
 
         if (!res.ok || result.error) {
@@ -216,7 +217,7 @@ function EventCapture() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch(`/events/game/${gameId}`);
+        const res = await apiFetch(`/events/game/${gameId}`);
         const result = await res.json();
 
         if (!res.ok || result.error) throw new Error(result.message);
@@ -254,7 +255,7 @@ function EventCapture() {
     };
 
     try {
-      const res = await fetch("/events", {
+      const res = await apiFetch("/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -288,7 +289,7 @@ function EventCapture() {
       };
 
       try {
-        const res = await fetch(`/events/${event.id}`, {
+        const res = await apiFetch(`/events/${event.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -335,7 +336,7 @@ function EventCapture() {
     const event = events[index];
 
     try {
-      const res = await fetch(`/events/${event.id}`, {
+      const res = await apiFetch(`/events/${event.id}`, {
         method: "DELETE",
       });
 

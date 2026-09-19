@@ -4,6 +4,7 @@ import { Container } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/GameEvents.css";
 import ZoneTimeGraphs from "../components/GameGraphs";
+import { apiFetch } from "../utils/api";
 
   // Format Event Time
   const formatTime = (seconds) => {
@@ -16,7 +17,7 @@ import ZoneTimeGraphs from "../components/GameGraphs";
   };
 
   async function requestGameEvents(gameId, awayName) {
-    const response = await fetch(`/events/game/${gameId}`);
+    const response = await apiFetch(`/events/game/${gameId}`);
     const result = await response.json();
 
     if (!response.ok || result.error) {
@@ -63,7 +64,7 @@ const GameEventsPage = () => {
   useEffect(() => {
     const fetchGame = async () => {
       try {
-        const res = await fetch(`/games/${gameId}`);
+        const res = await apiFetch(`/games/${gameId}`);
         const result = await res.json();
 
         if (!res.ok || result.error) {

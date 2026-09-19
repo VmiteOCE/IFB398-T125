@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { checkAuth } from "../utils/auth";
+import { apiFetch } from "../utils/api";
 
 
 export default function LoginPage() {
@@ -42,7 +43,7 @@ export default function LoginPage() {
 
 
         try {
-            const response = await fetch("/user/login", {
+            const response = await apiFetch("/user/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

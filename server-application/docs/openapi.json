@@ -19,7 +19,7 @@
   },
   "servers": [
     {
-      "url": "https://ifb398-t125-production.onrender.com/",
+      "url": "https://ifb398-t125-deployment.onrender.com/",
       "description": "Render Hosted API"
     },
     {
