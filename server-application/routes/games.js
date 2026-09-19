@@ -66,13 +66,23 @@ router.post('/', verifyToken, requireMatchAccess("edit"), async (req, res) => {
       });
     }
 
-    const [insertedId] = await req.db('games')
+    // Explicitly request the returned id column
+    const result = await req.db('games')
       .insert({
         game_name,
         vs_team,
         start_time,
         game_status
-      });
+      })
+      .returning('game_id');
+
+    // Extract the ID safely whether result is [1], [{ id: 1 }], or an integer
+    let insertedId;
+    if (Array.isArray(result) && result.length > 0) {
+      insertedId = typeof result[0] === 'object' ? result[0].game_id : result[0];
+    } else {
+      insertedId = result;
+    }
 
     // Success response - 201 Created
     res.status(201).json({ error: false, message: "Game created successfully", game_id: insertedId });

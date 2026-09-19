@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
+import { apiFetch } from "../utils/api";
 
 export default function UserManagementModal({ show, onHide }) {
     const [view, setView] = useState("list");
@@ -29,7 +30,7 @@ export default function UserManagementModal({ show, onHide }) {
 
     async function loadUsers() {
         try {
-            const response = await fetch("/user");
+            const response = await apiFetch("/user");
             const data = await response.json();
 
             if (!response.ok) {
@@ -47,7 +48,7 @@ export default function UserManagementModal({ show, onHide }) {
 
     async function createUser() {
         try {
-            await fetch("/user", {
+            await apiFetch("/user", {
                 method: "POST",
                 headers:{
                     "Content-Type":"application/json"
@@ -70,7 +71,7 @@ export default function UserManagementModal({ show, onHide }) {
 
     async function updateUser(){
         try {
-            await fetch("/user", {
+            await apiFetch("/user", {
                 method:"PATCH",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify({
@@ -89,7 +90,7 @@ export default function UserManagementModal({ show, onHide }) {
 
     async function deleteUser(){
         try {
-            await fetch("/user", {
+            await apiFetch("/user", {
                 method:"DELETE",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify({

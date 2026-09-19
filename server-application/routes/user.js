@@ -37,7 +37,7 @@ router.post('/', verifyToken, requireRole('admin'), async (req, res) => {
       username,
       password: hashedPassword,
       role
-    });
+    }).returning('username');
 
     res.status(201).json({
       error: false,
