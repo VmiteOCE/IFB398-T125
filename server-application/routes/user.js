@@ -201,8 +201,10 @@ router.post('/login', async (req, res) => {
     // Return token to user
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      //secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      secure: true,       // Required for SameSite="none"
+      sameSite: "none",   // Required for cross-domain cookies
       maxAge: 24 * 60 * 60 * 1000
     });
 
