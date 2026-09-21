@@ -590,8 +590,10 @@ router.put("/access-levels", verifyToken, requireRole("owner"), async (req, res)
 router.post('/logout', (req, res) => {
     res.clearCookie('token', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+        //secure: process.env.NODE_ENV === 'production',
+        //sameSite: 'lax'
+        secure: true,       // Required for SameSite="none"
+        sameSite: "none",   // Required for cross-domain cookies
     });
 
     res.status(200).json({
