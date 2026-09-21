@@ -30,6 +30,7 @@ export function createApp(db) {
   // Allow both local frontend and deployed frontend
   const allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:4173',
     ...(frontendUrl ? [frontendUrl] : [])
   ];
 
