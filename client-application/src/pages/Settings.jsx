@@ -60,6 +60,8 @@ function Settings() {
     Move_Zone_Right: "ArrowRight",
     Swap_Team: "Tab",
     Swap_Direction: "ArrowUp",
+    Ball_in_Play: "/",
+    Ball_Out_Of_Play: ".",
   };
 
   const [keybinds, setKeybinds] = useState(DEFAULT_KEYBINDS);
@@ -76,7 +78,10 @@ function Settings() {
         }
 
         if (result.keybinds) {
-          setKeybinds(result.keybinds);
+          setKeybinds(
+            ...DEFAULT_KEYBINDS,   // Forces the new keybinds to be shown and changed on UI
+            ...result.keybinds
+          );
         }
 
       } catch (err) {
@@ -890,6 +895,8 @@ function Settings() {
                   "Turnover",
                   "Lineout",
                   "Maul",
+                  "Ball_in_Play",
+                  "Ball_Out_Of_Play",
                 ].map((action) => (
                   <Row
                     key={action}
