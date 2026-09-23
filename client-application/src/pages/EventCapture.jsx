@@ -570,10 +570,6 @@ function EventCapture() {
 
               <Row className="event-actions-row">
                 {Object.keys(actionToCode).map((action, i) => {
-                  const showKeybind =
-                    action !== "Ball_In_Play" &&
-                    action !== "Ball_Out_Of_Play";
-
                   return (
                     <Col xs={6} md={3} key={i} className="event-action-col">
                       <Button
@@ -583,7 +579,7 @@ function EventCapture() {
                         onClick={() => handleAction(action)}
                       >
                         {action}
-                        {showKeybind && keybinds[action] && (
+                        {keybinds[action] && (
                           <span className="action-keybind">
                             [{displayKeybind(keybinds[action])}]
                           </span>
