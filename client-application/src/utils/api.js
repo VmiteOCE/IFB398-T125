@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"; // Fallback to local dev server
+const API_URL = import.meta.env.VITE_API_URL || ""; // Fallback to local dev server
 
 export async function apiFetch(endpoint, options = {}) {
     const url = endpoint.startsWith("http") ? endpoint : `${API_URL}${endpoint}`;
