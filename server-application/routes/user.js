@@ -201,10 +201,10 @@ router.post('/login', async (req, res) => {
     // Return token to user
     res.cookie("token", token, {
       httpOnly: true,
-      //secure: process.env.NODE_ENV === "production",
-      //sameSite: "lax",
-      secure: true,       // Required for SameSite="none"
-      sameSite: "none",   // Required for cross-domain cookies
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      //secure: true,       // Required for SameSite="none"
+      //sameSite: "none",   // Required for cross-domain cookies
       maxAge: 24 * 60 * 60 * 1000
     });
 
@@ -590,10 +590,10 @@ router.put("/access-levels", verifyToken, requireRole("owner"), async (req, res)
 router.post('/logout', (req, res) => {
     res.clearCookie('token', {
         httpOnly: true,
-        //secure: process.env.NODE_ENV === 'production',
-        //sameSite: 'lax'
-        secure: true,       // Required for SameSite="none"
-        sameSite: "none",   // Required for cross-domain cookies
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+        //secure: true,       // Required for SameSite="none"
+        //sameSite: "none",   // Required for cross-domain cookies
     });
 
     res.status(200).json({
