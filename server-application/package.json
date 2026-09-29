@@ -7,7 +7,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "build": "npm install && cd ../client-application && npm install && npm run build",
+    "build": "npm install && cd ../client-application && npm install --include=dev && npm run build",
     "start": "node --import dotenv/config server.js",
     "dev": "nodemon --import dotenv/config server.js",
     "test": "vitest run",
