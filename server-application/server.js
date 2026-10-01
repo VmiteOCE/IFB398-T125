@@ -28,19 +28,19 @@ async function initialiseDatabase() {
         if (users.length === 0) {
             console.log('No users found. Creating default account...');
 
-            const hashedPassword = await bcrypt.hash('admin', 10);
+            const hashedPassword = await bcrypt.hash('owner', 10);
 
             await db('users').insert({
-                username: 'admin',
-                password: adminPassword,
-                role: 'admin',
+                username: 'owner',
+                password: hashedPassword,
+                role: 'owner',
                 keybinds: null,
                 settings: null
             });
 
             console.log('Default user created...');
-            console.log('Username: "admin"');
-            console.log('Password: "admin"');
+            console.log('Username: "owner"');
+            console.log('Password: "owner"');
         }
     } catch (error) {
         console.log('Failed to run database migrations:', error);
