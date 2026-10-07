@@ -305,7 +305,14 @@ function DataExport({ showSaved, controlButtonStyle }) {
               GAME TABLE
           ========================== */}
 
-          <div className="table-responsive">
+          <div
+            className="table-responsive"
+            style={{
+              maxHeight: "400px",
+              overflowY: "auto",
+              overflowX: "auto",
+            }}
+          >
             <table
               className="
                 table
@@ -317,34 +324,16 @@ function DataExport({ showSaved, controlButtonStyle }) {
 
               <thead>
                 <tr>
-
-                  <th style={{ width: "80px" }}>
-                    Select
-                  </th>
-
-                  <th>
-                    Game
-                  </th>
-
-                  <th>
-                    Opponent
-                  </th>
-
-                  <th>
-                    Date
-                  </th>
-
-                  <th>
-                    Status
-                  </th>
-
+                  <th style={{ width: "80px" }}>Select</th>
+                  <th>Game</th>
+                  <th>Opponent</th>
+                  <th>Date</th>
+                  <th>Status</th>
                 </tr>
               </thead>
 
               <tbody>
-
                 {games.map((game) => (
-
                   <tr
                     key={game.game_id}
                     className={
@@ -353,27 +342,17 @@ function DataExport({ showSaved, controlButtonStyle }) {
                         : ""
                     }
                   >
-
-                    {/* SELECT */}
-
                     <td>
                       <Form.Check
                         type="radio"
                         name="selectedGame"
                         id={`game-${game.game_id}`}
-                        checked={
-                          selectedGame ===
-                          game.game_id
-                        }
+                        checked={selectedGame === game.game_id}
                         onChange={() =>
-                          setSelectedGame(
-                            game.game_id
-                          )
+                          setSelectedGame(game.game_id)
                         }
                       />
                     </td>
-
-                    {/* GAME */}
 
                     <td>
                       <label
@@ -383,19 +362,13 @@ function DataExport({ showSaved, controlButtonStyle }) {
                           cursor: "pointer",
                         }}
                       >
-                        <strong>
-                          {game.game_name}
-                        </strong>
+                        <strong>{game.game_name}</strong>
                       </label>
                     </td>
-
-                    {/* OPPONENT */}
 
                     <td>
                       {game.vs_team}
                     </td>
-
-                    {/* DATE */}
 
                     <td>
                       {new Date(
@@ -403,18 +376,12 @@ function DataExport({ showSaved, controlButtonStyle }) {
                       ).toLocaleDateString()}
                     </td>
 
-                    {/* STATUS */}
-
                     <td>
                       {game.game_status}
                     </td>
-
                   </tr>
-
                 ))}
-
               </tbody>
-
             </table>
           </div>
 

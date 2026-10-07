@@ -14,7 +14,6 @@ function Settings() {
 
   // ---------------- PROFILE ----------------
   const [profile, setProfile] = useState({
-    profilePicture: "",
     username: sessionStorage.getItem("username") || "Unknown",
     role: sessionStorage.getItem("role") || "Unknown",
   });
@@ -160,19 +159,6 @@ function Settings() {
     }, 2500);
   };
 
-  const handleProfilePicture = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfile((previous) => ({
-        ...previous,
-        profilePicture: reader.result,
-      }));
-    };
-    reader.readAsDataURL(file);
-  };
 
   //fixes the space key from showing as " " in the keybinds modal, instead it will show as "Space" and also adds arrow symbols for the arrow keys
   const displayKeybind = (key) => {
@@ -352,31 +338,12 @@ function Settings() {
       <Row className="justify-content-center">
         <Col lg={4} className="text-center mb-4 mb-lg-0">
           <div className="settings-profile-avatar mx-auto mb-3 d-flex align-items-center justify-content-center">
-            {profile.profilePicture ? (
-              <img
-                src={profile.profilePicture}
+            <img
+                src="/favicon.svg"
                 alt="Profile preview"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
-            ) : (
-              "Profile"
-            )}
           </div>
-
-          <Form.Label
-            htmlFor="profile-picture"
-            className="btn settings-outline-button mb-0"
-            style={controlButtonStyle}
-          >
-            Change Picture
-          </Form.Label>
-          <Form.Control
-            id="profile-picture"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            onChange={handleProfilePicture}
-            className="d-none"
-          />
         </Col>
 
         <Col lg={7}>
