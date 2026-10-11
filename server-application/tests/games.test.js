@@ -502,6 +502,15 @@ describe('GET /games filters', () => {
         });
     });
 
+    test('searches game names without case-sensitivity', async () => {
+        const response = await agent.get('/games?search=REDS');
+        expect(response.status).toBe(200);
+
+        expect(
+            response.body.games.map((game) => game.game_name)
+        ).toContain('Reds vs Storm');
+    });
+
     test('returns 400 for an invalid status filter', async () => {
         const response = await agent.get('/games?status=playing');
 

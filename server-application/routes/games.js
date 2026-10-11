@@ -130,7 +130,7 @@ router.get('/', verifyToken, requireMatchAccess("view"), async (req, res) => {
 
     // Search game name or opposing team
     if (search.trim()) {
-      const searchValue = `%${search.trim()}%`;
+      const searchValue = `%${search.trim().toLowerCase()}%`;
 
       query.where(function () {
         this
