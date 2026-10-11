@@ -40,6 +40,7 @@ beforeEach(async () => {
     await db('events').del();
     await db('games').del();
     await db('users').del();
+    await db('role_permissions').del();
 
     const hashedPassword = await bcrypt.hash("testpassword", 10);
 
@@ -48,6 +49,13 @@ beforeEach(async () => {
         password: hashedPassword,
         role: 'owner'
     });
+
+    await db('role_permissions').insert([
+        { role: 'admin', match_access: 'edit' },
+        { role: 'analyst', match_access: 'edit' },
+        { role: 'coach', match_access: 'view' },
+        { role: 'viewer', match_access: 'none' }
+    ]);
 
     [gameId] = await db('games').insert({
         game_name: 'Test Game',
@@ -537,4 +545,77 @@ describe('DELETE /events/:id', () => {
         });
     });
 
+});
+
+// =========================================================
+// Event Permissions
+// =========================================================
+
+describe('Event permissions', () => {
+
+    async function loginAs(username, role) {
+        await db('users').insert({
+            username,
+            password: await bcrypt.hash('testpassword', 10),
+            role
+        });
+
+        const userAgent = request.agent(app);
+        const loginResponse = await userAgent.post('/user/login').send({
+            username,
+            password: 'testpassword'
+        });
+
+        expect(loginResponse.status).toBe(200);
+        return userAgent;
+    }
+
+    test('rejects unauthenticated event reads', async () => {
+        const response = await request(app).get(`/events/game/${gameId}`);
+        expect(response.status).toBe(401);
+    });
+
+    test('allows view access to read events', async () => {
+        const coachAgent = await loginAs('coachuser', 'coach');
+        const response = await coachAgent.get(`/events/game/${gameId}`);
+        expect(response.status).toBe(200);
+    });
+
+    test('rejects no-access users from reading events', async () => {
+        const viewerAgent = await loginAs('vieweruser', 'viewer');
+        const response = await viewerAgent.get(`/events/game/${gameId}`);
+        expect(response.status).toBe(403);
+    });
+
+    test('rejects view-only users from creating events', async () => {
+        const coachAgent = await loginAs('coachuser', 'coach');
+        const response = await coachAgent.post('/events').send({
+            game_id: gameId,
+            event_code: 'R',
+            zone_id: 'M',
+            team_id: 1,
+            game_clock: 120,
+            game_half: 1
+        });
+        expect(response.status).toBe(403);
+    });
+
+    test('allows edit users to create events', async () => {
+        const analystAgent = await loginAs('analystuser', 'analyst');
+        const response = await analystAgent.post('/events').send({
+            game_id: gameId,
+            event_code: 'R',
+            zone_id: 'M',
+            team_id: 1,
+            game_clock: 120,
+            game_half: 1
+        });
+        expect(response.status).toBe(201);
+    });
+
+    test('owner can access events regardless of role permissions', async () => {
+        const ownerAgent = await loginAs('owner2', 'owner');
+        const response = await ownerAgent.get(`/events/game/${gameId}`);
+        expect(response.status).toBe(200);
+    });
 });
