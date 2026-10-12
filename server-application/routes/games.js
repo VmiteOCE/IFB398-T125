@@ -134,8 +134,8 @@ router.get('/', verifyToken, requireMatchAccess("view"), async (req, res) => {
 
       query.where(function () {
         this
-          .where('game_name', 'like', searchValue)
-          .orWhere('vs_team', 'like', searchValue);
+          .whereRaw('LOWER(game_name) like ?', searchValue)
+          .orWhereRaw('LOWER(vs_team) like ?', searchValue);
       });
     }
 
