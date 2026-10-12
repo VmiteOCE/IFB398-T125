@@ -21,7 +21,12 @@ export function createApp(db) {
   const swaggerOptions = {
     swaggerOptions: {
       defaultModelsExpandDepth: 0, // 0 = Collapsed, -1 = Hidden
-      docExpansion: 'list'
+      docExpansion: 'list',
+      // Force Swagger UI to include cookies and credentials in requests
+      requestInterceptor: (request) => {
+        request.credentials = 'include';
+        return request;
+      }
     }
   };
 
