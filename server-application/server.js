@@ -42,6 +42,24 @@ async function initialiseDatabase() {
             console.log('Username: "owner"');
             console.log('Password: "owner"');
         }
+
+        // Check if any role permissions exist in the table
+        const roles = await db('role_permissions').select('role');
+
+        if (roles.length === 0) {
+            console.log('No roles found. Creating roles...');
+
+            await db('role_permissions').insert([
+                { role: 'admin', match_access: 'edit' },
+                { role: 'analyst', match_access: 'edit' },
+                { role: 'coach', match_access: 'edit' },
+                { role: 'viewer', match_access: 'view' }
+            ]);
+
+            console.log('Default roles created...');
+        }
+
+
     } catch (error) {
         console.log('Failed to run database migrations:', error);
         throw error;
