@@ -30,25 +30,8 @@
 > ```
 > npm run db:init
 > ```
-> #### HTTPS certificate generation
-> From the server application sub-directory, generate a self-signed HTTPS certificate
-> ```
-> npm run cert
-> ```
-> If certificate generation fails, make sure you have OpenSSL installed.
->
->  Click [here](https://slproweb.com/download/Win64OpenSSL_Light-4_0_1.msi) to download OpenSSL Light for 64-bit Windows. Otherwise, follow [this link](https://slproweb.com/products/Win32OpenSSL.html) and download your desired installer.
->
-> Once you have installed OpenSSL, add it to your system PATH using the following steps (for Windows):
->
-> - **Locate the installation:** Find where the openssl.exe was installed (commonly C:\Program Files\OpenSSL-Win64\bin).
-> - **Open Environment Variables:** Search for "Edit the system environment variables" in your Start menu.
-> - **Edit Path:** Click Environment Variables, find Path under "System variables," and click Edit.
-> - **Add New Entry:** Click New and paste the path to your OpenSSL bin folder (e.g., C:\Program Files\OpenSSL-Win64\bin).
-> - **Restart Terminal:** Open a fresh Command Prompt or PowerShell window and type openssl version to verify.
->
 > #### Express + Node.js API Server
-> Start the Express + Node.js API server by running this at the server application sub-directory, then navigate to https://localhost:3000/ for documentation.
+> Start the Express + Node.js API server by running this at the server application sub-directory, then navigate to http://localhost:3000/ for documentation.
 > ```
 > npm run dev
 > ```
