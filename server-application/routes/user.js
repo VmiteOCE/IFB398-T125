@@ -37,7 +37,7 @@ router.post('/', verifyToken, requireRole('admin'), async (req, res) => {
       username,
       password: hashedPassword,
       role
-    });
+    }).returning('username');
 
     res.status(201).json({
       error: false,
@@ -203,6 +203,8 @@ router.post('/login', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
+      //secure: true,       // Required for SameSite="none"
+      //sameSite: "none",   // Required for cross-domain cookies
       maxAge: 24 * 60 * 60 * 1000
     });
 
@@ -590,6 +592,8 @@ router.post('/logout', (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
+        //secure: true,       // Required for SameSite="none"
+        //sameSite: "none",   // Required for cross-domain cookies
     });
 
     res.status(200).json({

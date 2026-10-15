@@ -1,5 +1,4 @@
 import knex from 'knex';
-import https from 'node:https';
 import fs from 'node:fs';
 import bcrypt from 'bcrypt';
 import 'dotenv/config';
@@ -9,11 +8,14 @@ import { createApp } from './app.js';
 
 const port = process.env.PORT || 3000;
 
-// Initialize Knex
-const db = knex(knexConfig);
+// Determine current environment ('development' by default when running locally)
+const environment = process.env.NODE_ENV || 'development';
+const config = knexConfig[environment] || knexConfig.development;
+const db = knex(config);
+
 const app = createApp(db);
 
-async function initialieDatabase() {
+async function initialiseDatabase() {
     try {
         // Run migrations if they haven't been run yet
         await db.migrate.latest()
@@ -26,17 +28,38 @@ async function initialieDatabase() {
         if (users.length === 0) {
             console.log('No users found. Creating default account...');
 
-            const hashedPassword = await bcrypt.hash('admin', NUM_SALTS);
+            const hashedPassword = await bcrypt.hash('owner', 10);
 
             await db('users').insert({
-                username: 'admin',
-                password: hashedPassword
+                username: 'owner',
+                password: hashedPassword,
+                role: 'owner',
+                keybinds: null,
+                settings: null
             });
 
             console.log('Default user created...');
-            console.log('Username: "admin"');
-            console.log('Password: "admin"');
+            console.log('Username: "owner"');
+            console.log('Password: "owner"');
         }
+
+        // Check if any role permissions exist in the table
+        const roles = await db('role_permissions').select('role');
+
+        if (roles.length === 0) {
+            console.log('No roles found. Creating roles...');
+
+            await db('role_permissions').insert([
+                { role: 'admin', match_access: 'edit' },
+                { role: 'analyst', match_access: 'edit' },
+                { role: 'coach', match_access: 'edit' },
+                { role: 'viewer', match_access: 'view' }
+            ]);
+
+            console.log('Default roles created...');
+        }
+
+
     } catch (error) {
         console.log('Failed to run database migrations:', error);
         throw error;
@@ -45,27 +68,16 @@ async function initialieDatabase() {
 
 async function startServer() {
     try {
-        await initialieDatabase();
+        await initialiseDatabase();
 
-        // HTTPS Credentials
-        const credentials = {
-            key: fs.readFileSync('./certs/selfsigned.key'),
-            cert: fs.readFileSync('./certs/selfsigned.crt')
-        }
-
-        // Start HTTPS server
-        https.createServer(credentials, app).listen(port, () => {
-            console.log(`Server listening on https://localhost:${port}`);
+        // Render requires listening on 0.0.0.0
+        const host = '0.0.0.0';
+        app.listen(port, host, () => {
+            console.log(`Server listening on port ${port}`);
         });
 
     } catch (error) {
-        if (error.code == 'ENOENT') {
-            console.error("HTTPS Initialization Error: Could not read certificate keys.");
-            console.error("Please press \"CTRL + C\" and run \"npm run cert\" to generate local credentials.");
-        } else {
-            console.error('Server startup failed:', error);
-        }
-
+        console.error('Server startup failed:', error);
         process.exit(1);
     }
 }

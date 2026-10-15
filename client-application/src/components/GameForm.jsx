@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Alert, Button, Form, Modal, Spinner,} from "react-bootstrap";
+import { apiFetch } from "../utils/api";
 
 const emptyGame = {
     game_name: "",
@@ -51,7 +52,7 @@ export default function GameForm({gameId, onSaved, buttonText, buttonClassName})
         try {
             setLoadingGame(true);
 
-            const response = await fetch(`/games/${resolvedGameId}`);
+            const response = await apiFetch(`/games/${resolvedGameId}`);
             const data = await response.json().catch(() => null);
 
             if (!response.ok || data?.error)
@@ -107,7 +108,7 @@ export default function GameForm({gameId, onSaved, buttonText, buttonClassName})
             const endpoint = isEditing ? `/games/${resolvedGameId}` : "/games";
             const method = isEditing ? "PUT" : "POST";
 
-            const response = await fetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method,
                 headers: {
                     "Content-Type": "application/json",

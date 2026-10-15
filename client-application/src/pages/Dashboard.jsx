@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button, Col, Collapse, Form, Row } from "react-bootstrap";
 import GameForm from "../components/GameForm";
+import { apiFetch } from "../utils/api";
 
 const DEFAULT_GAME_FILTERS = {
     search: "",
@@ -59,7 +60,7 @@ async function requestGames(filters, signal) {
     const params = buildGameSearchParams(filters);
     const queryString = params.toString();
 
-    const response = await fetch(queryString ? `/games?${queryString}` : "/games", { signal });
+    const response = await apiFetch(queryString ? `/games?${queryString}` : "/games", { signal });
 
     const data = await response
         .json()
@@ -271,7 +272,7 @@ export default function Dashboard() {
         if (!confirmDelete) return;
 
         try {
-            const response = await fetch(`/games/${gameId}`, { method: "DELETE" });
+            const response = await apiFetch(`/games/${gameId}`, { method: "DELETE" });
             const data = await response.json().catch(() => null);
             console.log("Delete response:", data);
 

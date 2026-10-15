@@ -39,6 +39,7 @@ beforeEach(async () => {
     await db('events').del();
     await db('games').del();
     await db('users').del();
+    await db('role_permissions').del();
 
     const hashedPassword = await bcrypt.hash("testpassword", 10);
 
@@ -47,6 +48,13 @@ beforeEach(async () => {
         password: hashedPassword,
         role: 'owner'
     });
+
+    await db('role_permissions').insert([
+        { role: 'admin', match_access: 'edit' },
+        { role: 'analyst', match_access: 'edit' },
+        { role: 'coach', match_access: 'view' },
+        { role: 'viewer', match_access: 'none' }
+    ]);
 
     agent = request.agent(app);
 
@@ -494,6 +502,15 @@ describe('GET /games filters', () => {
         });
     });
 
+    test('searches game names without case-sensitivity', async () => {
+        const response = await agent.get('/games?search=REDS');
+        expect(response.status).toBe(200);
+
+        expect(
+            response.body.games.map((game) => game.game_name)
+        ).toContain('Reds vs Storm');
+    });
+
     test('returns 400 for an invalid status filter', async () => {
         const response = await agent.get('/games?status=playing');
 
@@ -589,4 +606,73 @@ describe('GET /games filters', () => {
         });
     });
 
+});
+
+// =========================================================
+// Game Permissions
+// =========================================================
+
+describe('Game permissions', () => {
+
+    async function loginAs(username, role) {
+        await db('users').insert({
+            username,
+            password: await bcrypt.hash('testpassword', 10),
+            role
+        });
+
+        const userAgent = request.agent(app);
+        const loginResponse = await userAgent.post('/user/login').send({
+            username,
+            password: 'testpassword'
+        });
+
+        expect(loginResponse.status).toBe(200);
+        return userAgent;
+    }
+
+    test('rejects unauthenticated game reads', async () => {
+        const response = await request(app).get('/games');
+        expect(response.status).toBe(401);
+    });
+
+    test('allows view access to read games', async () => {
+        const coachAgent = await loginAs('coachuser', 'coach');
+        const response = await coachAgent.get('/games');
+        expect(response.status).toBe(200);
+    });
+
+    test('rejects no-access users from reading games', async () => {
+        const viewerAgent = await loginAs('vieweruser', 'viewer');
+        const response = await viewerAgent.get('/games');
+        expect(response.status).toBe(403);
+    });
+
+    test('rejects view-only users from creating games', async () => {
+        const coachAgent = await loginAs('coachuser', 'coach');
+        const response = await coachAgent.post('/games').send({
+            game_name: 'Unauthorized Game',
+            vs_team: 'Test Opponent',
+            start_time: '2026-09-10T19:00',
+            game_status: 'scheduled'
+        });
+        expect(response.status).toBe(403);
+    });
+
+    test('allows edit users to create games', async () => {
+        const analystAgent = await loginAs('analystuser', 'analyst');
+        const response = await analystAgent.post('/games').send({
+            game_name: 'Authorized Game',
+            vs_team: 'Test Opponent',
+            start_time: '2026-09-10T19:00',
+            game_status: 'scheduled'
+        });
+        expect(response.status).toBe(201);
+    });
+
+    test('owner can access games regardless of role permissions', async () => {
+        const ownerAgent = await loginAs('owner2', 'owner');
+        const response = await ownerAgent.get('/games');
+        expect(response.status).toBe(200);
+    });
 });

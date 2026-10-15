@@ -1,6 +1,8 @@
+import { apiFetch } from "../utils/api";
+
 export async function checkAuth() {
     try {
-        const response = await fetch("/user/verify");
+        const response = await apiFetch("/user/verify");
 
         return response.ok;
     } catch (error) {
@@ -10,7 +12,7 @@ export async function checkAuth() {
 }
 
 export async function logoutUser() {
-    const response = await fetch("/user/logout", {
+    const response = await apiFetch("/user/logout", {
         method: "POST"
     });
 

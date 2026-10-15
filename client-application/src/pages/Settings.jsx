@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Settings.css";
 import UserForm from "../components/UserForm";
 import DataExport from "../components/DataExport";
+import { apiFetch } from "../utils/api";
 
 function Settings() {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ function Settings() {
 
   // ---------------- PROFILE ----------------
   const [profile, setProfile] = useState({
-    profilePicture: "",
     username: sessionStorage.getItem("username") || "Unknown",
     role: sessionStorage.getItem("role") || "Unknown",
   });
@@ -59,6 +59,8 @@ function Settings() {
     Move_Zone_Right: "ArrowRight",
     Swap_Team: "Tab",
     Swap_Direction: "ArrowUp",
+    Ball_in_Play: "/",
+    Ball_Out_Of_Play: ".",
   };
 
   const [keybinds, setKeybinds] = useState(DEFAULT_KEYBINDS);
@@ -66,7 +68,7 @@ function Settings() {
   useEffect(() => {
     const fetchKeybinds = async () => {
       try {
-        const res = await fetch("/user/keybinds");
+        const res = await apiFetch("/user/keybinds");
 
         const result = await res.json();
 
@@ -75,7 +77,10 @@ function Settings() {
         }
 
         if (result.keybinds) {
-          setKeybinds(result.keybinds);
+          setKeybinds(
+            ...DEFAULT_KEYBINDS,   // Forces the new keybinds to be shown and changed on UI
+            ...result.keybinds
+          );
         }
 
       } catch (err) {
@@ -102,7 +107,7 @@ function Settings() {
     }
 
     try {
-      const res = await fetch("/user/password", {
+      const res = await apiFetch("/user/password", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +143,7 @@ function Settings() {
   useEffect(() => {
     const fetchAccessLevels = async () => {
       try {
-        const res = await fetch("/user/access-levels");
+        const res = await apiFetch("/user/access-levels");
         const result = await res.json();
 
         if (!res.ok || result.error)
@@ -175,20 +180,6 @@ function Settings() {
     }, 2500);
   };
 
-  const handleProfilePicture = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfile((previous) => ({
-        ...previous,
-        profilePicture: reader.result,
-      }));
-    };
-    reader.readAsDataURL(file);
-  };
-
   //fixes the space key from showing as " " in the keybinds modal, instead it will show as "Space" and also adds arrow symbols for the arrow keys
   const displayKeybind = (key) => {
     if (key === " ") return "Space";
@@ -203,7 +194,7 @@ function Settings() {
 
   const saveKeybinds = async () => {
     try {
-      const res = await fetch("/user/keybinds", {
+      const res = await apiFetch("/user/keybinds", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -227,7 +218,7 @@ function Settings() {
 
   const resetKeybinds = async () => {
     try {
-      const res = await fetch("/user/keybinds", {
+      const res = await apiFetch("/user/keybinds", {
         method: "DELETE",
       });
 
@@ -262,7 +253,7 @@ function Settings() {
 
 
     try {
-      const res = await fetch("/user/settings", {
+      const res = await apiFetch("/user/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -276,7 +267,7 @@ function Settings() {
       }
 
       if (profile.role.toLowerCase() === "owner" && activeSection === "Security") {
-        const accessRes = await fetch("/user/access-levels", {
+        const accessRes = await apiFetch("/user/access-levels", {
           method: "PUT",
           headers: { "Content-Type" : "application/json" },
           body: JSON.stringify({ accessLevels: accessLevels })
@@ -297,7 +288,7 @@ function Settings() {
 
   const restoreDefaultSettings = async () => {
     try {
-      const res = await fetch("/user/settings", {
+      const res = await apiFetch("/user/settings", {
         method: "DELETE",
       });
 
@@ -337,7 +328,7 @@ function Settings() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch("/user/settings");
+        const res = await apiFetch("/user/settings");
 
         const result = await res.json();
 
@@ -379,31 +370,12 @@ function Settings() {
       <Row className="justify-content-center">
         <Col lg={4} className="text-center mb-4 mb-lg-0">
           <div className="settings-profile-avatar mx-auto mb-3 d-flex align-items-center justify-content-center">
-            {profile.profilePicture ? (
               <img
-                src={profile.profilePicture}
+                src="/favicon.svg"
                 alt="Profile preview"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
-            ) : (
-              "Profile"
-            )}
           </div>
-
-          <Form.Label
-            htmlFor="profile-picture"
-            className="btn settings-outline-button mb-0"
-            style={controlButtonStyle}
-          >
-            Change Picture
-          </Form.Label>
-          <Form.Control
-            id="profile-picture"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            onChange={handleProfilePicture}
-            className="d-none"
-          />
         </Col>
 
         <Col lg={7}>
@@ -889,6 +861,8 @@ function Settings() {
                   "Turnover",
                   "Lineout",
                   "Maul",
+                  "Ball_in_Play",
+                  "Ball_Out_Of_Play",
                 ].map((action) => (
                   <Row
                     key={action}

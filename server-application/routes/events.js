@@ -48,7 +48,8 @@ router.post('/', verifyToken, requireMatchAccess("edit"), async (req, res) => {
         });
     }
 
-    const [insertedId] = await req.db('events')
+    // 1. Explicitly request primary key 'event_id'
+    const result = await req.db('events')
       .insert({
         game_id,
         event_code,
@@ -56,7 +57,16 @@ router.post('/', verifyToken, requireMatchAccess("edit"), async (req, res) => {
         team_id,
         game_clock,
         game_half
-      });
+      })
+      .returning('event_id');
+
+    // 2. Extract event_id safely
+    let insertedId;
+    if (Array.isArray(result) && result.length > 0) {
+      insertedId = typeof result[0] === 'object' ? (result[0].event_id ?? result[0].id) : result[0];
+    } else {
+      insertedId = result;
+    }
 
     // Success response - 201 Created
     res.status(201).json({ error: false, message: "Event logged successfully", event_id: insertedId });
