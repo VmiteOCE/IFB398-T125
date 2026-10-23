@@ -2,17 +2,17 @@ export default {
   server: {
     proxy: {
       '/events': {
-        target: 'https://localhost:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
       '/games': {
-        target: 'https://localhost:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
       '/user': {
-        target: 'https://localhost:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       }
