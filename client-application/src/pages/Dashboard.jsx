@@ -187,16 +187,16 @@ export default function Dashboard() {
 
                         return [ ...currentGames, ...uniqueNewGames];
                     });
-
-                    setPagination(
-                        data.pagination ?? {
-                            page: Number(filters.page),
-                            limit: Number(filters.limit),
-                            total: 0,
-                            totalPages: 1
-                        }
-                    );
                 }
+
+                setPagination(
+                    data.pagination ?? {
+                        page: Number(filters.page),
+                        limit: Number(filters.limit),
+                        total: 0,
+                        totalPages: 1
+                    }
+                );
 
                 setError("")
             } catch (error) {
